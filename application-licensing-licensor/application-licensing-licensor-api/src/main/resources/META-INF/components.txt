@@ -1,0 +1,9 @@
+com.xwiki.licensing.internal.enforcer.DefaultEntityLicenseManager
+com.xwiki.licensing.internal.enforcer.DefaultLicensor
+com.xwiki.licensing.internal.enforcer.LicensingAuthorizationSettler
+com.xwiki.licensing.internal.enforcer.LicensingInitializer
+com.xwiki.licensing.internal.enforcer.LicensingSecurityEntryReader
+com.xwiki.licensing.internal.DefaultLicenseManager
+com.xwiki.licensing.internal.DefaultLicenseValidator
+com.xwiki.licensing.internal.DefaultLicensingConfiguration
+com.xwiki.licensing.script.LicensorScriptService

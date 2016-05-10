@@ -1,0 +1,3 @@
+com.xwiki.licensing.internal.FileSystemLicenseStore
+com.xwiki.licensing.internal.LicenseConverter
+com.xwiki.licensing.internal.XmlStringLicenseSerializer

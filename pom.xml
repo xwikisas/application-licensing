@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.xwiki.commons</groupId>
+    <artifactId>xwiki-commons-pom</artifactId>
+    <version>8.1-milestone-2</version>
+  </parent>
+
+  <groupId>com.xwiki.licensing</groupId>
+  <artifactId>application-licensing</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Licensing Application</name>
+  <description>Application allowing the licensing of XWiki extensions</description>
+  <properties>
+    <rendering.version>${commons.version}</rendering.version>
+    <platform.version>${commons.version}</platform.version>
+  </properties>
+  <scm>
+    <connection>scm:git:https://git.xwikisas.com/dgervalle/application-licensing.git</connection>
+    <developerConnection>scm:git:https://git.xwikisas.com/dgervalle/application-licensing.git</developerConnection>
+    <url>https://git.xwikisas.com/dgervalle/application-licensing</url>
+    <tag>HEAD</tag>
+  </scm>
+<issueManagement>
+  <system>jira</system>
+  <url>http://jira.xwikisas.com/jira/browse/LICENSING</url>
+</issueManagement>
+<developers>
+  <developer>
+    <id>dgervalle</id>
+    <name>Denis Gervalle</name>
+  </developer>
+</developers>
+<build>
+  <!-- Needed to add support for the XAR packaging -->
+  <extensions>
+    <extension>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-xar-handlers</artifactId>
+      <version>${commons.version}</version>
+    </extension>
+  </extensions>
+  <plugins>
+    <!-- The XAR packaging uses the XAR plugin and thus we need to define what version to use -->
+    <plugin>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-xar-plugin</artifactId>
+      <version>${commons.version}</version>
+    </plugin>
+  </plugins>
+</build>
+<modules>
+  <module>application-licensing-common</module>
+  <module>application-licensing-licensor</module>
+  <module>application-licensing-manager</module>
+</modules>
+</project>

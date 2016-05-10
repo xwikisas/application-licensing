@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>application-licensing</artifactId>
+    <groupId>com.xwiki.licensing</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>application-licensing-manager</artifactId>
+  <packaging>pom</packaging>
+  <name>Licensing Application - Manager</name>
+  <description>Management application for issuing licenses</description>
+  <distributionManagement>
+    <repository>
+      <id>nexus.xwikisas.com-client-releases</id>
+      <name>XWiki SAS Maven2 Remote Repository for Releases</name>
+      <url>https://nexus.xwikisas.com/nexus/content/repositories/client-releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>nexus.xwikisas.com-client-snapshots</id>
+      <name>XWiki SAS Maven2 Remote Repository for Snapshots</name>
+      <url>https://nexus.xwikisas.com/nexus/content/repositories/client-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  <modules>
+    <module>application-licensing-manager-api</module>
+    <module>application-licensing-manager-ui</module>
+  </modules>
+</project>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>application-licensing-common</artifactId>
+    <groupId>com.xwiki.licensing</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>application-licensing-common-model</artifactId>
+  <name>Application Licensing - Common - Model</name>
+  <packaging>jar</packaging>
+  <description>The (JAXB) model for the XWiki License XML resource.</description>
+  <properties>
+    <!-- Name to display by the Extension Manager -->
+    <xwiki.extension.name>Licensing Model</xwiki.extension.name>
+    <xwiki.extension.category>API</xwiki.extension.category>
+    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
+    <!-- Only contain generated sources for which we don't control the code style -->
+    <xwiki.checkstyle.skip>true</xwiki.checkstyle.skip>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.jvnet.jaxb2.maven2</groupId>
+        <artifactId>maven-jaxb2-plugin</artifactId>
+        <version>0.12.3</version>
+        <configuration>
+          <extension>true</extension>
+          <args>
+            <arg>-Xfluent-api</arg>
+          </args>
+          <generatePackage>com.xwiki.licensing.model.jaxb</generatePackage>
+          <verbose>true</verbose>
+          <removeOldOutput>false</removeOldOutput>
+          <plugins>
+            <plugin>
+              <groupId>org.jvnet.jaxb2_commons</groupId>
+              <artifactId>jaxb2-fluent-api</artifactId>
+              <version>3.0</version>
+            </plugin>
+            <plugin>
+              <groupId>org.jvnet.jaxb2_commons</groupId>
+              <artifactId>jaxb2-default-value</artifactId>
+              <version>1.1</version>
+            </plugin>
+          </plugins>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
