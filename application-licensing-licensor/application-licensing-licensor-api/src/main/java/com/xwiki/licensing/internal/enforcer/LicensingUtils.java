@@ -9,22 +9,35 @@ import org.xwiki.component.phase.InitializationException;
  *
  * @version $Id$
  */
-public class LicensingUtils
+public final class LicensingUtils
 {
     private LicensingUtils()
     {
         // This is a utility class, never create an instance of it.
     }
 
+    /**
+     * Utility function that check if some given component are really coming from this package, to prevent easy
+     * overriding of the license enforcing components.
+     *
+     * @param instances the component instances to be checked.
+     * @throws InitializationException if any instances is not from this package.
+     */
     public static void checkIntegrity(Object... instances) throws InitializationException
     {
-        for(Object instance : instances) {
+        for (Object instance : instances) {
             if (!isPristineImpl(instance)) {
                 throw new InitializationException("Integrity check failed while loading the licensor.");
             }
         }
     }
 
+    /**
+     * Utility function that check if a given object instance is from a Class of this package.
+     *
+     * @param instance the instance to check.
+     * @return true if the instance is from a Class of this package.
+     */
     public static boolean isPristineImpl(Object instance)
     {
         return (LicensingUtils.class.getProtectionDomain().getCodeSource()
@@ -40,7 +53,7 @@ public class LicensingUtils
     static Object getFieldValue(Object instanceContainingField, String fieldName)
     {
         // Find the class containing the field to set
-        Class<?> targetClass = instanceContainingField.getClass();
+        Class< ? > targetClass = instanceContainingField.getClass();
         while (targetClass != null) {
             for (Field field : targetClass.getDeclaredFields()) {
                 if (field.getName().equalsIgnoreCase(fieldName)) {

@@ -17,6 +17,7 @@
     <xwiki.extension.name>Licensing API</xwiki.extension.name>
     <xwiki.extension.category>API</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
+    <checkstyle.suppressions.location>${basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
   </properties>
   <dependencies>
     <dependency>

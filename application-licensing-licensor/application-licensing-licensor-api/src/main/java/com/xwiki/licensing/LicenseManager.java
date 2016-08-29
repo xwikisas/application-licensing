@@ -55,7 +55,7 @@ public interface LicenseManager
     Collection<LicenseId> getUnusedPersistedLicenses();
 
     /**
-     * @return
+     * @return an modifiable collection of license currently being used to allow running an installed extension.
      */
     Collection<License> getUsedLicenses();
 }

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.xwiki.crypto.pkix.params.CertifiedPublicKey;
 import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
@@ -27,10 +28,18 @@ public final class SignedLicense extends License
 {
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
-    private final String UNSUPPORTED_METHOD_ERROR = "Signed license could not be tampered.";
+    private static final String UNSUPPORTED_METHOD_ERROR = "Signed license could not be tampered.";
 
     private final byte[] signedLicense;
 
+    /**
+     * Construct a Signed license, not for public usage, see the LicenseConverter to convert a encoded license
+     * into a SignedLicense.
+     *
+     * @param signedLicense the encoded signed license.
+     * @param verifier the signature verifier, should be an instance of DefaultCMSSignedDataVerifier.
+     * @param converter the license converter, should be an instance of LicenseConverter.
+     */
     public SignedLicense(byte[] signedLicense, CMSSignedDataVerifier verifier, Converter<License> converter)
     {
         if (!(verifier instanceof DefaultCMSSignedDataVerifier) || !(converter instanceof LicenseConverter)) {
@@ -48,12 +57,19 @@ public final class SignedLicense extends License
         initialize(license);
     }
 
+    /**
+     * Copy constructor.
+     * @param license the license to copy.
+     */
     public SignedLicense(SignedLicense license)
     {
         initialize(license);
         this.signedLicense = license.signedLicense;
     }
 
+    /**
+     * @return the encoded license representing this signed license.
+     */
     public byte[] getEncoded()
     {
         return signedLicense;
@@ -81,7 +97,7 @@ public final class SignedLicense extends License
 
         for (CMSSignerVerifiedInformation signatureInfo : signedDataVerified.getSignatures()) {
             if (isSignatureTrusted(signatureInfo)) {
-                return new String(signedDataVerified.getContent(), UTF8);
+                return StringUtils.newStringUtf8(signedDataVerified.getContent());
             }
         }
 
@@ -136,6 +152,12 @@ public final class SignedLicense extends License
     }
 
     @Override
+    public void addFeatureId(LicensedFeatureId id)
+    {
+        throw new UnsupportedOperationException(UNSUPPORTED_METHOD_ERROR);
+    }
+
+    @Override
     public void setId(LicenseId id)
     {
         throw new UnsupportedOperationException(UNSUPPORTED_METHOD_ERROR);
@@ -148,7 +170,19 @@ public final class SignedLicense extends License
     }
 
     @Override
+    public void addInstanceId(InstanceId id)
+    {
+        throw new UnsupportedOperationException(UNSUPPORTED_METHOD_ERROR);
+    }
+
+    @Override
     public void setLicensee(Map<String, String> licensee)
+    {
+        throw new UnsupportedOperationException(UNSUPPORTED_METHOD_ERROR);
+    }
+
+    @Override
+    public void addLicenseeInfo(String key, String value)
     {
         throw new UnsupportedOperationException(UNSUPPORTED_METHOD_ERROR);
     }
@@ -183,5 +217,10 @@ public final class SignedLicense extends License
             .appendSuper(super.equals(license))
             .append(getEncoded(), license.getEncoded())
             .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

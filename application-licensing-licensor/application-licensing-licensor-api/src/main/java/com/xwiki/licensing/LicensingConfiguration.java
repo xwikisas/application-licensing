@@ -12,5 +12,8 @@ import org.xwiki.component.annotation.Role;
 @Role
 public interface LicensingConfiguration
 {
+    /**
+     * @return the configured path where to store licenses.
+     */
     File getLocalStorePath();
 }

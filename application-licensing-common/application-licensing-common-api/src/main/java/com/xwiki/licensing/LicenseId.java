@@ -12,11 +12,18 @@ public class LicenseId implements Serializable, Comparable<LicenseId>
 {
     private final UUID uuid;
 
+    /**
+     * Default constructor which create a random identifier.
+     */
     public LicenseId()
     {
         uuid = UUID.randomUUID();
     }
 
+    /**
+     * Constructor to create a license identifier from a string.
+     * @param id the identifier as a string.
+     */
     public LicenseId(String id)
     {
         uuid = UUID.fromString(id);

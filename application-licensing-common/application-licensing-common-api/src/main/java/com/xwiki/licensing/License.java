@@ -9,6 +9,8 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.xwiki.instance.InstanceId;
 
+import static ucar.nc2.constants.ACDD.id;
+
 /**
  * A software license instance.
  *
@@ -16,8 +18,16 @@ import org.xwiki.instance.InstanceId;
  */
 public class License implements Comparable<License>
 {
+    /**
+     * An empty constant object used when you need to explicitly assign no license.
+     */
     public static final License UNLICENSED = new License();
-    public static final boolean INSTANCE_ID_EQUALS_BROKEN = new InstanceId() != new InstanceId();
+
+    /**
+     * A bug existed that cause InstanceId comparison to fail wrongly, this is a check for that issue in order
+     * to use a workaround when comparison is needed.
+     */
+    private static final boolean INSTANCE_ID_EQUALS_BROKEN = new InstanceId() != new InstanceId();
 
     static {
         UNLICENSED.setExpirationDate(0L);
@@ -65,6 +75,10 @@ public class License implements Comparable<License>
         return licenseId;
     }
 
+    /**
+     * Set the unique identifier for this license object.
+     * @param id the identifier to assign.
+     */
     public void setId(LicenseId id)
     {
         this.licenseId = id;
@@ -78,6 +92,10 @@ public class License implements Comparable<License>
         return featureIds != null ? Collections.unmodifiableCollection(featureIds) : Collections.emptySet();
     }
 
+    /**
+     * Set the set of features covered by this license.
+     * @param ids a set of feature ids to be assigned.
+     */
     public void setFeatureIds(Collection<LicensedFeatureId> ids)
     {
         if (ids != null) {
@@ -88,6 +106,10 @@ public class License implements Comparable<License>
         }
     }
 
+    /**
+     * Add a feature to the actual feature set covered by this license.
+     * @param id the feature to be added.
+     */
     public void addFeatureId(LicensedFeatureId id)
     {
         if (featureIds == null) {
@@ -104,6 +126,10 @@ public class License implements Comparable<License>
         return instanceIds != null ? Collections.unmodifiableCollection(instanceIds) : Collections.emptySet();
     }
 
+    /**
+     * Set the set of instances this license could be applied to.
+     * @param ids a set of InstanceId to be assigned.
+     */
     public void setInstanceIds(Collection<InstanceId> ids)
     {
         if (ids != null) {
@@ -114,6 +140,10 @@ public class License implements Comparable<License>
         }
     }
 
+    /**
+     * Add an instance for which this license is applicable.
+     * @param id the identifier of the instance to be added.
+     */
     public void addInstanceId(InstanceId id)
     {
         if (instanceIds == null) {
@@ -122,6 +152,11 @@ public class License implements Comparable<License>
         instanceIds.add(id);
     }
 
+    /**
+     * Check if this license is applicable for a given instance.
+     * @param id the identifier of the instance to be checked.
+     * @return true if this license is applicable for the given instance.
+     */
     public boolean isApplicableTo(InstanceId id)
     {
         if (!INSTANCE_ID_EQUALS_BROKEN) {
@@ -146,6 +181,10 @@ public class License implements Comparable<License>
         return expirationDate;
     }
 
+    /**
+     * Set the expiration date of this license.
+     * @param date the date to be assigned. Use Long.MAX_VALUE for an infinite license.
+     */
     public void setExpirationDate(Long date)
     {
         expirationDate = date;
@@ -159,6 +198,10 @@ public class License implements Comparable<License>
         return maxUserCount;
     }
 
+    /**
+     * Set the maximum number of user covered by this license.
+     * @param userCount the maximum number of user to be assigned. Use Long.MAX_VALUE for no limitation.
+     */
     public void setMaxUserCount(long userCount)
     {
         maxUserCount = userCount;
@@ -172,6 +215,10 @@ public class License implements Comparable<License>
         return licenseType;
     }
 
+    /**
+     * Set the license type.
+     * @param type the license type to be assigned.
+     */
     public void setType(LicenseType type)
     {
         licenseType = type;
@@ -185,6 +232,10 @@ public class License implements Comparable<License>
         return licensee != null ? Collections.unmodifiableMap(licensee) : Collections.emptyMap();
     }
 
+    /**
+     * Set licensee informations.
+     * @param licensee a map of licensee information to be assigned.
+     */
     public void setLicensee(Map<String, String> licensee)
     {
         if (licensee != null) {
@@ -195,6 +246,11 @@ public class License implements Comparable<License>
         }
     }
 
+    /**
+     * Add a licensee information (or change it).
+     * @param key the key of the licensee information.
+     * @param value the value of the licensee information.
+     */
     public void addLicenseeInfo(String key, String value)
     {
         if (licensee == null) {
@@ -203,6 +259,12 @@ public class License implements Comparable<License>
         this.licensee.put(key, value);
     }
 
+    /**
+     * Compare two licenses and return the one that has the larger coverage.
+     * @param license1 the first license to be compared
+     * @param license2 the second license to be compared
+     * @return the license that has the larger coverage, only meaningful if both license cover at least a common target.
+     */
     public static License getOptimumLicense(License license1, License license2)
     {
         if (license1 == null) {
@@ -244,10 +306,15 @@ public class License implements Comparable<License>
         return license1;
     }
 
+    /**
+     * Compare several licenses and return the one that has the larger coverage.
+     * @param licenses a set of licenses to be compared
+     * @return the license that has the larger coverage, only meaningful if all licenses cover at least a common target.
+     */
     public static License getOptimumLicense(Collection<License> licenses)
     {
         License bestLicense = null;
-        for(License license : licenses) {
+        for (License license : licenses) {
             bestLicense = getOptimumLicense(bestLicense, license);
         }
         return bestLicense;
@@ -279,6 +346,11 @@ public class License implements Comparable<License>
     }
 
     @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
     public int compareTo(License o)
     {
         return getId().compareTo(getId());
@@ -298,20 +370,40 @@ public class License implements Comparable<License>
             if (!(lhs instanceof Collection) || lhs.getClass() != rhs.getClass()) {
                 return super.append(lhs, rhs);
             }
-            Collection<?> clhs = (Collection<?>) lhs;
-            Collection<?> crhs = (Collection<?>) lhs;
-            if (clhs.size() != crhs.size()) {
+            return append((Collection< ? >) lhs, (Collection< ? >) rhs);
+        }
+
+        private EqualsBuilder append(Collection< ? > lhs, Collection< ? > rhs)
+        {
+            if (lhs.size() != rhs.size()) {
                 this.setEquals(false);
                 return this;
             }
-            if (clhs.size() == Integer.MAX_VALUE) {
-                if (!clhs.containsAll(crhs) || !crhs.containsAll(clhs)) {
-                    this.setEquals(false);
+
+            if (lhs.size() > 0) {
+                return appendCollection((Collection< ? >) lhs, (Collection< ? >) rhs);
+            }
+            return this;
+        }
+
+        private EqualsBuilder appendCollection(Collection< ? > lhs, Collection< ? > rhs) {
+            for (Object lobj : lhs) {
+                boolean found = false;
+                for (Object robj : rhs) {
+                    if (INSTANCE_ID_EQUALS_BROKEN && lobj instanceof InstanceId) {
+                        if (((InstanceId) lobj).getInstanceId().equals(((InstanceId) robj).getInstanceId())) {
+                            found = true;
+                            break;
+                        }
+                    } else if (lobj.equals(robj)) {
+                        found = true;
+                        break;
+                    }
                 }
-                return this;
-            }
-            if (!clhs.containsAll(crhs)) {
-                this.setEquals(false);
+                if (!found) {
+                    this.setEquals(false);
+                    return this;
+                }
             }
             return this;
         }

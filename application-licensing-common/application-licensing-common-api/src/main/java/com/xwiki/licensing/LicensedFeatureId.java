@@ -16,11 +16,21 @@ public class LicensedFeatureId
     private final String id;
     private final VersionConstraint versionConstraint;
 
+    /**
+     * Construct a feature identifier from a String without any version constraint.
+     * @param id the identifier as a string.
+     */
     public LicensedFeatureId(String id)
     {
         this(id, null);
     }
 
+    /**
+     * Construct a feature identifier from a String with some version constraint.
+     *
+     * @param id the identifier as a string.
+     * @param versionConstraint the version constraint to be applied.
+     */
     public LicensedFeatureId(String id, String versionConstraint)
     {
         if (id == null) {
@@ -34,21 +44,37 @@ public class LicensedFeatureId
         }
     }
 
+    /**
+     * @return the feature identifier as a string (without the version constraint).
+     */
     public String getId()
     {
         return id;
     }
 
+    /**
+     * @return the version constraint applicable for this feature.
+     */
     public String getVersionConstraint()
     {
         return (versionConstraint != null) ? versionConstraint.getValue() : null;
     }
 
+    /**
+     * @return an extension dependency object useful to find extensions matching this feature in the installed
+     * extension repository.
+     */
     public ExtensionDependency getExtensionDependency()
     {
         return new DefaultExtensionDependency(id, versionConstraint);
     }
 
+    /**
+     * Check if a given extension implement a compatible feature for this identifier.
+     *
+     * @param extensionId the extension identifier.
+     * @return true if the given extension implement the feature.
+     */
     public boolean isCompatible(ExtensionId extensionId)
     {
         return id.equals(extensionId.getId()) && versionConstraint.isCompatible(extensionId.getVersion());
@@ -79,5 +105,10 @@ public class LicensedFeatureId
             && ((this.versionConstraint == null && licensedFeatureId.versionConstraint == null)
                 || (this.versionConstraint != null
                     && this.versionConstraint.equals(licensedFeatureId.versionConstraint)));
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

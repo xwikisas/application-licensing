@@ -31,13 +31,7 @@ import org.xwiki.security.authorization.SecurityEntryReader;
 @Named("LicensingInitializerListener")
 public class LicensingInitializer implements EventListener
 {
-    @Inject
-    private Logger logger;
-
-    /** The context component manager. */
-    @Inject
-    @Named("context")
-    private ComponentManager componentManager;
+    private static final String LICENSOR_ID = "com.xwiki.licensing:application-licensing-licensor";
 
     /**
      * The events observed by this event listener.
@@ -45,11 +39,19 @@ public class LicensingInitializer implements EventListener
     private static final List<Event> EVENTS = new ArrayList<>(Arrays.asList(
         new ApplicationStartedEvent(),
         new ExtensionInstalledEvent(
-            new ExtensionId("com.xwiki.licensing:application-licensing-licensor", (Version) null),
+            new ExtensionId(LICENSOR_ID, (Version) null),
             null),
         new ExtensionUpgradedEvent(
-            new ExtensionId("com.xwiki.licensing:application-licensing-licensor", (Version) null),
+            new ExtensionId(LICENSOR_ID, (Version) null),
             null)));
+
+    @Inject
+    private Logger logger;
+
+    /** The context component manager. */
+    @Inject
+    @Named("context")
+    private ComponentManager componentManager;
 
     @Override
     public List<Event> getEvents()

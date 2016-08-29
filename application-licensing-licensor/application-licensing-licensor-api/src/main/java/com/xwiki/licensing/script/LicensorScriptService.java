@@ -31,11 +31,17 @@ public class LicensorScriptService implements ScriptService, Initializable
         }
     }
 
+    /**
+     * @return the current licensor.
+     */
     public Licensor getLicensor()
     {
         return licensor;
     }
 
+    /**
+     * Check that a valid license is covering the current document and redirect to an information page if not.
+     */
     public void checkLicense()
     {
         if (!licensor.hasLicensure()) {

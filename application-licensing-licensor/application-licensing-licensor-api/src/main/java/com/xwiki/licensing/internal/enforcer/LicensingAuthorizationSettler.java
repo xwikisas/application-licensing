@@ -33,7 +33,7 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseValidator;
 
 /**
- * Wrapper of the authorization settler that implement licensing control
+ * Wrapper of the authorization settler that implement licensing control.
  *
  * @version $Id$
  */
@@ -42,6 +42,9 @@ import com.xwiki.licensing.LicenseValidator;
 @Singleton
 public class LicensingAuthorizationSettler implements AuthorizationSettler, Initializable, Disposable
 {
+    /**
+     * Hint of this component.
+     */
     public static final String HINT = "licensing";
 
     private static final String AUTHORIZATION_SETTLER_FIELD = "authorizationSettler";
@@ -174,7 +177,8 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
         if (authorizationSettlerProvider.get() == this) {
             logger.debug("Replacing myself by [{}].", this.authorizationSettler);
             // Restore the original settler
-            ReflectionUtils.setFieldValue(authorizationSettlerProvider, AUTHORIZATION_SETTLER_FIELD, authorizationSettler);
+            ReflectionUtils.setFieldValue(authorizationSettlerProvider, AUTHORIZATION_SETTLER_FIELD,
+                authorizationSettler);
         }
     }
 

@@ -25,7 +25,7 @@ import org.xwiki.security.authorization.internal.AbstractSecurityRuleEntry;
 import com.xwiki.licensing.License;
 
 /**
- * Wrapper of the security entry reader that implement licensing injection
+ * Wrapper of the security entry reader that implement licensing injection.
  *
  * @version $Id$
  */
@@ -34,6 +34,9 @@ import com.xwiki.licensing.License;
 @Singleton
 public class LicensingSecurityEntryReader implements SecurityEntryReader, Initializable, Disposable
 {
+    /**
+     * Hint of this component.
+     */
     public static final String HINT = "licensing";
 
     private static final String SECURITY_ENTRY_READER_FIELD = "securityEntryReader";
@@ -45,7 +48,7 @@ public class LicensingSecurityEntryReader implements SecurityEntryReader, Initia
     private SecurityCacheLoader securityCacheLoader;
 
     /**
-     * The default security entry reader
+     * The default security entry reader.
      */
     @Inject
     private SecurityEntryReader securityEntryReader;

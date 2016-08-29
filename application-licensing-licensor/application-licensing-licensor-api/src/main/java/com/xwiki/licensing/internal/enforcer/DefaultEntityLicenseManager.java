@@ -32,14 +32,14 @@ import com.xwiki.licensing.LicenseManager;
 public class DefaultEntityLicenseManager implements EntityLicenseManager, Initializable
 {
     @Inject
-    Logger logger;
+    private Logger logger;
 
     @Inject
     @Named(XarExtensionHandler.TYPE)
-    InstalledExtensionRepository installedExtensionRepository;
+    private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
-    LicenseManager licenseManager;
+    private LicenseManager licenseManager;
 
     @Override
     public void initialize() throws InitializationException
@@ -50,7 +50,7 @@ public class DefaultEntityLicenseManager implements EntityLicenseManager, Initia
     @Override
     public License get(EntityReference reference)
     {
-        for(XarInstalledExtension extension : getMatchingExtensions(reference)) {
+        for (XarInstalledExtension extension : getMatchingExtensions(reference)) {
             License license = licenseManager.get(extension.getId());
             if (license != null) {
                 // TODO: improve potential conflict resolution

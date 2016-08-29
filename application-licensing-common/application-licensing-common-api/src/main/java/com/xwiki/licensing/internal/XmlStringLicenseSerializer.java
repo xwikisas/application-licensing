@@ -36,13 +36,13 @@ import com.xwiki.licensing.model.jaxb.Restrictions;
 public class XmlStringLicenseSerializer implements LicenseSerializer<String>
 {
     @Inject
-    Logger logger;
+    private Logger logger;
 
     @Inject
     @Named("Base64")
-    BinaryStringEncoder base64Encoder;
+    private BinaryStringEncoder base64Encoder;
 
-    ObjectFactory objectFactory = new ObjectFactory();
+    private ObjectFactory objectFactory = new ObjectFactory();
 
     @Override
     @SuppressWarnings("unchecked")

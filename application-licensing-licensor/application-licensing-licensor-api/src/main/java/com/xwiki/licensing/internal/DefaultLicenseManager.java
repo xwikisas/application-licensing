@@ -60,14 +60,14 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
     private Logger logger;
 
     @Inject
-    LicensingConfiguration configuration;
+    private LicensingConfiguration configuration;
 
     @Inject
     @Named("FileSystem")
-    LicenseStore store;
+    private LicenseStore store;
 
     @Inject
-    InstalledExtensionRepository installedExtensionRepository;
+    private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
     private InstanceIdManager instanceIdManager;
@@ -115,7 +115,7 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
         License licenseTolink)
     {
         Set<ExtensionId> extensionIds = new HashSet<>();
-        for(LicensedFeatureId licId : licIds) {
+        for (LicensedFeatureId licId : licIds) {
             ExtensionId extensionId = linkLicenceToInstalledExtension(licId, licenseTolink);
             if (extensionId != null) {
                 extensionIds.add(extensionId);
@@ -156,42 +156,47 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
         if (license.isApplicableTo(instanceIdManager.getInstanceId())) {
             for (LicensedFeatureId extId : license.getFeatureIds()) {
                 License existingLicense = featureToLicense.get(extId);
+                License newLicense = license;
 
                 // If already licensed somehow, get the best of both license
                 if (existingLicense != null) {
-                    license = License.getOptimumLicense(existingLicense, license);
+                    newLicense = License.getOptimumLicense(existingLicense, license);
                 }
 
                 // If the new license is the best
-                if (license != existingLicense) {
-
-                    // Register the new license for this extension
-                    featureToLicense.put(extId, license);
-
-                    Integer usage = licensesUsage.get(license.getId());
-                    if (usage == null) {
-                        // Initialize the first usage of this new license
-                        licenses.put(license.getId(), license);
-                        licensesUsage.put(license.getId(), 1);
-                    } else {
-                        // Increment the usage of this new license
-                        licensesUsage.put(license.getId(), usage + 1);
-                    }
-
-                    if (existingLicense != null) {
-                        // Decrement the usage of the replaced license
-                        usage = licensesUsage.get(existingLicense.getId());
-                        licensesUsage.put(existingLicense.getId(), usage - 1);
-                        if (usage < 1) {
-                            // If the replaced license is no more in use, drop it from the license set to free memory
-                            licenses.remove(existingLicense.getId());
-                        }
-                    }
+                if (newLicense != existingLicense) {
+                    replaceLicense(extId, existingLicense, newLicense);
                     licensedFeatureIds.add(extId);
                 }
             }
         }
         return licensedFeatureIds;
+    }
+
+    private void replaceLicense(LicensedFeatureId extId, License existingLicense, License newLicense)
+    {
+        // Register the new license for this extension
+        featureToLicense.put(extId, newLicense);
+
+        Integer usage = licensesUsage.get(newLicense.getId());
+        if (usage == null) {
+            // Initialize the first usage of this new license
+            licenses.put(newLicense.getId(), newLicense);
+            licensesUsage.put(newLicense.getId(), 1);
+        } else {
+            // Increment the usage of this new license
+            licensesUsage.put(newLicense.getId(), usage + 1);
+        }
+
+        if (existingLicense != null) {
+            // Decrement the usage of the replaced license
+            usage = licensesUsage.get(existingLicense.getId());
+            licensesUsage.put(existingLicense.getId(), usage - 1);
+            if (usage < 1) {
+                // If the replaced license is no more in use, drop it from the license set to free memory
+                licenses.remove(existingLicense.getId());
+            }
+        }
     }
 
     @Override
@@ -233,30 +238,30 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
     }
 
     private License resolveLicenseForExtension(Extension extension) {
-        Set<License> licenses = new HashSet<>();
+        Set<License> candidateLicences = new HashSet<>();
         ExtensionId extId = extension.getId();
         Collection<ExtensionId> features = extension.getExtensionFeatures();
 
-        for(Map.Entry<LicensedFeatureId, License> entry : featureToLicense.entrySet()) {
+        for (Map.Entry<LicensedFeatureId, License> entry : featureToLicense.entrySet()) {
             License license = entry.getValue();
-            if (licenses.contains(license)) {
+            if (candidateLicences.contains(license)) {
                 continue;
             }
 
             LicensedFeatureId licId = entry.getKey();
             if (licId.isCompatible(extId)) {
-                licenses.add(license);
+                candidateLicences.add(license);
                 continue;
             }
             for (ExtensionId feature : features) {
                 if (licId.isCompatible(feature)) {
-                    licenses.add(license);
+                    candidateLicences.add(license);
                     break;
                 }
             }
         }
 
-        return (licenses.size() > 0) ? License.getOptimumLicense(licenses) : License.UNLICENSED;
+        return (candidateLicences.size() > 0) ? License.getOptimumLicense(candidateLicences) : License.UNLICENSED;
     }
 
     private void uninstallExtensionLicense(InstalledExtension extension)
@@ -349,8 +354,8 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
     @Override
     public Collection<License> getUsedLicenses()
     {
-        Collection<License> licenses = new HashSet<>();
-        licenses.addAll(extensionToLicense.values());
-        return licenses;
+        Collection<License> usedLicences = new HashSet<>();
+        usedLicences.addAll(extensionToLicense.values());
+        return usedLicences;
     }
 }

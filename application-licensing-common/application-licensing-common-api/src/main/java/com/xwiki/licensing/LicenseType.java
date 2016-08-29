@@ -7,5 +7,8 @@ package com.xwiki.licensing;
  */
 public enum LicenseType
 {
+    /**
+     * Types for licenses.
+     */
     TRIAL, FREE, PAID
 }

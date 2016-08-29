@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.properties.converter.Converter;
@@ -92,7 +93,7 @@ public class FileSystemLicenseStore implements LicenseStore
 
         boolean isXML = true;
         if (data.length > XML_MAGIC.length) {
-            for(int i = 0; i<XML_MAGIC.length; i++) {
+            for (int i = 0; i < XML_MAGIC.length; i++) {
                 if (data[i] != XML_MAGIC[i]) {
                     isXML = false;
                     break;
@@ -101,7 +102,7 @@ public class FileSystemLicenseStore implements LicenseStore
         }
 
         if (isXML) {
-            return new String(data, UTF8);
+            return StringUtils.newStringUtf8(data);
         } else {
             return data;
         }
@@ -113,7 +114,7 @@ public class FileSystemLicenseStore implements LicenseStore
         File licenseFile = (isMulti(store)) ? getLicenseFile(store, license.getId()) : getStoreFile(store);
 
         if (license instanceof SignedLicense) {
-            FileUtils.writeByteArrayToFile(licenseFile, ((SignedLicense)license).getEncoded());
+            FileUtils.writeByteArrayToFile(licenseFile, ((SignedLicense) license).getEncoded());
         } else {
             FileUtils.writeStringToFile(licenseFile, (String) serializer.serialize(license), UTF8);
         }
@@ -198,7 +199,7 @@ public class FileSystemLicenseStore implements LicenseStore
     class LicenseFileIterator implements Iterator<License>
     {
         private final File[] files;
-        private int index = 0;
+        private int index;
 
         LicenseFileIterator(File[] files)
         {
