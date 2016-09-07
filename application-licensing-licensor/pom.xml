@@ -12,20 +12,11 @@
   <packaging>pom</packaging>
   <name>Licensing Application - Licensor</name>
   <description>Ensure the management of licence and the licensure for licensed items</description>
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <configuration>
-            <!-- prevent releasing source and javadoc -->
-            <useReleaseProfile>false</useReleaseProfile>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+  <properties>
+    <!-- prevent releasing source and javadoc -->
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+    <maven.source.skip>true</maven.source.skip>
+  </properties>
   <modules>
     <module>application-licensing-licensor-api</module>
     <module>application-licensing-licensor-ui</module>
