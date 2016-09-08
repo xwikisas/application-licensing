@@ -20,14 +20,14 @@
     <platform.version>${commons.version}</platform.version>
   </properties>
   <scm>
-    <connection>scm:git:https://git.xwikisas.com/dgervalle/application-licensing.git</connection>
-    <developerConnection>scm:git:https://git.xwikisas.com/dgervalle/application-licensing.git</developerConnection>
-    <url>https://git.xwikisas.com/dgervalle/application-licensing</url>
+    <connection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</connection>
+    <developerConnection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</developerConnection>
+    <url>https://git.xwikisas.com/xwiki-sas-products/application-licensing</url>
     <tag>HEAD</tag>
   </scm>
   <issueManagement>
     <system>jira</system>
-    <url>http://jira.xwikisas.com/jira/browse/LICENSING</url>
+    <url>http://jira.xwikisas.com/browse/LICENSING</url>
   </issueManagement>
   <developers>
     <developer>
