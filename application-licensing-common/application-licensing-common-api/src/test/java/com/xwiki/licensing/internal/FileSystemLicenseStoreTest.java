@@ -99,7 +99,7 @@ public class FileSystemLicenseStoreTest
     @Test
     public void testStoreUnsignedLicenseToFile() throws Exception
     {
-        LicenseSerializer serializer = mockedStore.getInstance(LicenseSerializer.class, "xml");
+        LicenseSerializer serializer = mockedStore.getInstance(LicenseSerializer.TYPE_STRING, "xml");
         when(serializer.serialize(testLicense)).thenReturn(xmlLicense);
 
         store.store(SINGLE_STORE_REFERENCE, testLicense);
@@ -124,7 +124,7 @@ public class FileSystemLicenseStoreTest
     @Test
     public void testStoreUnsignedLicenseToFolder() throws Exception
     {
-        LicenseSerializer serializer = mockedStore.getInstance(LicenseSerializer.class, "xml");
+        LicenseSerializer serializer = mockedStore.getInstance(LicenseSerializer.TYPE_STRING, "xml");
         when(serializer.serialize(testLicense)).thenReturn(xmlLicense);
 
         store.store(MULTI_STORE_REFERENCE, testLicense);

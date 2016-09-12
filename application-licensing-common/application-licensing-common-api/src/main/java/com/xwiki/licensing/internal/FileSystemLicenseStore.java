@@ -56,7 +56,7 @@ public class FileSystemLicenseStore implements LicenseStore
 
     @Inject
     @Named("xml")
-    private LicenseSerializer serializer;
+    private LicenseSerializer<String> serializer;
 
     @Inject
     private Converter<License> converter;
@@ -116,7 +116,7 @@ public class FileSystemLicenseStore implements LicenseStore
         if (license instanceof SignedLicense) {
             FileUtils.writeByteArrayToFile(licenseFile, ((SignedLicense) license).getEncoded());
         } else {
-            FileUtils.writeStringToFile(licenseFile, (String) serializer.serialize(license), UTF8);
+            FileUtils.writeStringToFile(licenseFile, serializer.serialize(license), UTF8);
         }
     }
 
