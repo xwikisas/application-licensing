@@ -1,6 +1,7 @@
 package com.xwiki.licensing.script;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.avalon.framework.activity.Initializable;
@@ -17,6 +18,7 @@ import com.xwiki.licensing.internal.enforcer.LicensingUtils;
  * @version $Id$
  */
 @Component
+@Named("licensor")
 @Singleton
 public class LicensorScriptService implements ScriptService, Initializable
 {
