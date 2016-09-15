@@ -6,4 +6,5 @@ com.xwiki.licensing.internal.enforcer.LicensingSecurityEntryReader
 com.xwiki.licensing.internal.DefaultLicenseManager
 com.xwiki.licensing.internal.DefaultLicenseValidator
 com.xwiki.licensing.internal.DefaultLicensingConfiguration
+com.xwiki.licensing.internal.LicenseManagerEventListener
 com.xwiki.licensing.script.LicensorScriptService

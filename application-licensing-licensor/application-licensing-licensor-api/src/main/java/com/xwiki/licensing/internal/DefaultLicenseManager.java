@@ -2,35 +2,29 @@ package com.xwiki.licensing.internal;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
+import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.Extension;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.ResolveException;
-import org.xwiki.extension.event.ExtensionEvent;
-import org.xwiki.extension.event.ExtensionInstalledEvent;
-import org.xwiki.extension.event.ExtensionUninstalledEvent;
-import org.xwiki.extension.event.ExtensionUpgradedEvent;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.version.Version;
 import org.xwiki.instance.InstanceIdManager;
-import org.xwiki.observation.EventListener;
-import org.xwiki.observation.event.Event;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
 import com.xwiki.licensing.License;
@@ -46,16 +40,10 @@ import com.xwiki.licensing.LicensingConfiguration;
  *
  * @version $Id$
  */
-public class DefaultLicenseManager implements LicenseManager, EventListener, Initializable
+@Component
+@Singleton
+public class DefaultLicenseManager implements LicenseManager, Initializable
 {
-    /**
-     * The events observed by this event listener.
-     */
-    private static final List<Event> EVENTS = new ArrayList<>(Arrays.asList(
-        new ExtensionInstalledEvent(),
-        new ExtensionUninstalledEvent(),
-        new ExtensionUpgradedEvent()));
-
     @Inject
     private Logger logger;
 
@@ -88,7 +76,7 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
     public void initialize() throws InitializationException
     {
         this.licensorExtensionId =
-            installedExtensionRepository.getInstalledExtension("com.xwiki.licensing:application-licensing-licensor",
+            installedExtensionRepository.getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api",
                 null).getId();
 
         this.storeReference = new FileLicenseStoreReference(configuration.getLocalStorePath());
@@ -199,35 +187,7 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
         }
     }
 
-    @Override
-    public List<Event> getEvents()
-    {
-        return EVENTS;
-    }
-
-    @Override
-    public String getName()
-    {
-        return "LicensorManagerListener";
-    }
-
-    @Override
-    public void onEvent(Event event, Object source, Object data)
-    {
-        ExtensionEvent extensionEvent = (ExtensionEvent) event;
-        InstalledExtension installedExtension = (InstalledExtension) source;
-
-        if (event instanceof ExtensionInstalledEvent) {
-            installExtensionLicense(extensionEvent.getNamespace(), installedExtension);
-        } else if (event instanceof ExtensionUninstalledEvent) {
-            uninstallExtensionLicense(installedExtension);
-        } else if (event instanceof ExtensionUpgradedEvent) {
-            uninstallExtensionLicense((InstalledExtension) data);
-            installExtensionLicense(extensionEvent.getNamespace(), installedExtension);
-        }
-    }
-
-    private void installExtensionLicense(String namespace, InstalledExtension extension)
+    void installExtensionLicense(String namespace, InstalledExtension extension)
     {
         ExtensionId extensionId = extension.getId();
 
@@ -264,7 +224,7 @@ public class DefaultLicenseManager implements LicenseManager, EventListener, Ini
         return (candidateLicences.size() > 0) ? License.getOptimumLicense(candidateLicences) : License.UNLICENSED;
     }
 
-    private void uninstallExtensionLicense(InstalledExtension extension)
+    void uninstallExtensionLicense(InstalledExtension extension)
     {
         ExtensionId extensionId = extension.getId();
 

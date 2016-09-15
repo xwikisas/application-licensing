@@ -51,7 +51,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * @return the licence manager (programming rights is required).
+     * @return the licence manager (programming rights is required).ll
      */
     public LicenseManager getLicenseManager() {
         if (contextualAuthorizationManager.hasAccess(Right.PROGRAM)) {

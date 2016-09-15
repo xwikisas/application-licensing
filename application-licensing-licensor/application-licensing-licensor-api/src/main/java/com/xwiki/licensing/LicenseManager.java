@@ -2,6 +2,7 @@ package com.xwiki.licensing;
 
 import java.util.Collection;
 
+import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
 
 /**
@@ -9,6 +10,7 @@ import org.xwiki.extension.ExtensionId;
  *
  * @version $Id$
  */
+@Role
 public interface LicenseManager
 {
     /**
