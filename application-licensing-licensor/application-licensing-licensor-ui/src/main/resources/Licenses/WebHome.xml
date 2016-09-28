@@ -41,6 +41,7 @@
   <hidden>false</hidden>
   <content>{{velocity}}
 #set ($discard = $xwiki.ssx.use('Licenses.Code.LicenseJSON.WebHome'))
+{{info}} $services.localization.render('licensor.homepage.header.info') {{/info}}
 #set($columns = ['name', 'status', 'actions'])
 #set($columnsProperties = {
   'name'    : {'type' : 'text'},

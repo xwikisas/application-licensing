@@ -42,6 +42,12 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
+  <content>licensor.name=Extension name
+licensor.status=Days to expiration
+licensor.actions=Actions
+licensor.trialLicense.label=Get Trial
+licensor.paidLicense.label=Buy
+licensor.homepage.header.info=In this section are displayed all the installed extensions that require a license in order to be used and their status in terms of days number until expiration.</content>
   <object>
     <class>
       <name>XWiki.TranslationDocumentClass</name>
@@ -77,11 +83,4 @@
       <scope>WIKI</scope>
     </property>
   </object>
-  <content>licensor.name=Extension name
-licensor.status=Days to expiration
-licensor.actions=Actions
-licensing.licensor.trialLicense.label=Get Trial
-licensing.licensor.paidLicense.label=Buy
-
- </content>
 </xwikidoc>

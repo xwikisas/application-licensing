@@ -20,29 +20,69 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc reference="Licenses.Code.LicenseJSON.WebHome" locale="">
+<xwikidoc version="1.2" reference="Licenses.Code.LicenseJSON.WebHome" locale="">
   <web>Licenses.Code.LicenseJSON</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>Licenses.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <author>xwiki:XWiki.Admin</author>
-  <customClass/>
-  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <creationDate>1473255492000</creationDate>
-  <date>1474965056000</date>
-  <contentUpdateDate>1474964868000</contentUpdateDate>
+  <parent>Licenses.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1475066249000</date>
+  <contentUpdateDate>1475066183000</contentUpdateDate>
   <version>1.1</version>
   <title>License JSON</title>
-  <defaultTemplate/>
-  <validationScript/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <content>{{velocity}}
+#if ("$!{request.xpage}" == 'plain')
+  $response.setContentType('application/json')
+#end
+#set ($jsonMap = {})
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+#set ($payingExtensions = $services.extension.installed.getBackwardDependencies($licensorId, "wiki:${xcontext.database}"))
+#set ($discard = $jsonMap.put('totalrows', $payingExtensions.size()))
+#set ($discard = $jsonMap.put('returnedrows', $payingExtensions.size()))
+#set ($discard = $jsonMap.put('offset', $request.offset))
+#set ($discard = $jsonMap.put('reqNo', $request.reqNo))
+#set ($discard = $jsonMap.put('rows', []))
+#foreach ($extension in $payingExtensions)
+  #set ($license = $services.licensor.licenseManager.get($extension.id))
+  #set ($actions = "&lt;div class='licenseActions'&gt;")
+  #setActions ($license.type $actions)
+  #set ($actions = "${actions}&lt;/div&gt;")
+  #set ($discard = $jsonMap.get('rows').add({
+    'doc_viewable' : true,
+    'name'   : $extension.name,
+    'status' : $license.expirationDate,
+    'actions': $actions
+  }))
+#end
+$jsontool.serialize($jsonMap)
+#macro (setActions $currentType $actions)
+  #set ($url = $xwiki.getURL('GetLicense.WebHome', 'view', "extensionId=${extension.id}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
+  #if ($currentType == 'FREE')
+    #addAction ('PAID', 'success')
+    #addAction ('TRIAL', 'primary')
+  #elseif ($currentType == 'TRIAL')
+    #addAction ('PAID', 'success')
+  #end
+#end
+#macro (addAction $newType $cssClass)
+  #set ($label = $services.localization.render("licensor.${newType.toLowerCase()}License.label"))
+  #set ($actions = "${actions}&lt;a class='btn btn-${cssClass}' href='https://store.xwiki.com${url}${newType}'&gt;${label}&lt;/a&gt;")
+#end
+{{/velocity}}</content>
   <object>
+    <name>Licenses.Code.LicenseJSON.WebHome</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>5af25189-cb12-4379-bf2d-513b418c9d56</guid>
     <class>
       <name>XWiki.StyleSheetExtension</name>
       <customClass/>
@@ -131,10 +171,6 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </use>
     </class>
-    <name>Licenses.Code.LicenseJSON.WebHome</name>
-    <number>0</number>
-    <className>XWiki.StyleSheetExtension</className>
-    <guid>5af25189-cb12-4379-bf2d-513b418c9d56</guid>
     <property>
       <cache>long</cache>
     </property>
@@ -160,45 +196,4 @@
       <use>currentPage</use>
     </property>
   </object>
-  <content>{{velocity wiki="false"}}
-#if ("$!{request.xpage}" == 'plain')
-  $response.setContentType('application/json')
-#end
-#set ($jsonMap = {})
-#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-#set ($payingExtensions = $services.extension.installed.getBackwardDependencies($licensorId, "wiki:${xcontext.database}"))
-#set ($discard = $jsonMap.put('totalrows', $payingExtensions.size()))
-#set ($discard = $jsonMap.put('returnedrows', $payingExtensions.size()))
-#set ($discard = $jsonMap.put('offset', $request.offset))
-#set ($discard = $jsonMap.put('reqNo', $request.reqNo))
-#set ($discard = $jsonMap.put('rows', []))
-#foreach ($extension in $payingExtensions)
-  #set ($license = $services.licensor.licenseManager.get($extension.id))
-  #set ($actions = "&lt;div class='licenseActions'&gt;")
-  #setActions ($license.type $actions)
-  #set ($actions = "${actions}&lt;/div&gt;")
-  #set ($discard = $jsonMap.get('rows').add({
-    'doc_viewable' : true,
-    'name'   : $extension.name,
-    'status' : $license.expirationDate,
-    'actions': $actions
-  }))
-#end
-$jsontool.serialize($jsonMap)
-
-#macro (setActions $currentType $actions)
-  #set ($url = $xwiki.getURL('GetLicense.WebHome', 'view', "extensionId=${extension.id}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
-  #if ($currentType == 'FREE')
-    #addAction ('PAID', 'success')
-    #addAction ('TRIAL', 'primary')
-  #elseif ($currentType == 'TRIAL')
-    #addAction ('PAID', 'success')
-  #end
-#end
-
-#macro (addAction $newType $cssClass)
-  #set ($label = $services.localization.render("licensing.licensor.${newType.toLowerCase()}License.label"))
-  #set ($actions = "${actions}&lt;a class='btn btn-${cssClass}' href='https://store.xwiki.com${url}${newType}'&gt;${label}&lt;/a&gt;")
-#end
-{{/velocity}}</content>
 </xwikidoc>
