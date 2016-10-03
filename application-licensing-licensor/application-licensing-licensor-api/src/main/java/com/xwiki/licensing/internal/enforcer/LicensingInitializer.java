@@ -1,8 +1,5 @@
 package com.xwiki.licensing.internal.enforcer;
 
-import java.util.Collections;
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -12,7 +9,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
-import org.xwiki.observation.EventListener;
+import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.security.authorization.AuthorizationSettler;
 import org.xwiki.security.authorization.SecurityEntryReader;
@@ -25,26 +22,21 @@ import org.xwiki.security.authorization.SecurityEntryReader;
 @Component
 @Singleton
 @Named("LicensingInitializerListener")
-public class LicensingInitializer implements EventListener, Initializable
+public class LicensingInitializer extends AbstractEventListener implements Initializable
 {
     @Inject
     private Logger logger;
 
     /** The context component manager. */
     @Inject
-    @Named("context")
     private ComponentManager componentManager;
 
-    @Override
-    public List<Event> getEvents()
+    /**
+     * Default constructor.
+     */
+    public LicensingInitializer()
     {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public String getName()
-    {
-        return "LicensorInitializerListener";
+        super("LicensingInitializerListener");
     }
 
     @Override
