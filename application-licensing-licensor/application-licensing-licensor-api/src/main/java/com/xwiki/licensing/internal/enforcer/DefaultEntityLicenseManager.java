@@ -5,12 +5,11 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
@@ -29,7 +28,7 @@ import com.xwiki.licensing.LicenseManager;
  */
 @Component
 @Singleton
-public class DefaultEntityLicenseManager implements EntityLicenseManager, Initializable
+public class DefaultEntityLicenseManager implements EntityLicenseManager
 {
     @Inject
     private Logger logger;
@@ -39,19 +38,27 @@ public class DefaultEntityLicenseManager implements EntityLicenseManager, Initia
     private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
+    private Provider<LicenseManager> licenseManagerProvider;
+
     private LicenseManager licenseManager;
 
-    @Override
-    public void initialize() throws InitializationException
+    private LicenseManager getLicenseManager()
     {
-        LicensingUtils.checkIntegrity(licenseManager);
+        if (licenseManager == null) {
+            licenseManager = licenseManagerProvider.get();
+            if (!LicensingUtils.isPristineImpl(licenseManager)) {
+                throw new RuntimeException("The licensure engine has been tampered. "
+                    + "Your XWiki instance will be seriously impacted.");
+            }
+        }
+        return licenseManager;
     }
 
     @Override
     public License get(EntityReference reference)
     {
         for (XarInstalledExtension extension : getMatchingExtensions(reference)) {
-            License license = licenseManager.get(extension.getId());
+            License license = getLicenseManager().get(extension.getId());
             if (license != null) {
                 // TODO: improve potential conflict resolution
                 return license;

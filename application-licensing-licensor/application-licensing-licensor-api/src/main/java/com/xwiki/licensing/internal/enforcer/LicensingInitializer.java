@@ -1,7 +1,6 @@
 package com.xwiki.licensing.internal.enforcer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -11,12 +10,9 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.extension.ExtensionId;
-import org.xwiki.extension.event.ExtensionInstalledEvent;
-import org.xwiki.extension.event.ExtensionUpgradedEvent;
-import org.xwiki.extension.version.Version;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.observation.EventListener;
-import org.xwiki.observation.event.ApplicationStartedEvent;
 import org.xwiki.observation.event.Event;
 import org.xwiki.security.authorization.AuthorizationSettler;
 import org.xwiki.security.authorization.SecurityEntryReader;
@@ -29,22 +25,8 @@ import org.xwiki.security.authorization.SecurityEntryReader;
 @Component
 @Singleton
 @Named("LicensingInitializerListener")
-public class LicensingInitializer implements EventListener
+public class LicensingInitializer implements EventListener, Initializable
 {
-    private static final String LICENSOR_ID = "com.xwiki.licensing:application-licensing-licensor";
-
-    /**
-     * The events observed by this event listener.
-     */
-    private static final List<Event> EVENTS = new ArrayList<>(Arrays.asList(
-        new ApplicationStartedEvent(),
-        new ExtensionInstalledEvent(
-            new ExtensionId(LICENSOR_ID, (Version) null),
-            null),
-        new ExtensionUpgradedEvent(
-            new ExtensionId(LICENSOR_ID, (Version) null),
-            null)));
-
     @Inject
     private Logger logger;
 
@@ -56,7 +38,7 @@ public class LicensingInitializer implements EventListener
     @Override
     public List<Event> getEvents()
     {
-        return EVENTS;
+        return Collections.emptyList();
     }
 
     @Override
@@ -68,6 +50,13 @@ public class LicensingInitializer implements EventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
+        // Never call, we use this Listener just to get instanciated !
+    }
+
+    @Override
+    public void initialize() throws InitializationException
+    {
+        logger.debug("Initializing the licensing system.");
         try {
             if (!LicensingUtils.isPristineImpl(componentManager.getInstance(AuthorizationSettler.class,
                 LicensingAuthorizationSettler.HINT))
