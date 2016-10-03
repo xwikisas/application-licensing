@@ -30,6 +30,7 @@ public class License implements Comparable<License>
     private static final boolean INSTANCE_ID_EQUALS_BROKEN = new InstanceId() != new InstanceId();
 
     static {
+        UNLICENSED.setId(new LicenseId("00000000-0000-0000-0000-000000000000"));
         UNLICENSED.setExpirationDate(0L);
         UNLICENSED.setMaxUserCount(0L);
     }
