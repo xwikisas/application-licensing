@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -40,7 +41,7 @@ public class LicenseManagerEventListener implements EventListener
         new ExtensionUpgradedEvent()));
 
     @Inject
-    private LicenseManager licenseManager;
+    private Provider<LicenseManager> licenseManagerProvider;
 
     @Override
     public List<Event> getEvents()
@@ -59,16 +60,15 @@ public class LicenseManagerEventListener implements EventListener
     {
         ExtensionEvent extensionEvent = (ExtensionEvent) event;
         InstalledExtension installedExtension = (InstalledExtension) source;
+        DefaultLicenseManager licenseManager = (DefaultLicenseManager) licenseManagerProvider.get();
 
         if (event instanceof ExtensionInstalledEvent) {
-            ((DefaultLicenseManager) licenseManager).installExtensionLicense(extensionEvent.getNamespace(),
-                installedExtension);
+            licenseManager.installExtensionLicense(extensionEvent.getNamespace(), installedExtension);
         } else if (event instanceof ExtensionUninstalledEvent) {
-            ((DefaultLicenseManager) licenseManager).uninstallExtensionLicense(installedExtension);
+            licenseManager.uninstallExtensionLicense(installedExtension);
         } else if (event instanceof ExtensionUpgradedEvent) {
-            ((DefaultLicenseManager) licenseManager).uninstallExtensionLicense((InstalledExtension) data);
-            ((DefaultLicenseManager) licenseManager).installExtensionLicense(extensionEvent.getNamespace(),
-                installedExtension);
+            licenseManager.uninstallExtensionLicense((InstalledExtension) data);
+            licenseManager.installExtensionLicense(extensionEvent.getNamespace(), installedExtension);
         }
     }
 }
