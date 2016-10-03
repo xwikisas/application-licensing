@@ -51,7 +51,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      *
      * @return a license, or null if there is no current document, or the current document is not subject to licensing.
      */
-    License getLicense()
+    public License getLicense()
     {
         return licensor.getLicense();
     }
@@ -63,7 +63,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @param extensionId identifier of an installed extension
      * @return a license, or null if the given installed extension is not subject to licensing.
      */
-    License getLicenseForExtension(ExtensionId extensionId)
+    public License getLicenseForExtension(ExtensionId extensionId)
     {
         return licensor.getLicense(extensionId);
     }
@@ -75,7 +75,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @param reference the reference to get the license from.
      * @return a license, or null if the given reference is not subject to licensing.
      */
-    License getLicenseForEntity(EntityReference reference)
+    public License getLicenseForEntity(EntityReference reference)
     {
         return licensor.getLicense(reference);
     }
@@ -84,7 +84,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      * Equivalent to licensor.hasLicensure() call.
      * @return true if the current document has a valid license or is not subject to licensing.
      */
-    boolean hasLicensure()
+    public boolean hasLicensure()
     {
         return licensor.hasLicensure();
     }
@@ -96,7 +96,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @param extensionId the identifier of the extension for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
      */
-    boolean hasLicensureForExtension(ExtensionId extensionId)
+    public boolean hasLicensureForExtension(ExtensionId extensionId)
     {
         return licensor.hasLicensure(extensionId);
     }
@@ -108,7 +108,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @param reference the reference of the entity for which licensure should be checked.
      * @return true if the given reference has a valid license or is not subject to licensing.
      */
-    boolean hasLicensureForEntity(EntityReference reference)
+    public boolean hasLicensureForEntity(EntityReference reference)
     {
         return licensor.hasLicensure(reference);
     }
