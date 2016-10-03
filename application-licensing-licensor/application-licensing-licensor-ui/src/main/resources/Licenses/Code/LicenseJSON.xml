@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="Licenses.Code.LicenseJSON.WebHome" locale="">
-  <web>Licenses.Code.LicenseJSON</web>
-  <name>WebHome</name>
+<xwikidoc version="1.2" reference="Licenses.Code.LicenseJSON" locale="">
+  <web>Licenses.Code</web>
+  <name>LicenseJSON</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -31,8 +31,8 @@
   <parent>Licenses.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1475066249000</date>
-  <contentUpdateDate>1475066183000</contentUpdateDate>
+  <date>1475488958000</date>
+  <contentUpdateDate>1475488958000</contentUpdateDate>
   <version>1.1</version>
   <title>License JSON</title>
   <comment/>
@@ -79,10 +79,10 @@ $jsontool.serialize($jsonMap)
 #end
 {{/velocity}}</content>
   <object>
-    <name>Licenses.Code.LicenseJSON.WebHome</name>
+    <name>Licenses.Code.LicenseJSON</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
-    <guid>5af25189-cb12-4379-bf2d-513b418c9d56</guid>
+    <guid>19fd3107-a1aa-489b-8c17-dcc0dd1258a2</guid>
     <class>
       <name>XWiki.StyleSheetExtension</name>
       <customClass/>

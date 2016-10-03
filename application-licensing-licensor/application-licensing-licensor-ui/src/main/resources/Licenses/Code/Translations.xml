@@ -20,24 +20,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc reference="Licenses.Code.Translations.WebHome" locale="">
-  <web>Licenses.Code.Translations</web>
-  <name>WebHome</name>
+<xwikidoc version="1.2" reference="Licenses.Code.Translations" locale="">
+  <web>Licenses.Code</web>
+  <name>Translations</name>
   <language/>
-  <defaultLanguage/>
+  <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
-  <parent>Licenses.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <author>xwiki:XWiki.Admin</author>
-  <customClass/>
-  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <creationDate>1473765822000</creationDate>
-  <date>1474965042000</date>
-  <contentUpdateDate>1474963857000</contentUpdateDate>
+  <parent>Licenses.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1475488875000</date>
+  <contentUpdateDate>1475488875000</contentUpdateDate>
   <version>1.1</version>
   <title>Translations</title>
-  <defaultTemplate/>
-  <validationScript/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
@@ -47,8 +44,15 @@ licensor.status=Days to expiration
 licensor.actions=Actions
 licensor.trialLicense.label=Get Trial
 licensor.paidLicense.label=Buy
-licensor.homepage.header.info=In this section are displayed all the installed extensions that require a license in order to be used and their status in terms of days number until expiration.</content>
+licensor.homepage.header.info=In this section are displayed all the installed extensions that require a license in order to be used and their status in terms of days number until expiration.
+licensor.addLicense.adding=Adding license...
+licensor.addLicense.success=License successfully added!
+licensor.addLicense.error=Failed to add license!</content>
   <object>
+    <name>Licenses.Code.Translations</name>
+    <number>0</number>
+    <className>XWiki.TranslationDocumentClass</className>
+    <guid>6940251c-1d71-4f92-912f-26f0a039e5c8</guid>
     <class>
       <name>XWiki.TranslationDocumentClass</name>
       <customClass/>
@@ -75,10 +79,6 @@ licensor.homepage.header.info=In this section are displayed all the installed ex
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </scope>
     </class>
-    <name>Licenses.Code.Translations.WebHome</name>
-    <number>0</number>
-    <className>XWiki.TranslationDocumentClass</className>
-    <guid>06bfdbe6-5016-4c3c-946d-732f2cc6dad1</guid>
     <property>
       <scope>WIKI</scope>
     </property>
