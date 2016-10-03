@@ -79,7 +79,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             installedExtensionRepository.getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api",
                 null).getId();
 
-        this.storeReference = new FileLicenseStoreReference(configuration.getLocalStorePath());
+        this.storeReference = new FileLicenseStoreReference(configuration.getLocalStorePath(), true);
         Iterator<License> it = store.getIterable(storeReference).iterator();
         while (it.hasNext()) {
             try {

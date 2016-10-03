@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
@@ -208,11 +209,14 @@ public class FileSystemLicenseStore implements LicenseStore
 
         public boolean hasNext()
         {
-            return index < files.length;
+            return files != null && index < files.length;
         }
 
         public License next()
         {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
             try {
                 return converter.convert(License.class, getFileContent(files[index++]));
             } catch (IOException e) {
