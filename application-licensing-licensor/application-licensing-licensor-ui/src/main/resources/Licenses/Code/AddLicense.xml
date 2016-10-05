@@ -42,7 +42,9 @@
   <content>{{velocity}}
 #set ($discard = $response.setContentType('application/json'))
 #if ($request.addLicense == 'true')
-  #if ($service.licensor.addLicense($request.license))
+  #set ($license = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder','Base64').decode($request.license))
+  #set ($result = $services.licensor.licenseManager.add($license))
+  #if ($result)
     #set ($jsonRes = {'status': 'done', 'notification': "$services.localization.render('licensor.addLicense.success')"})
   #else
     #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.error')"})
