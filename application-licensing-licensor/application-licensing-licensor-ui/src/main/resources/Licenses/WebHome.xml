@@ -50,7 +50,7 @@
   'actions' : {'type' : 'text', 'html':true}
 })
 #set($options = { 
-  'resultPage':'Licenses.Code.LicenseJSON.WebHome',
+  'resultPage':'Licenses.Code.LicenseJSON',
   'translationPrefix' : 'licensor.'
 })
 #livetable('licenseManager' $columns $columnsProperties $options)
@@ -504,8 +504,8 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>.actions .licenseActions a,
-.actions .licenseActions a:hover {
+      <code>.actions .licenseActions a:link,
+.actions .licenseActions a:link:hover {
   color: #fff;
 }
 .licenseActions a{
