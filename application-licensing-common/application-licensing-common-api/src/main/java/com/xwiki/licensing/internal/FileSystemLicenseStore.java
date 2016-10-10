@@ -85,7 +85,7 @@ public class FileSystemLicenseStore implements LicenseStore
                 String.format("Unexpected store reference, [%s] should be a multi-licenses store.", file));
         }
 
-        return new File(file, licenseId.toString().toUpperCase() + LICENSE_FILE_EXT);
+        return new File(file, licenseId.toString().toLowerCase() + LICENSE_FILE_EXT);
     }
 
     private Object getFileContent(File licenseFile) throws IOException
