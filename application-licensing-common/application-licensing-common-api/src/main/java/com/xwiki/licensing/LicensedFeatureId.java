@@ -59,7 +59,7 @@ public class LicensedFeatureId
      */
     public String getVersionConstraint()
     {
-        return (versionConstraint != null) ? versionConstraint.getValue() : null;
+        return (versionConstraint == NO_VERSION_CONSTRAINT) ? null : versionConstraint.getValue();
     }
 
     /**
