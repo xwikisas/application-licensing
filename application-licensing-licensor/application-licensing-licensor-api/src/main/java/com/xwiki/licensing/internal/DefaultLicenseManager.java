@@ -315,7 +315,12 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     public Collection<License> getUsedLicenses()
     {
         Collection<License> usedLicences = new HashSet<>();
-        usedLicences.addAll(extensionToLicense.values());
+        for (License license : extensionToLicense.values()) {
+            if (license == License.UNLICENSED) {
+                continue;
+            }
+            usedLicences.add(license);
+        }
         return usedLicences;
     }
 }
