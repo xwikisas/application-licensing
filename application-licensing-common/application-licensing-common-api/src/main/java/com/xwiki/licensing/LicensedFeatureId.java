@@ -13,6 +13,7 @@ import org.xwiki.extension.version.internal.DefaultVersionConstraint;
  */
 public class LicensedFeatureId
 {
+    private static final VersionConstraint NO_VERSION_CONSTRAINT =  new DefaultVersionConstraint("(,)");
     private final String id;
     private final VersionConstraint versionConstraint;
 
@@ -40,7 +41,8 @@ public class LicensedFeatureId
         if (versionConstraint != null) {
             this.versionConstraint = new DefaultVersionConstraint(versionConstraint);
         } else {
-            this.versionConstraint = null;
+            // Version constraints should not be NULL to prevent NPE in the EM API.
+            this.versionConstraint = NO_VERSION_CONSTRAINT;
         }
     }
 
