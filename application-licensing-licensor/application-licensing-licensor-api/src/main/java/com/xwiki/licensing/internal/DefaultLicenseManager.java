@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -80,10 +79,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 null).getId();
 
         this.storeReference = new FileLicenseStoreReference(configuration.getLocalStorePath(), true);
-        Iterator<License> it = store.getIterable(storeReference).iterator();
-        while (it.hasNext()) {
+        for (License license : store.getIterable(storeReference)) {
             try {
-                linkLicenseToLicensedFeature(it.next());
+                linkLicenseToLicensedFeature(license);
             } catch (RuntimeException e) {
                 logger.warn("Error retrieving licence, license has been skipped.", e.getCause());
             }
