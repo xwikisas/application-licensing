@@ -9,8 +9,6 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.xwiki.instance.InstanceId;
 
-import static ucar.nc2.constants.ACDD.id;
-
 /**
  * A software license instance.
  *
@@ -276,6 +274,10 @@ public class License implements Comparable<License>
             return license1;
         }
 
+        if (license1.getId().equals(license2.getId())) {
+            return license1;
+        }
+
         if (license1 instanceof SignedLicense) {
             if (!(license2 instanceof SignedLicense)) {
                 return license1;
@@ -285,23 +287,23 @@ public class License implements Comparable<License>
         }
 
         if (license1.getExpirationDate() != license2.getExpirationDate()) {
-            return (license1.getExpirationDate() > license2.getExpirationDate()) ? license1 : license2;
+            return (license1.getExpirationDate() >= license2.getExpirationDate()) ? license1 : license2;
         }
 
         if (license1.getMaxUserCount() != license2.getMaxUserCount()) {
-            return (license1.getMaxUserCount() > license2.getMaxUserCount()) ? license1 : license2;
+            return (license1.getMaxUserCount() >= license2.getMaxUserCount()) ? license1 : license2;
         }
 
         if (license1.getType() != license2.getType()) {
-            return (license1.getType().compareTo(license2.getType()) > 0) ? license1 : license2;
+            return (license1.getType().compareTo(license2.getType()) >= 0) ? license1 : license2;
         }
 
         if (license1.getFeatureIds().size() != license2.getFeatureIds().size()) {
-            return (license1.getFeatureIds().size() > license2.getFeatureIds().size()) ? license1 : license2;
+            return (license1.getFeatureIds().size() >= license2.getFeatureIds().size()) ? license1 : license2;
         }
 
         if (license1.getInstanceIds().size() != license2.getInstanceIds().size()) {
-            return (license1.getInstanceIds().size() > license2.getInstanceIds().size()) ? license1 : license2;
+            return (license1.getInstanceIds().size() >= license2.getInstanceIds().size()) ? license1 : license2;
         }
 
         return license1;
