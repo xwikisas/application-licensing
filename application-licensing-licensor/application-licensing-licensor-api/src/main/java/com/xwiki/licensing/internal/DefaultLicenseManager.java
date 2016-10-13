@@ -22,7 +22,8 @@ import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
-import org.xwiki.extension.version.Version;
+import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
+import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 import org.xwiki.instance.InstanceIdManager;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
@@ -33,6 +34,7 @@ import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.LicenseStoreReference;
 import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
+import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -57,7 +59,14 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
+    @Named(XarExtensionHandler.TYPE)
+    private InstalledExtensionRepository xarInstalledExtensionRepository;
+
+    @Inject
     private InstanceIdManager instanceIdManager;
+
+    @Inject
+    private LicensingSecurityCacheRuleInvalidator licensingSecurityCacheRuleInvalidator;
 
     private final Map<LicenseId, License> licenses = new HashMap<>();
 
@@ -234,7 +243,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         Set<ExtensionId> extIds = new HashSet<>();
         for (Collection<InstalledExtension> extensions : getLicensorBackwardDependencies().values()) {
             for (InstalledExtension extension : extensions) {
-                extIds.add(new ExtensionId(extension.getId().getId(), (Version) null));
+                extIds.add(extension.getId());
             }
         }
         return extIds;
@@ -268,15 +277,27 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     {
         Collection<LicensedFeatureId> licIds = linkLicenseToLicensedFeature(license);
         if (licIds.size() > 0) {
-            linkLicenceToInstalledExtension(licIds, license);
             try {
                 store.store(storeReference, license);
             } catch (IOException e) {
                 logger.warn("Licensor was unable to persist license [{}].", license.getId());
             }
+
+            clearSecurityCacheForXarExtensions(linkLicenceToInstalledExtension(licIds, license));
             return true;
         }
         return false;
+    }
+
+    private void clearSecurityCacheForXarExtensions(Collection<ExtensionId> extensionIds)
+    {
+        for (ExtensionId extId : extensionIds) {
+            InstalledExtension extension = xarInstalledExtensionRepository.getInstalledExtension(extId);
+            if (extension != null && extension instanceof XarInstalledExtension) {
+                logger.debug("Clearing security cache for extension [{}]", extension);
+                licensingSecurityCacheRuleInvalidator.invalidate((XarInstalledExtension) extension);
+            }
+        }
     }
 
     @Override

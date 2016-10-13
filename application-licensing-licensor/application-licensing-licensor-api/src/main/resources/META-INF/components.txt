@@ -1,4 +1,5 @@
 com.xwiki.licensing.internal.enforcer.DefaultEntityLicenseManager
+com.xwiki.licensing.internal.enforcer.DefaultLicensingSecurityCacheRuleInvalidator
 com.xwiki.licensing.internal.enforcer.DefaultLicensor
 com.xwiki.licensing.internal.enforcer.LicensingAuthorizationSettler
 com.xwiki.licensing.internal.enforcer.LicensingInitializer

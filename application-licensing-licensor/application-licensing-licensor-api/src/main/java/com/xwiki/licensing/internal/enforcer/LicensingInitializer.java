@@ -31,6 +31,9 @@ public class LicensingInitializer extends AbstractEventListener implements Initi
     @Inject
     private ComponentManager componentManager;
 
+    @Inject
+    private LicensingSecurityCacheRuleInvalidator licensingSecurityCacheRuleInvalidator;
+
     /**
      * Default constructor.
      */
@@ -57,6 +60,8 @@ public class LicensingInitializer extends AbstractEventListener implements Initi
                 logger.debug("Integrity check failed when getting authorization settler.");
                 throw new Exception();
             }
+
+            licensingSecurityCacheRuleInvalidator.invalidateAll();
         } catch (Exception e) {
             logger.error("The licensure engine has failed to be properly registered, this could affect your ability "
                 + "to use licensed extensions.");
