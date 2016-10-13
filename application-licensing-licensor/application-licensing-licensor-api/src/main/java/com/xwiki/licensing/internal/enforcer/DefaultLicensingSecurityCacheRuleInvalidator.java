@@ -4,6 +4,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -14,6 +15,8 @@ import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.SecurityReferenceFactory;
 import org.xwiki.security.authorization.cache.internal.SecurityCache;
 import org.xwiki.xar.XarEntry;
+
+import com.xpn.xwiki.XWikiContext;
 
 /**
  * Default implementation of the {@link LicensingSecurityCacheRuleInvalidator}.
@@ -38,11 +41,20 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     private SecurityReferenceFactory securityReferenceFactory;
 
     @Inject
+    private Provider<XWikiContext> xcontextProvider;
+
+    @Inject
     private DocumentReferenceResolver<EntityReference> documentReferenceResolver;
 
     @Override
     public void invalidateAll()
     {
+        // Check that the security factory has enough context
+        // TODO: this is really fragile, should be improved by securing the factory itself
+        if (xcontextProvider.get() == null) {
+            return;
+        }
+        
         readWriteLock.writeLock().lock();
         try {
             securityCache.remove(
