@@ -83,6 +83,8 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Override
     public void initialize() throws InitializationException
     {
+        instanceIdManager.initializeInstanceId();
+
         this.licensorExtensionId =
             installedExtensionRepository.getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api",
                 null).getId();
