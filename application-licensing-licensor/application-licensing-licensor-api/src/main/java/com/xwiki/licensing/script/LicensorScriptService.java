@@ -1,5 +1,7 @@
 package com.xwiki.licensing.script;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -7,9 +9,14 @@ import javax.inject.Singleton;
 import org.apache.avalon.framework.activity.Initializable;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceProvider;
+import org.xwiki.properties.converter.Converter;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 
@@ -36,6 +43,16 @@ public class LicensorScriptService implements ScriptService, Initializable
 
     @Inject
     private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    @Inject
+    private EntityReferenceProvider entityReferenceProvider;
+
+    @Inject
+    @Named("Base64")
+    private BinaryStringEncoder base64decoder;
+
+    @Inject
+    private Converter<License> converter;
 
     @Override
     public void initialize() throws InitializationException
@@ -129,6 +146,42 @@ public class LicensorScriptService implements ScriptService, Initializable
             return licenseManager;
         }
         return null;
+    }
+
+    /**
+     * Add a new signed license to the current set of active license. The added license is checked to be applicable to
+     * the current wiki instance, else it will not be added. The license is also checked to be more useful than the
+     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
+     * wiki, it will not be added. These evaluations are done for each licensed extension independently, whether the
+     * extension are currently installed or not.
+     *
+     * @param license a base 64 representation of the license to add.
+     * @return true if the license has been successfully added, false if it was useless.
+     * @throws AccessDeniedException if the user does not have admin rights on the main wiki.
+     * @throws IOException if the user does not have admin rights on the main wiki.
+     */
+    public boolean addLicense(String license) throws AccessDeniedException, IOException {
+        contextualAuthorizationManager.checkAccess(Right.ADMIN,
+            entityReferenceProvider.getDefaultReference(EntityType.WIKI));
+        return licenseManager.add(converter.convert(License.class, base64decoder.decode(license)));
+    }
+
+    /**
+     * Add a new signed license to the current set of active license. The added license is checked to be applicable to
+     * the current wiki instance, else it will not be added. The license is also checked to be more useful than the
+     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
+     * wiki, it will not be added. These evaluations are done for each licensed extension independently, whether the
+     * extension are currently installed or not.
+     *
+     * @param license a base 64 representation of the license to add.
+     * @return true if the license has been successfully added, false if it was useless.
+     * @throws AccessDeniedException if the user does not have admin rights on the main wiki.
+     * @throws IOException if the user does not have admin rights on the main wiki.
+     */
+    public boolean addLicense(byte[] license) throws AccessDeniedException, IOException {
+        contextualAuthorizationManager.checkAccess(Right.ADMIN,
+            entityReferenceProvider.getDefaultReference(EntityType.WIKI));
+        return licenseManager.add(converter.convert(License.class, license));
     }
 
     /**

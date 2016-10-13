@@ -52,14 +52,16 @@
 #set ($discard = $jsonMap.put('reqNo', $request.reqNo))
 #set ($discard = $jsonMap.put('rows', []))
 #foreach ($extension in $payingExtensions)
-  #set ($license = $services.licensor.licenseManager.get($extension.id))
+  #set ($license = $services.licensor.getLicenseForExtension($extension.id))
   #set ($actions = "&lt;div class='licenseActions'&gt;")
   #setActions ($license.type $actions)
   #set ($actions = "${actions}&lt;/div&gt;")
+  #set ($expdate = $datetool.getCalendar())
+  #set ($discard = $expdate.setTimeInMillis($license.expirationDate))
   #set ($discard = $jsonMap.get('rows').add({
     'doc_viewable' : true,
     'name'   : $extension.name,
-    'status' : $license.expirationDate,
+    'status' : $datetool.format("dd/MM/yyyy",$expdate),
     'actions': $actions
   }))
 #end

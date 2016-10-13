@@ -42,12 +42,21 @@
   <content>{{velocity}}
 #set ($discard = $response.setContentType('application/json'))
 #if ($request.addLicense == 'true')
-  #set ($license = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder','Base64').decode($request.license))
-  #set ($result = $services.licensor.licenseManager.add($license))
-  #if ($result)
+  #try()
+    #set ($result = $services.licensor.addLicense($request.license))
+  #end
+  #if ($result &amp;&amp; "$!exception" == '')
     #set ($jsonRes = {'status': 'done', 'notification': "$services.localization.render('licensor.addLicense.success')"})
+  #elseif ("$!exception" != '')
+    #if ($exception.class.simpleName == 'AccessDeniedException')
+      #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.denied')"})
+    #else
+      #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.error')"})
+    #end
+    #set ($exception = '')
+    #set ($discard = $response.setStatus(500))
   #else
-    #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.error')"})
+    #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.useless')"})
     #set ($discard = $response.setStatus(500))
   #end
   $jsontool.serialize($jsonRes)

@@ -47,7 +47,9 @@ licensor.paidLicense.label=Buy
 licensor.homepage.header.info=In this section are displayed all the installed extensions that require a license in order to be used and their status in terms of days number until expiration.
 licensor.addLicense.adding=Adding license...
 licensor.addLicense.success=License successfully added!
-licensor.addLicense.error=Failed to add license!</content>
+licensor.addLicense.denied=Failed! You need administration right to add a license.
+licensor.addLicense.error=Failed! The provided license could not be decoded.
+licensor.addLicense.useless=Failed! License is not compatible or useful for your server.</content>
   <object>
     <name>Licenses.Code.Translations</name>
     <number>0</number>
