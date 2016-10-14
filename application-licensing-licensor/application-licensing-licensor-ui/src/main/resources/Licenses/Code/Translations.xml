@@ -40,7 +40,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>licensor.name=Extension name
-licensor.status=Days to expiration
+licensor.status=Expiration date
 licensor.actions=Actions
 licensor.trialLicense.label=Get Trial
 licensor.paidLicense.label=Buy
