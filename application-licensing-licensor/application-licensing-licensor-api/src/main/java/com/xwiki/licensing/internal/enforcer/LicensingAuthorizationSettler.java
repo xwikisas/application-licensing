@@ -202,13 +202,13 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
                 logger.debug("Applying invalid license [{}] to [{}].", license.getId().toString(), ref);
                 access.deny(Right.VIEW);
                 access.deny(Right.COMMENT);
+                access.deny(Right.ADMIN);
                 access.deny(Right.PROGRAM);
             } else {
                 logger.debug("Applying valid license [{}] to [{}].", license.getId().toString(), ref);
             }
             access.deny(Right.EDIT);
             access.deny(Right.DELETE);
-            access.deny(Right.ADMIN);
             access.deny(Right.CREATOR);
             accessEntry = new InternalSecurityAccessEntry(accessEntry, access);
         }
