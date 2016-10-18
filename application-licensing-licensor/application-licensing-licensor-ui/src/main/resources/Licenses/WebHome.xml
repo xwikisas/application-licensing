@@ -59,7 +59,7 @@
     &lt;input type="hidden" value="true" name="addLicense"&gt;
     &lt;dl&gt;
       &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.addLicense.label')&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;&lt;textarea name="license" id="license" rows="5" cols="50"&gt;&lt;/textarea&gt;&lt;/dd&gt;
+      &lt;dd&gt;&lt;textarea name="license" id="license"&gt;&lt;/textarea&gt;&lt;/dd&gt;
     &lt;/dl&gt;
     &lt;input class="btn btn-success" type="submit" value="Add License"&gt;
   &lt;/form&gt;
@@ -516,7 +516,7 @@
 }
 
 #addLicense textarea {
-  width: 38%;
+  width: 50%;
 }</code>
     </property>
     <property>
