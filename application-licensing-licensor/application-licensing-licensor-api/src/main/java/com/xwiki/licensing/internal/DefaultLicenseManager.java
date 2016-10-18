@@ -237,8 +237,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     void installExtensionLicense(String namespace, InstalledExtension extension)
     {
         ExtensionId extensionId = extension.getId();
+        Collection<InstalledExtension> backwardDeps = getLicensorBackwardDependencies().get(namespace);
 
-        if (getLicensorBackwardDependencies().get(namespace).contains(extension)
+        if (backwardDeps != null && backwardDeps.contains(extension)
             && extensionToLicense.get(extensionId) == null) {
             extensionToLicense.put(extensionId, resolveLicenseForExtension(extension));
         }
