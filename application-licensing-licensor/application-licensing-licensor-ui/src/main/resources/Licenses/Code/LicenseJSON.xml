@@ -69,14 +69,16 @@ $jsontool.serialize($jsonMap)
 #macro (setActions $currentType $actions)
   #set ($url = $xwiki.getURL('GetLicense.WebHome', 'view', "extensionId=${extension.id}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
   #if ($currentType == 'FREE')
-    #addAction ('PAID', 'success')
-    #addAction ('TRIAL', 'primary')
+    #addAction ('PAID' 'success' 'paid')
+    #addAction ('TRIAL' 'primary' 'trial')
   #elseif ($currentType == 'TRIAL')
-    #addAction ('PAID', 'success')
+    #addAction ('PAID' 'success' 'paid')
+  #else
+    #addAction ('PAID' 'success' 'renew')
   #end
 #end
-#macro (addAction $newType $cssClass)
-  #set ($label = $services.localization.render("licensor.${newType.toLowerCase()}License.label"))
+#macro (addAction $newType $cssClass $label)
+  #set ($label = $services.localization.render("licensor.${label}License.label"))
   #set ($actions = "${actions}&lt;a class='btn btn-${cssClass}' href='https://store.xwiki.com${url}${newType}'&gt;${label}&lt;/a&gt;")
 #end
 {{/velocity}}</content>

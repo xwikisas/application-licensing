@@ -44,6 +44,7 @@ licensor.status=Expiration date
 licensor.actions=Actions
 licensor.trialLicense.label=Get Trial
 licensor.paidLicense.label=Buy
+licensor.renewLicense.label=Renew
 licensor.homepage.header.info=In this section are displayed all the installed extensions that require a license in order to be used and their status in terms of days number until expiration.
 licensor.addLicense.adding=Adding license...
 licensor.addLicense.success=License successfully added!
