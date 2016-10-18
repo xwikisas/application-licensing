@@ -67,7 +67,7 @@
 #end
 $jsontool.serialize($jsonMap)
 #macro (setActions $currentType $actions)
-  #set ($url = $xwiki.getURL('GetLicense.WebHome', 'view', "extensionId=${extension.id}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
+  #set ($url = $xwiki.getURL('GetLicense.WebHome', 'view', "extensionName=${extension.name}&amp;extensionId=${extension.id}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
   #if ($currentType == 'FREE')
     #addAction ('PAID' 'success' 'paid')
     #addAction ('TRIAL' 'primary' 'trial')
