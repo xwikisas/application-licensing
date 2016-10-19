@@ -56,8 +56,9 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
     private Provider<AuthorizationSettler> authorizationSettlerProvider;
 
     @Inject
-    private LicenseValidator licenseValidator;
+    private Provider<LicenseValidator> licenseValidator;
 
+    private LicenseValidator cachedLicenseValidator;
     private AuthorizationSettler authorizationSettler;
 
     /**
@@ -152,10 +153,6 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
     @Override
     public void initialize() throws InitializationException
     {
-        if (!LicensingUtils.isPristineImpl(licenseValidator)) {
-            licenseValidator = null;
-        }
-
         // Get the original authorization settler actually used and configured
         this.authorizationSettler = authorizationSettlerProvider.get();
 
@@ -169,6 +166,16 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
         logger.debug("Replacing [{}] with myself.", this.authorizationSettler);
         // Force this licensing settler to be returned by the provider
         ReflectionUtils.setFieldValue(authorizationSettlerProvider, AUTHORIZATION_SETTLER_FIELD, this);
+    }
+
+    private LicenseValidator getLicenseValidator() {
+        if (cachedLicenseValidator == null) {
+            cachedLicenseValidator = licenseValidator.get();
+            if (!LicensingUtils.isPristineImpl(cachedLicenseValidator)) {
+                cachedLicenseValidator = LicenseValidator.INVALIDATOR;
+            }
+        }
+        return cachedLicenseValidator;
     }
 
     @Override
@@ -198,7 +205,7 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
 
             InternalSecurityAccess access = new InternalSecurityAccess(accessEntry.getAccess());
 
-            if (licenseValidator == null || !(licenseValidator.isValid(license))) {
+            if (!(getLicenseValidator().isValid(license))) {
                 logger.debug("Applying invalid license [{}] to [{}].", license.getId().toString(), ref);
                 access.deny(Right.VIEW);
                 access.deny(Right.COMMENT);

@@ -1,7 +1,7 @@
 package com.xwiki.licensing;
 
-import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -26,9 +26,9 @@ import com.xwiki.licensing.internal.LicenseConverter;
  */
 public final class SignedLicense extends License
 {
-    private static final Charset UTF8 = Charset.forName("UTF-8");
-
     private static final String UNSUPPORTED_METHOD_ERROR = "Signed license could not be tampered.";
+
+    private Collection<X509CertifiedPublicKey> certificates;
 
     private final byte[] signedLicense;
 
@@ -96,7 +96,8 @@ public final class SignedLicense extends License
         }
 
         for (CMSSignerVerifiedInformation signatureInfo : signedDataVerified.getSignatures()) {
-            if (isSignatureTrusted(signatureInfo)) {
+            certificates = getValidCertificateChain(signatureInfo);
+            if (certificates != null) {
                 return StringUtils.newStringUtf8(signedDataVerified.getContent());
             }
         }
@@ -104,39 +105,49 @@ public final class SignedLicense extends License
         return null;
     }
 
-    private boolean isSignatureTrusted(CMSSignerVerifiedInformation signature)
+    private Collection<X509CertifiedPublicKey> getValidCertificateChain(CMSSignerVerifiedInformation signature)
     {
         if (!signature.isVerified()) {
-            return false;
+            return null;
         }
 
         Collection<CertifiedPublicKey> chain = signature.getCertificateChain();
 
         if (chain == null || chain.isEmpty()) {
-            return false;
+            return null;
         }
 
         CertifiedPublicKey expectedRootCA = chain.iterator().next();
 
         if (!(expectedRootCA instanceof X509CertifiedPublicKey)) {
-            return false;
+            return null;
         }
 
         X509CertifiedPublicKey rootCA = (X509CertifiedPublicKey) expectedRootCA;
 
-        return !(!rootCA.isRootCA() || !rootCA.isValidOn(new Date())) && checkChainValidity(chain);
+        return rootCA.isRootCA() ? checkChainValidity(chain) : null;
     }
 
-    private boolean checkChainValidity(Collection<CertifiedPublicKey> chain) {
+    private Collection<X509CertifiedPublicKey> checkChainValidity(Collection<CertifiedPublicKey> chain) {
+        Collection<X509CertifiedPublicKey> result = new ArrayList<X509CertifiedPublicKey>();
         for (CertifiedPublicKey cert : chain) {
             if (!(cert instanceof X509CertifiedPublicKey)) {
-                return false;
+                return null;
             }
             if (!((X509CertifiedPublicKey) cert).isValidOn(new Date())) {
-                return false;
+                return null;
             }
+            result.add((X509CertifiedPublicKey) cert);
         }
-        return true;
+        return result;
+    }
+
+    /**
+     * @return the valid certificate chain found in the signature that have signed this license.
+     */
+    public Collection<X509CertifiedPublicKey> getCertificates()
+    {
+        return certificates;
     }
 
     @Override

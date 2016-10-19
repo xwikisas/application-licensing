@@ -24,7 +24,6 @@ import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
-import org.xwiki.instance.InstanceIdManager;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
 import com.xwiki.licensing.License;
@@ -32,9 +31,11 @@ import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.LicenseStoreReference;
+import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
+import com.xwiki.licensing.internal.enforcer.LicensingUtils;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -63,7 +64,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     private InstalledExtensionRepository xarInstalledExtensionRepository;
 
     @Inject
-    private InstanceIdManager instanceIdManager;
+    private LicenseValidator licenseValidator;
 
     @Inject
     private LicensingSecurityCacheRuleInvalidator licensingSecurityCacheRuleInvalidator;
@@ -83,7 +84,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Override
     public void initialize() throws InitializationException
     {
-        instanceIdManager.initializeInstanceId();
+        if (!LicensingUtils.isPristineImpl(licenseValidator)) {
+            licenseValidator = LicenseValidator.INVALIDATOR;
+        }
 
         this.licensorExtensionId =
             installedExtensionRepository.getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api",
@@ -165,7 +168,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     private synchronized Collection<LicensedFeatureId> linkLicenseToLicensedFeature(License license)
     {
         Collection<LicensedFeatureId> licensedFeatureIds = new ArrayList<>();
-        if (license.isApplicableTo(instanceIdManager.getInstanceId())) {
+        if (licenseValidator.isApplicable(license) && licenseValidator.isSigned(license)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("License [{}] is applicable to this wiki instance", license.getId());
             }
