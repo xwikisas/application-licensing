@@ -55,13 +55,18 @@
   #set ($license = $services.licensor.getLicenseForExtension($extension.id))
   #set ($actions = "&lt;div class='licenseActions'&gt;")
   #setActions ($license.type $actions)
+  #if ($license.type == 'FREE')
+    #set ($expDate = '')
+  #else
+    #set ($date = $datetool.getCalendar())
+    #set ($discard = $date.setTimeInMillis($license.expirationDate))
+    #set ($expDate = $datetool.format('dd/MM/yyyy', $date))
+  #end
   #set ($actions = "${actions}&lt;/div&gt;")
-  #set ($expdate = $datetool.getCalendar())
-  #set ($discard = $expdate.setTimeInMillis($license.expirationDate))
   #set ($discard = $jsonMap.get('rows').add({
     'doc_viewable' : true,
     'name'   : $extension.name,
-    'status' : $datetool.format("dd/MM/yyyy",$expdate),
+    'status' : $expDate,
     'actions': $actions
   }))
 #end
