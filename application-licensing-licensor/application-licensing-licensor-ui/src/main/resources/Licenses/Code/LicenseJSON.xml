@@ -52,6 +52,7 @@
 #set ($discard = $jsonMap.put('reqNo', $request.reqNo))
 #set ($discard = $jsonMap.put('rows', []))
 #foreach ($extension in $payingExtensions)
+  #set ($extensionId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
   #set ($license = $services.licensor.getLicenseForExtension($extension.id))
   #set ($actions = "&lt;div class='licenseActions'&gt;")
   #setActions ($license.type $actions)
@@ -75,7 +76,7 @@
 #end
 $jsontool.serialize($jsonMap)
 #macro (setActions $currentType $actions)
-  #set ($url = $xwiki.getURL('License.GetLicense.WebHome', 'view', "extensionName=${extension.name}&amp;extensionId=${extension.id}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
+  #set ($url = $xwiki.getURL('License.GetLicense.WebHome', 'view', "extensionName=${extension.name}&amp;extensionId=${extensionId}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
   #if ($currentType == 'FREE')
     #addAction ('PAID' 'success' 'paid')
     #addAction ('TRIAL' 'primary' 'trial')
