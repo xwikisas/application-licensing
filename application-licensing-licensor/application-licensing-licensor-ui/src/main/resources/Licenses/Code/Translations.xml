@@ -41,6 +41,8 @@
   <hidden>true</hidden>
   <content>licensor.name=Extension name
 licensor.status=Expiration date
+licensor.status.noLicenseAvailable=No license available
+licensor.status.infinite=Infinite
 licensor.actions=Actions
 licensor.trialLicense.label=Get Trial
 licensor.paidLicense.label=Buy

@@ -56,10 +56,10 @@
   #set ($actions = "&lt;div class='licenseActions'&gt;")
   #setActions ($license.type $actions)
   #if ($license.expirationDate == 0)
-    #set ($expDate = 'Invalid')
+    #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
   #elseif ($license.expirationDate == $mathtool.pow(2,63))
     ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use it since there is no other way to do it in velocity. 
-    #set ($expDate = 'Infinite')
+    #set ($expDate = $services.localization.render('licensor.status.infinite'))
   #else
     #set ($date = $datetool.getCalendar())
     #set ($discard = $date.setTimeInMillis($license.expirationDate))
