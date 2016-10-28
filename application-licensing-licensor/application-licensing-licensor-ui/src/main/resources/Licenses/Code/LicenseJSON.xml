@@ -87,7 +87,7 @@ $jsontool.serialize($jsonMap)
 #end
 #macro (addAction $newType $cssClass $label)
   #set ($label = $services.localization.render("licensor.${label}License.label"))
-  #set ($actions = "${actions}&lt;a class='btn btn-${cssClass}' href='https://store.xwiki.com${url}${newType}'&gt;${label}&lt;/a&gt;")
+  #set ($actions = "${actions}&lt;a class='btn btn-${cssClass}' href='https://store.xwiki.com${url}${newType}' target='_blank'&gt;${label}&lt;/a&gt;")
 #end
 {{/velocity}}</content>
   <object>
