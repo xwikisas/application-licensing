@@ -14,12 +14,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.avalon.framework.activity.Initializable;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
 import org.xwiki.instance.InstanceIdManager;
 import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 
@@ -65,12 +67,17 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     private long cachedUserCount;
 
     @Override
-    public void initialize() throws Exception
+    public void initialize() throws InitializationException
     {
         instanceIdManager.initializeInstanceId();
 
-        cachedUserCount =
-            (long) queryManager.createQuery(GET_USERS_QUERY, Query.XWQL).addFilter(countFilter).execute().get(0);
+        try {
+            cachedUserCount =
+                (long) queryManager.createQuery(GET_USERS_QUERY, Query.XWQL).addFilter(countFilter).execute().get(0);
+        } catch (QueryException e) {
+            // Lucky guy will not be restricted, ignoring since it is not major.
+            cachedUserCount = 0;
+        }
     }
 
     @Override
