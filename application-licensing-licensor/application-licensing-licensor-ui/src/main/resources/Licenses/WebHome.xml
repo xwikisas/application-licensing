@@ -43,6 +43,22 @@
 #set ($discard = $xwiki.ssx.use('Licenses.WebHome'))
 #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
 {{info}} $services.localization.render('licensor.homepage.header.info') {{/info}}
+
+{{html clean=false}}
+  &lt;form id="ownerDetails" target="_blank" class="xform" action="https://store-clone.devxwiki.com/xwiki/bin/view/License/BuyLicense/" method="post"&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.firstName.label')&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;input type="text" name="firstName" id="firstName" /&gt;&lt;/dd&gt;
+      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.lastName.label')&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;input type="text" name="lastName" id="lastName" /&gt;&lt;/dd&gt;
+      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.email.label')&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;input type="email" name="email" id="email" /&gt;&lt;/dd&gt;
+      &lt;dt&gt;&lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;&lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/form&gt;
+{{/html}}
+
 #set($columns = ['name', 'status', 'actions'])
 #set($columnsProperties = {
   'name'    : {'type' : 'text'},
@@ -56,7 +72,6 @@
 #livetable('licenseManager' $columns $columnsProperties $options)
 {{html clean=false}}
   &lt;form id="addLicense" class="xform" action="$xwiki.getURL('Licenses.Code.AddLicense', 'get', 'outputSyntax=plain')" method="post"&gt;
-    &lt;input type="hidden" value="true" name="addLicense"&gt;
     &lt;dl&gt;
       &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.addLicense.label')&lt;/label&gt;&lt;/dt&gt;
       &lt;dd&gt;&lt;textarea name="license" id="license"&gt;&lt;/textarea&gt;&lt;/dd&gt;
@@ -365,37 +380,85 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery'], function ($) {
-  $(document).ready(function() {
-    var notifForm = $("#addLicense");
-    var notifSubmitInput = notifForm.find("input[type='submit']");
-    notifForm.submit(function(event) {
-      event.preventDefault();
-      $.ajax({
-        type: $(this).attr('method'),
-        url : $(this).attr('action'),
-        data: $(this).serialize(),
-        beforeSend: function() {
-          this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
-          notifSubmitInput.attr('disabled', 'disabled');
-        },
-        complete:function() {
-          // disable inprogress notification widget
-          this.progressNotification.hide();
-        },
-        success: function(data) {
-          new XWiki.widgets.Notification(data['notification'], data['status']);
-        },
-        error: function(data) {
-          if(data.responseJSON) {
-            new XWiki.widgets.Notification(data.responseJSON['notification'], data.responseJSON['status']);
-          } else {
-            new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.error')", 'error');
-          }
-          notifSubmitInput.removeAttr('disabled');
+      <code>require(['jquery', 'xwiki-events-bridge'], function ($) {
+  var addLicense = $("#addLicense");
+  var addLicenseSubmit = addLicense.find("input[type='submit']");
+  addLicense.submit(function(event) {
+    event.preventDefault();
+    $.ajax({
+      type: $(this).attr('method'),
+      url : $(this).attr('action'),
+      data: $(this).serialize(),
+      beforeSend: function() {
+        this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
+        addLicenseSubmit.attr('disabled', 'disabled');
+      },
+      complete:function() {
+        this.progressNotification.hide();
+      },
+      success: function(result) {
+        new XWiki.widgets.Notification(result['notification'], result['status']);
+      },
+      error: function(result) {
+        if(result.responseJSON) {
+          new XWiki.widgets.Notification(result.responseJSON['notification'], result.responseJSON['status']);
+        } else {
+          new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.error')", 'error');
         }
-      });
+        addLicenseSubmit.removeAttr('disabled');
+      }
     });
+  });
+
+  /** Manages the license buttons from the licenses livetable.
+      If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
+  **/
+  $('#licenseManager').on('click', '.licenseButton', function() {
+    // check the input fields to be filled with data
+    var doSubmit = true;
+    var ownerDetailsForm = $('#ownerDetails');
+    ownerDetailsForm.find('input:visible').each(function() {
+      $(this).removeClass('required')
+      if (!$(this).val()) {
+        doSubmit = false;
+        $(this).addClass('required')
+        $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}")
+      }
+    });
+    if (doSubmit) {
+      // add the data from the button to the form
+      var json = $.parseJSON($(this).attr('data-button'));
+      $.each(json, function(index, value) {
+        ownerDetailsForm.append("&lt;input type='hidden' name='" + index + "' value='" + value + "'&gt;")
+      });
+      // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and return a license if needed.
+      if (json.licenseType === 'TRIAL') {
+        ownerDetailsForm.submit(function(event) {
+          event.preventDefault();
+          var url = "${xwiki.getURL('Licenses.Code.GetTrialLicenseService', 'get', 'outputSyntax=plain')}";
+          $.ajax({
+            type: $(this).attr('method'),
+            url : url,
+            data: $(this).serialize(),
+            beforeSend: function() {
+              this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
+            },
+            complete: function(result) {
+              this.progressNotification.hide();
+            },
+            success: function(result) {
+              // use the existing addLicense form, add the license and submit.
+              $(addLicense).find('textarea').val(result['data'])
+              addLicense.submit();
+            },
+            error: function(result) {
+              new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']);
+            }
+          });
+        });
+      }
+      ownerDetailsForm.submit();
+    }
   });
 });
 </code>
@@ -511,12 +574,36 @@
 .actions .licenseActions a:link:hover {
   color: #fff;
 }
+
 .licenseActions a{
   margin-right: 10px;
 }
 
 #addLicense textarea {
   width: 73%;
+}
+
+#ownerDetails input[type="email"] {
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+  color: #555555;
+  display: block;
+  font-size: 14px;
+  height: 34px;
+  line-height: 1.42857;
+  padding: 6px 12px;
+  transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+}
+
+#ownerDetails dl input {
+  width: 300px;
+}
+
+#ownerDetails input.required {
+  border:1px solid red;
 }</code>
     </property>
     <property>

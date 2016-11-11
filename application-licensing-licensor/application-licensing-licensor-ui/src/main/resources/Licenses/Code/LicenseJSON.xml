@@ -55,7 +55,12 @@
   #set ($extensionId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
   #set ($license = $services.licensor.getLicenseForExtension($extension.id))
   #set ($actions = "&lt;div class='licenseActions'&gt;")
-  #setActions ($license.type $actions)
+  ## use the JSON format in order to be parsable in javascript
+  #set ($JSONData = {
+    'extensionName': "${extension.name}",
+    'extensionId'  : "${extensionId}"
+  })
+  #setActions ($license $actions)
   #if ($license.expirationDate == 0)
     #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
   #elseif ($license.expirationDate == $mathtool.pow(2,63))
@@ -75,20 +80,22 @@
   }))
 #end
 $jsontool.serialize($jsonMap)
-#macro (setActions $currentType $actions)
-  #set ($url = $xwiki.getURL('License.GetLicense.WebHome', 'view', "extensionName=${extension.name}&amp;extensionId=${extensionId}&amp;instanceId=${services.instance.getInstanceId()}&amp;licenseType="))
-  #if ($currentType == 'FREE')
+#macro (setActions $license $actions)
+  #if ($license.type == 'FREE')
     #addAction ('PAID' 'success' 'paid')
     #addAction ('TRIAL' 'primary' 'trial')
-  #elseif ($currentType == 'TRIAL')
+  #elseif ($license.expirationDate == 0 || ($license.type == 'TRIAL' &amp;&amp; $license.expirationDate &gt; $datetool.systemTime))
+    ## there is a Trial existing and it's not expired or there is any kind of license that is expired
     #addAction ('PAID' 'success' 'paid')
+    #addAction ('TRIAL' 'primary' 'extendTrial')
   #else
     #addAction ('PAID' 'success' 'renew')
   #end
 #end
 #macro (addAction $newType $cssClass $label)
+  #set ($discard = $JSONData.put('licenseType', $newType))
   #set ($label = $services.localization.render("licensor.${label}License.label"))
-  #set ($actions = "${actions}&lt;a class='btn btn-${cssClass}' href='https://store.xwiki.com${url}${newType}' target='_blank'&gt;${label}&lt;/a&gt;")
+  #set ($actions = "${actions} &lt;button class='btn btn-${cssClass} licenseButton' data-button='$escapetool.xml($jsontool.serialize($JSONData))'&gt;${label}&lt;/button&gt;")
 #end
 {{/velocity}}</content>
   <object>

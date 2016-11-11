@@ -20,21 +20,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="Licenses.Code.AddLicense" locale="">
+<xwikidoc version="1.2" reference="Licenses.Code.GetTrialLicenseService" locale="">
   <web>Licenses.Code</web>
-  <name>AddLicense</name>
+  <name>GetTrialLicenseService</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1475072769000</creationDate>
+  <creationDate>1478796917000</creationDate>
   <parent>Licenses.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1475493210000</date>
-  <contentUpdateDate>1475493091000</contentUpdateDate>
+  <date>1478854914000</date>
+  <contentUpdateDate>1478852491000</contentUpdateDate>
   <version>1.1</version>
-  <title>Add License</title>
+  <title>Get Trial License Service</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -43,26 +43,18 @@
 #if ($request.outputSyntax == 'plain')
   #set ($discard = $response.setContentType('application/json'))
 #end
-#if ("$!request.license" != '')
-  #try()
-    #set ($result = $services.licensor.addLicense($request.license))
-  #end
-  #if ($result &amp;&amp; "$!exception" == '')
-    #set ($jsonRes = {'status': 'done', 'notification': "$services.localization.render('licensor.addLicense.success')"})
-  #elseif ("$!exception" != '')
-    #if ($exception.class.simpleName == 'AccessDeniedException')
-      #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.denied')"})
-    #else
-      #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.error')"})
-    #end
-    #set ($exception = '')
-    #set ($discard = $response.setStatus(500))
+#set ($queryString = '')
+#foreach ($param in $request.parameterMap.entrySet())
+  #if ($foreach.index == 0)
+    #set ($queryString = "${param.key}=${request.get($param.key)}")
   #else
-    #set ($jsonRes = {'status': 'error', 'notification': "$services.localization.render('licensor.addLicense.useless')"})
-    #set ($discard = $response.setStatus(500))
+    #set ($queryString = "${queryString}&amp;${param.key}=${request.get($param.key)}")
   #end
-  $jsontool.serialize($jsonRes)
 #end
-{{/velocity}}
-</content>
+#set ($content = $xwiki.getURLContent("https://store-clone.devxwiki.com$xwiki.getURL('License.Code.GetTrialLicense', 'get', $escapetool.xml($queryString))"))
+#if ($content.contains('error'))
+  #set ($discard = $response.setStatus(412))
+#end
+$content
+{{/velocity}}</content>
 </xwikidoc>
