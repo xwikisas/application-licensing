@@ -51,7 +51,7 @@
     #set ($queryString = "${queryString}&amp;${param.key}=${request.get($param.key)}")
   #end
 #end
-#set ($content = $xwiki.getURLContent("https://store-clone.devxwiki.com$xwiki.getURL('License.Code.GetTrialLicense', 'get', $escapetool.xml($queryString))"))
+#set ($content = $xwiki.getURLContent("https://store.xwiki.com$xwiki.getURL('License.Code.GetTrialLicense', 'get', $escapetool.xml($queryString))"))
 #if ($content.contains('error'))
   #set ($discard = $response.setStatus(412))
 #end

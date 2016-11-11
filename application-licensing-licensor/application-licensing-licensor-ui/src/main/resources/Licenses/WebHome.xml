@@ -45,7 +45,7 @@
 {{info}} $services.localization.render('licensor.homepage.header.info') {{/info}}
 
 {{html clean=false}}
-  &lt;form id="ownerDetails" target="_blank" class="xform" action="https://store-clone.devxwiki.com/xwiki/bin/view/License/BuyLicense/" method="post"&gt;
+  &lt;form id="ownerDetails" target="_blank" class="xform" action="https://store.xwiki.com$xwiki.getURL('License.BuyLicense.WebHome')" method="post"&gt;
     &lt;dl&gt;
       &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.firstName.label')&lt;/label&gt;&lt;/dt&gt;
       &lt;dd&gt;&lt;input type="text" name="firstName" id="firstName" /&gt;&lt;/dd&gt;
