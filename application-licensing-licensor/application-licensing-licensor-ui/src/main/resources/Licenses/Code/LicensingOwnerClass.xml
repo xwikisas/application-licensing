@@ -68,32 +68,32 @@
       <validationRegExp>/^(([^@\s]+)@((?:[-a-zA-Z0-9]+\.)+[a-zA-Z]{2,}))?$/</validationRegExp>
       <classType>com.xpn.xwiki.objects.classes.EmailClass</classType>
     </email>
-    <first_name>
+    <firstName>
       <customDisplay/>
       <disabled>0</disabled>
-      <name>first_name</name>
+      <name>firstName</name>
       <number>1</number>
       <picker>0</picker>
-      <prettyName>first_name</prettyName>
+      <prettyName>firstName</prettyName>
       <size>30</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </first_name>
-    <last_name>
+    </firstName>
+    <lastName>
       <customDisplay/>
       <disabled>0</disabled>
-      <name>last_name</name>
+      <name>lastName</name>
       <number>2</number>
       <picker>0</picker>
-      <prettyName>last_name</prettyName>
+      <prettyName>lastName</prettyName>
       <size>30</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </last_name>
+    </lastName>
   </class>
   <object>
     <name>Licenses.Code.LicensingOwnerClass</name>
