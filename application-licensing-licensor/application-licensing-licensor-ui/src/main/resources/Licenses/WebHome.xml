@@ -44,7 +44,8 @@
 #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
 #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
 #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
-{{info}} $services.localization.render('licensor.homepage.header.info') {{/info}}
+== $services.localization.render('licensor.ownerDetails.heading') ==
+$services.localization.render('licensor.ownerDetails.hint')
 {{html clean=false}}
   &lt;form id="ownerDetails" target="_blank" class="xform" action="${licensingConfigDoc.storeBuyURL}" method="post"&gt;
     &lt;dl&gt;
@@ -57,7 +58,8 @@
     &lt;/dl&gt;
   &lt;/form&gt;
 {{/html}}
-
+== $services.localization.render('licensor.licenseManager.heading') ==
+$services.localization.render('licensor.licenseManager.hint')
 #set($columns = ['name', 'status', 'actions'])
 #set($columnsProperties = {
   'name'    : {'type' : 'text'},
@@ -69,12 +71,11 @@
   'translationPrefix' : 'licensor.'
 })
 #livetable('licenseManager' $columns $columnsProperties $options)
+== $services.localization.render('licensor.addLicense.heading') ==
+$services.localization.render('licensor.addLicense.hint')
 {{html clean=false}}
   &lt;form id="addLicense" class="xform" action="$xwiki.getURL('Licenses.Code.AddLicense', 'get', 'outputSyntax=plain')" method="post"&gt;
-    &lt;dl&gt;
-      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.addLicense.label')&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;&lt;textarea name="license" id="license"&gt;&lt;/textarea&gt;&lt;/dd&gt;
-    &lt;/dl&gt;
+    &lt;textarea name="license" id="license" rows="5"&gt;&lt;/textarea&gt;
     &lt;input class="btn btn-success" type="submit" value="Add License"&gt;
   &lt;/form&gt;
 {{/html}}
@@ -583,10 +584,6 @@
 
 .licenseActions a{
   margin-right: 10px;
-}
-
-#addLicense textarea {
-  width: 73%;
 }
 
 #ownerDetails input[type="email"] {
