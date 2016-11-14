@@ -42,17 +42,16 @@
   <content>{{velocity}}
 #set ($discard = $xwiki.ssx.use('Licenses.WebHome'))
 #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
+#set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+#set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
 {{info}} $services.localization.render('licensor.homepage.header.info') {{/info}}
-
 {{html clean=false}}
-  &lt;form id="ownerDetails" target="_blank" class="xform" action="https://store.xwiki.com$xwiki.getURL('License.BuyLicense.WebHome')" method="post"&gt;
+  &lt;form id="ownerDetails" target="_blank" class="xform" action="${licensingConfigDoc.storeBuyURL}" method="post"&gt;
     &lt;dl&gt;
-      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.firstName.label')&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;&lt;input type="text" name="firstName" id="firstName" /&gt;&lt;/dd&gt;
-      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.lastName.label')&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;&lt;input type="text" name="lastName" id="lastName" /&gt;&lt;/dd&gt;
-      &lt;dt&gt;&lt;label for="license"&gt;$services.localization.render('licensor.ownerDetails.email.label')&lt;/label&gt;&lt;/dt&gt;
-      &lt;dd&gt;&lt;input type="email" name="email" id="email" /&gt;&lt;/dd&gt;
+      #foreach ($prop in $ownerObj.properties)
+        &lt;dt&gt;&lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;&lt;/dt&gt;
+        &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
+      #end
       &lt;dt&gt;&lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;&lt;/dt&gt;
       &lt;dd&gt;&lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;&lt;/dd&gt;
     &lt;/dl&gt;
@@ -426,6 +425,11 @@
       }
     });
     if (doSubmit) {
+      // update the licensing owner details
+      $.post({
+        url : "${xwiki.getURL('Licenses.Code.UpdateOwnerDetails')}",
+        data: $(ownerDetailsForm).serialize()
+      });
       // add the data from the button to the form
       var json = $.parseJSON($(this).attr('data-button'));
       $.each(json, function(index, value) {
