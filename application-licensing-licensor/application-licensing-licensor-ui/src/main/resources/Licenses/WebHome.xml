@@ -394,6 +394,8 @@
       },
       complete:function() {
         this.progressNotification.hide();
+        // reload the page to update the livetable and to clear the form
+        location.reload(true);
       },
       success: function(result) {
         new XWiki.widgets.Notification(result['notification'], result['status']);
