@@ -48,7 +48,7 @@
   &lt;form id="ownerDetails" target="_blank" class="xform" action="${licensingConfigDoc.storeBuyURL}" method="post"&gt;
     &lt;fieldset&gt;
       &lt;legend&gt;$services.localization.render('licensor.ownerDetails.heading')&lt;/legend&gt;
-      $services.localization.render('licensor.ownerDetails.hint')
+      &lt;p&gt;$services.localization.render('licensor.ownerDetails.hint')&lt;/p&gt;
       &lt;dl&gt;
         #foreach ($prop in $ownerObj.properties)
           &lt;dt&gt;&lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;&lt;/dt&gt;
@@ -80,7 +80,7 @@
   &lt;form id="addLicense" class="xform" action="$xwiki.getURL('Licenses.Code.AddLicense', 'get', 'outputSyntax=plain')" method="post"&gt;
     &lt;fieldset&gt;
       &lt;legend&gt;$services.localization.render('licensor.addLicense.heading')&lt;/legend&gt;
-      $services.localization.render('licensor.addLicense.hint')
+      &lt;p&gt;$services.localization.render('licensor.addLicense.hint')&lt;/p&gt;
       &lt;textarea name="license" id="license" rows="5"&gt;&lt;/textarea&gt;
       &lt;input class="btn btn-success" type="submit" value="Add License"&gt;
     &lt;/fieldset&gt;
