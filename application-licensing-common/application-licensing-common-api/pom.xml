@@ -28,7 +28,7 @@
     <version>1.1-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-common-api</artifactId>
-  <name>Application Licensing - Common - API</name>
+  <name>Licensing Application - Common - API</name>
   <packaging>jar</packaging>
   <description>Core licensing API</description>
   <properties>

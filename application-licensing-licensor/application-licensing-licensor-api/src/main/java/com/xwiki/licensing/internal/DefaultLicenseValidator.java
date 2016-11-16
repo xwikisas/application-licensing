@@ -101,7 +101,7 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     @Override
     public boolean isApplicable(License license)
     {
-        return license.isApplicableTo(instanceIdManagerProvider.get().getInstanceId());
+        return license.isApplicableTo(this.instanceIdManagerProvider.get().getInstanceId());
     }
 
     @Override

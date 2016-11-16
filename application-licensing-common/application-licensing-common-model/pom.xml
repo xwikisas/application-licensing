@@ -28,7 +28,7 @@
     <version>1.1-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-common-model</artifactId>
-  <name>Application Licensing - Common - Model</name>
+  <name>Licensing Application - Common - Model</name>
   <packaging>jar</packaging>
   <description>The (JAXB) model for the XWiki License XML resource.</description>
   <properties>

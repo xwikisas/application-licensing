@@ -29,7 +29,7 @@
   </parent>
   <artifactId>application-licensing-manager-api</artifactId>
   <packaging>jar</packaging>
-  <name>Application Licensing - Manager - API</name>
+  <name>Licensing Application - Manager - API</name>
   <description>API for licenses issuance and centralized management</description>
   <properties>
     <!-- Name to display by the Extension Manager -->
@@ -68,6 +68,11 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-crypto-script</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-crypto-common</artifactId>
       <version>${commons.version}</version>
@@ -75,6 +80,11 @@
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-crypto-pkix</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-crypto-store-api</artifactId>
       <version>${commons.version}</version>
     </dependency>
     <!-- Test dependencies -->

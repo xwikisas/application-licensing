@@ -1,1 +1,2 @@
 com.xwiki.licensing.internal.DefaultSignedLicenseGenerator
+com.xwiki.licensing.script.ManagerScriptService

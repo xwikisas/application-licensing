@@ -29,7 +29,7 @@
   </parent>
   <artifactId>application-licensing-manager-ui</artifactId>
   <packaging>xar</packaging>
-  <name>Application Licensing - Manager - UI</name>
+  <name>Licensing Application - Manager - UI</name>
   <description>Provides UI for managing licenses and licensures</description>
   <properties>
     <!-- Don't run CLIRR here since there's no Java code. -->
@@ -42,32 +42,20 @@
   <dependencies>
     <dependency>
       <groupId>com.xwiki.licensing</groupId>
-      <artifactId>application-licensing-common-api</artifactId>
+      <artifactId>application-licensing-script</artifactId>
       <version>${project.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.xwiki.licensing</groupId>
-      <artifactId>application-licensing-manager-api</artifactId>
-      <version>${project.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-skin-skinx</artifactId>
-      <version>${platform.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-localization-script</artifactId>
-      <version>${platform.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-rendering-macro-velocity</artifactId>
       <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-macro-message</artifactId>
+      <version>${rendering.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
