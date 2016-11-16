@@ -23,23 +23,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>application-licensing-licensor</artifactId>
+    <artifactId>application-licensing</artifactId>
     <groupId>com.xwiki.licensing</groupId>
     <version>1.1-SNAPSHOT</version>
   </parent>
-  <artifactId>application-licensing-licensor-ui</artifactId>
-  <name>Licensing Application - Licensor - UI</name>
-  <packaging>xar</packaging>
-  <description>Provides UI for managing licenses and licensures</description>
+  <artifactId>application-licensing-script</artifactId>
+  <name>Licensing Application - Script Service</name>
+  <packaging>jar</packaging>
+  <description>Licensing Script Service API</description>
   <properties>
-    <!-- Don't run CLIRR here since there's no Java code. -->
-    <xwiki.clirr.skip>true</xwiki.clirr.skip>
     <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>Licensor Application</xwiki.extension.name>
-    <xwiki.extension.category>application</xwiki.extension.category>
+    <xwiki.extension.name>Licensing Script Service API</xwiki.extension.name>
+    <xwiki.extension.category>api</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-script</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.xwiki.licensing</groupId>
       <artifactId>application-licensing-common-api</artifactId>
@@ -47,33 +50,15 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-instance</artifactId>
-      <version>${platform.version}</version>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-licensor-api</artifactId>
+      <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-skin-skinx</artifactId>
-      <version>${platform.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-localization-script</artifactId>
-      <version>${platform.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-rendering-macro-velocity</artifactId>
-      <version>${platform.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-macro-html</artifactId>
-      <version>${rendering.version}</version>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-manager-api</artifactId>
+      <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

@@ -50,7 +50,7 @@ import com.xwiki.licensing.internal.enforcer.LicensingUtils;
  * @version $Id$
  */
 @Component
-@Named("licensor")
+@Named("licensing.licensor")
 @Singleton
 public class LicensorScriptService implements ScriptService, Initializable
 {

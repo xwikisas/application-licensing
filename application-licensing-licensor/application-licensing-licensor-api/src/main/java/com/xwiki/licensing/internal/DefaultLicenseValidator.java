@@ -31,6 +31,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -77,7 +78,7 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     private QueryFilter countFilter;
 
     @Inject
-    private InstanceIdManager instanceIdManager;
+    private Provider<InstanceIdManager> instanceIdManagerProvider;
 
     @Inject
     @Named("Base64")
@@ -88,8 +89,6 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     @Override
     public void initialize() throws InitializationException
     {
-        instanceIdManager.initializeInstanceId();
-
         try {
             cachedUserCount =
                 (long) queryManager.createQuery(GET_USERS_QUERY, Query.XWQL).addFilter(countFilter).execute().get(0);
@@ -102,7 +101,7 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     @Override
     public boolean isApplicable(License license)
     {
-        return license.isApplicableTo(instanceIdManager.getInstanceId());
+        return license.isApplicableTo(this.instanceIdManagerProvider.get().getInstanceId());
     }
 
     @Override

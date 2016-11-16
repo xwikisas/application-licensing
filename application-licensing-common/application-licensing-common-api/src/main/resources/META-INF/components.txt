@@ -1,3 +1,7 @@
 com.xwiki.licensing.internal.FileSystemLicenseStore
 com.xwiki.licensing.internal.LicenseConverter
 com.xwiki.licensing.internal.XmlStringLicenseSerializer
+com.xwiki.licensing.internal.script.LicenseFeatureIdConverter
+com.xwiki.licensing.internal.script.LicenseIdConverter
+2000:com.xwiki.licensing.internal.script.InstanceIdConverter
+com.xwiki.licensing.script.LicenseScriptService

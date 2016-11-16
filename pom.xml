@@ -25,13 +25,13 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>8.3</version>
+    <version>8.4</version>
   </parent>
   <groupId>com.xwiki.licensing</groupId>
   <artifactId>application-licensing</artifactId>
   <version>1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Licensing Application</name>
+  <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
   <scm>
     <connection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</connection>
@@ -47,6 +47,10 @@
     <developer>
       <id>dgervalle</id>
       <name>Denis Gervalle</name>
+    </developer>
+    <developer>
+      <id>vmassol</id>
+      <name>Vincent Massol</name>
     </developer>
   </developers>
   <distributionManagement>
@@ -83,5 +87,14 @@
     <module>application-licensing-common</module>
     <module>application-licensing-licensor</module>
     <module>application-licensing-manager</module>
+    <module>application-licensing-script</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <modules>
+        <module>application-licensing-test</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

@@ -29,7 +29,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>application-licensing-licensor-api</artifactId>
   <packaging>jar</packaging>
-  <name>Application Licensing - Licensor - API</name>
+  <name>Licensing Application - Licensor - API</name>
   <description>API for licenses management and licensure of licensed items</description>
   <properties>
     <!-- Name to display by the Extension Manager -->
