@@ -71,19 +71,11 @@ public class ManagerScriptService extends AbstractLicenseScriptService
             certificateStore.getCertificateProvider());
     }
 
-    public SignedLicense retrieveGeneratedLicense(LicenseId licenseId) throws IOException
+    public License retrieveGeneratedLicense(LicenseId licenseId) throws IOException
     {
         ScriptLicenseStore licenseStore = new ScriptLicenseStore(this.filesystemLicenseStore,
             getFileLicenseStoreReference(GENERATED_STORE_NAME, true));
-        License license = licenseStore.retrieve(licenseId);
-        if (license == null) {
-            throw new IOException(String.format("License not found in store for ID [%s]", licenseId.toString()));
-        }
-        if (!(license instanceof SignedLicense)) {
-            throw new IOException(String.format("Stored license for ID [%s] is not signed when it should!",
-                licenseId.toString()));
-        }
-        return (SignedLicense) license;
+        return licenseStore.retrieve(licenseId);
     }
 
     public void storeGeneratedLicense(License license) throws IOException
@@ -109,7 +101,7 @@ public class ManagerScriptService extends AbstractLicenseScriptService
 
     private DistinguishedName getLicenseSubject(LicenseType licenseType)
     {
-        return new DistinguishedName(String.format("CN={} License Issuer {},OU=Licensing,O=XWiki SAS,L=Paris,C=FR",
+        return new DistinguishedName(String.format("CN=%s License Issuer %s,OU=Licensing,O=XWiki SAS,L=Paris,C=FR",
             StringUtils.capitalize(StringUtils.lowerCase(licenseType.toString())),
             Calendar.getInstance().get(Calendar.YEAR)));
     }

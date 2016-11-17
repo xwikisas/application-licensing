@@ -48,10 +48,15 @@ public class LicenseId implements Serializable, Comparable<LicenseId>
         uuid = UUID.fromString(id);
     }
 
+    public String getId()
+    {
+        return this.uuid.toString();
+    }
+
     @Override
     public String toString()
     {
-        return uuid.toString();
+        return getId();
     }
 
     @Override

@@ -20,24 +20,39 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="License.WebHome" locale="">
-  <web>License</web>
+<xwikidoc version="1.2" reference="License.Certificates.WebHome" locale="">
+  <web>License.Certificates</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1479314340000</creationDate>
-  <parent>Main.WebHome</parent>
+  <creationDate>1479396553000</creationDate>
+  <parent>License.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1479314341000</date>
-  <contentUpdateDate>1479314341000</contentUpdateDate>
+  <date>1479405496000</date>
+  <contentUpdateDate>1479405496000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content/>
+  <content>{{velocity}}
+#set($columns = ['doc.name', 'subject', 'keyid', 'issuer', 'serial'])
+#set($columnsProperties = {
+  'doc.name' : { 'type' : 'text', 'link' : 'view' },
+  'subject' : { 'type' : 'text' },
+  'keyid' : { 'type' : 'text' },
+  'issuer' : { 'type' : 'text' },
+  'serial' : { 'type' : 'text' }
+})
+#set($options = { 
+   'className' : 'Crypto.CertificateClass',
+   'translationPrefix' : 'certificates.'
+})
+#livetable('certificates' $columns $columnsProperties $options)
+{{velocity}}
+</content>
 </xwikidoc>

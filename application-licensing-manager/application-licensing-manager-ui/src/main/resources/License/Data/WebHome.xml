@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -38,44 +39,41 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="License.Code.LicenseDetailsMacros"/}}
+
+{{velocity}}
 #if ($hasAdmin &amp;&amp; "$!request.action" == 'add')
-  ## Compute the new page name using the format "LicenseNNNNNNNNNN" where is a "0"-left-padded number.
-  ## Find the highest existing license detail page and add one.
-  #set ($query = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) as details where doc.name &lt;&gt; 'LicenseDetailsTemplate'"))
-  #if ($query.count() &gt; 0)
-    #set ($highestQuery = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) as details where doc.name &lt;&gt; 'LicenseDetailsTemplate' order by doc.name desc"))
-    #set ($highest = $highestQuery.setLimit(1).execute())
-    #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).name.substring(7)).intValue())
-    #set ($nextUniqueNumber = $numbertool.format('0000000000', $mathtool.add($currentNumber, 1)))
-  #else
-    #set ($nextUniqueNumber = '0000000001')
-  #end
-  #set ($detailsPageReference = "License.Data.License${nextUniqueNumber}")
+  #findNextUniqueDetailsPageReference($detailsPageReference)
   $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'inline', "template=${request.template}"))
 #end
 
 #if ($hasAdmin)
 {{html}}
   &lt;form&gt;
-    &lt;input type="hidden" name="action" value="add"/&gt;
-    &lt;input type="hidden" name="template" value="License.Code.LicenseDetailsTemplate"/&gt;
-    &lt;span class="buttonwrapper"&gt;
-      &lt;input class="button" type="submit" value="Add License Details"/&gt;
+    &lt;input type='hidden' name='action' value='add'/&gt;
+    &lt;input type='hidden' name='template' value='License.Code.LicenseDetailsTemplate'/&gt;
+    &lt;span class='buttonwrapper'&gt;
+      &lt;input class='button' type='submit' value='Add License Details'/&gt;
     &lt;/span&gt;
   &lt;/form&gt;
 {{/html}}
 #end
 
-#set($columns = ["name", "email", "instanceId", "featureIds", "issueDate", "expirationDate", "type", "hasLicense"])
+#set($columns = ['name', 'email', 'instanceId', 'featureIds', 'issueDate', 'expirationDate', 'type', 'hasLicense'])
 #set($columnsProperties = {
-    "name" : { "link" : "view" },
-    "email" : { "html" : "true" }
+  'name' : { 'link' : 'view', 'type' : 'text' },
+  'email' : { 'html' : 'true', 'type' : 'text' },
+  'instanceId' : { 'type' : 'text' },
+  'featureIds' : { 'type' : 'text' },
+  'issueDate' : { 'type' : 'text' },
+  'expirationDate' : { 'type' : 'text' },
+  'type' : { 'type' : 'text' },
+  'hasLicense' : { 'type' : 'text' }
 })
 #set($options = { 
-   "className":"License.Code.LicenseDetailsClass",
-   "translationPrefix" : "license."
+   'className' : 'License.Code.LicenseDetailsClass',
+   'translationPrefix' : 'license.'
 })
-#livetable("licenses" $columns $columnsProperties $options)
+#livetable('licenses' $columns $columnsProperties $options)
 {{/velocity}}</content>
 </xwikidoc>

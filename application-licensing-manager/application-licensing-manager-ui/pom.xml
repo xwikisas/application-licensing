@@ -64,5 +64,40 @@
       <version>${rendering.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rendering-macro-code</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Needed for filesystem Key store -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-crypto-store-filesystem</artifactId>
+      <version>${commons.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Needed for wiki Certificate store -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-crypto-store-wiki</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Needed for livetables to work -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-livetable-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Needed for Joda time plugin -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-jodatime</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>

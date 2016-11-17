@@ -19,19 +19,24 @@
  */
 package com.xwiki.licensing.script;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.instance.InstanceId;
+import org.xwiki.properties.ConverterManager;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.LicensedFeatureId;
+import com.xwiki.licensing.SignedLicense;
 
 /**
  * Entry point for License script services.
@@ -45,13 +50,20 @@ import com.xwiki.licensing.LicensedFeatureId;
 @Unstable
 public class LicenseScriptService extends AbstractLicenseScriptService
 {
+    @Inject
+    private ConverterManager converterManager;
+
+    @Inject
+    @Named("Base64")
+    private BinaryStringEncoder encoder;
+
     public License createLicense(LicenseType licenseType, long expirationDate,
-        List<LicensedFeatureId> featureIds, InstanceId instanceId, Map<String, String> licenseInfo)
+        List<String> featureIdsAsString, InstanceId instanceId, Map<String, String> licenseInfo)
     {
         License license = new License();
         license.setType(licenseType);
-        for (LicensedFeatureId featureId : featureIds) {
-            license.addFeatureId(featureId);
+        for (String featureId : featureIdsAsString) {
+            license.addFeatureId(this.converterManager.convert(LicensedFeatureId.class, featureId));
         }
         license.addInstanceId(instanceId);
         license.setExpirationDate(expirationDate);
@@ -64,5 +76,10 @@ public class LicenseScriptService extends AbstractLicenseScriptService
     public ScriptLicenseStore getFileLicenseStore(String filename, boolean multi)
     {
         return new ScriptLicenseStore(this.filesystemLicenseStore, getFileLicenseStoreReference(filename, multi));
+    }
+
+    public String encode(SignedLicense license) throws IOException
+    {
+        return this.encoder.encode(license.getEncoded(), 64);
     }
 }

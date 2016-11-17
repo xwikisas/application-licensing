@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.2" reference="License.Code.LicenseDetailsMacros" locale="">
+  <web>License.Code</web>
+  <name>LicenseDetailsMacros</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1479391740000</creationDate>
+  <parent>License.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1479391740000</date>
+  <contentUpdateDate>1479391740000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+#macro (findNextUniqueDetailsPageReference $nextPageReference)
+  ## Compute the new page name using the format "LicenseNNNNNNNNNN" where is a "0"-left-padded number.
+  ## Find the highest existing license detail page and add one.
+  #set ($query = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) as details where doc.name &lt;&gt; 'LicenseDetailsTemplate'"))
+  #if ($query.count() &gt; 0)
+    #set ($highestQuery = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) as details where doc.name &lt;&gt; 'LicenseDetailsTemplate' order by doc.name desc"))
+    #set ($highest = $highestQuery.setLimit(1).execute())
+    #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).name.substring(7)).intValue())
+    #set ($nextUniqueNumber = $numbertool.format('0000000000', $mathtool.add($currentNumber, 1)))
+  #else
+    #set ($nextUniqueNumber = '0000000001')
+  #end
+  #set ($nextPageReference = $NULL)
+  #setVariable ("$nextPageReference", "License.Data.License${nextUniqueNumber}")
+#end
+#macro (generateLicense $name $email $instanceId $featureIds $type $shouldSaveLicense $licenseDetailsReference)
+  ## For Trial licenses, have an expiration date of now + 10 days
+  ## For Paid licenses, have an expiration date of now + 1 year
+  ## For Free licenses, have an expiration date of now + 1 year
+  #set ($dateTime = $xwiki.jodatime.getMutableDateTime())
+  #if ($type.equalsIgnoreCase('paid'))
+    #set ($discard = $dateTime.addDays(365))
+  #elseif ($type.equalsIgnoreCase('free'))
+    #set ($discard = $dateTime.addDays(365))
+  #else
+    #set ($discard = $dateTime.addDays(10))
+  #end
+  #set ($license = $services.licensing.license.createLicense($type, $dateTime.getMillis(), $featureIds, $instanceId, {'name' : $name, 'email' : $email}))
+  ## Keys are stored in the permanent directory, in a subdirectory named 'license-keystore'
+  #set ($keyStore = $services.crypto.store.getX509FileKeyStore('license-keystore'))
+  ## Certificates are stored in wiki pages in a space named 'License.Certificates'
+  #set ($certificateStore = $services.crypto.store.getX509SpaceCertificateStore($services.model.resolveSpace('License.Certificates')))
+  ## TODO: Each type of license has a different password, take it from a config.
+  #set ($signedLicense = $services.licensing.manager.generate($license, $keyStore, $certificateStore, "trialPassword"))
+  #if ("$!signedLicense" != '' &amp;&amp; $shouldSaveLicense)
+    ## Persist the license
+    #set ($discard = $services.licensing.manager.storeGeneratedLicense($signedLicense))
+    ## Update the license details with the License ID and the fact that a license now exists
+    #if ("$!licenseDetailsReference" != '')
+      #set ($detailsDocument = $xwiki.getDocument($licenseDetailsReference))
+      #set ($detailsObject = $detailsDocument.getObject('License.Code.LicenseDetailsClass'))
+      #if ("$!detailsObject" != '')
+        #set ($discard = $detailsObject.set('hasLicense', '1'))
+        #set ($discard = $detailsObject.set('licenseId', $signedLicense.id.id))
+        #set ($discard = $detailsDocument.save('License ID added', true))
+      #end
+    #end
+  #end
+#end
+#macro (addLicenseDetails $name $email $instanceId $featureIds $type $shouldGenerateLicense)
+  #findNextUniqueDetailsPageReference($nextPageReference)
+  #set ($nextDocument = $xwiki.getDocument($nextPageReference))
+  ## Extra check to make sure we never overwrite an existing page
+  #if ($nextDocument.isNew())
+    ## Add a LicenseDetails xobject and fill it
+    #set ($nextObject = $nextDocument.newObject('License.Code.LicenseDetailsClass'))
+    #set ($discard = $nextObject.set('name', $!name))
+    #set ($discard = $nextObject.set('email', $!email))
+    #set ($discard = $nextObject.set('instanceId', $!instanceId))
+    #set ($discard = $nextObject.set('featureIds', $!featureIds))
+    #set ($discard = $nextObject.set('type', $!type))
+    #set ($discard = $nextObject.set('hasLicense', '0'))
+    #set ($discard = $nextDocument.save('License details added', true))
+    #if ($shouldGenerateLicense)
+      #generateLicense($name $email $instanceId $featureIds $type true $nextPageReference)
+    #end
+  #else
+    {{error}}Internal error: Document [$nextDocument.documentReference] already exists! Contact your system administrator.{{/error}}
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>
