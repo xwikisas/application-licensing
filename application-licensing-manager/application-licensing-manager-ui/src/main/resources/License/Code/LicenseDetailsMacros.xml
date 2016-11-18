@@ -38,7 +38,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{velocity}}
 #macro (findNextUniqueDetailsPageReference $nextPageReference)
   ## Use a license id as the name of the page
@@ -79,8 +79,10 @@
   #else
     #set ($dn = "CN=Trial License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR")
   #end
-  ## TODO: Each type of license has a different password, take it from a config.
-  #set ($signedLicense = $services.licensing.manager.generate($license, $keyStore, $certificateStore, $dn, "trialPassword"))
+  ## Find the password to use from the config
+  #set ($configDoc = $xwiki.getDocument('License.Code.LicenseConfig'))
+  #set ($password = $configDoc.getValue("${stringtool.lowerCase($type)}Password"))
+  #set ($signedLicense = $services.licensing.manager.generate($license, $keyStore, $certificateStore, $dn, $password))
   #if ("$!signedLicense" != '' &amp;&amp; $shouldSaveLicense)
     ## Persist the license
     #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
