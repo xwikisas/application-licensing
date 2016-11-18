@@ -32,6 +32,7 @@ import org.xwiki.crypto.script.ScriptingCertificateStore;
 import org.xwiki.crypto.script.ScriptingKeyStore;
 import org.xwiki.crypto.signer.SignerFactory;
 import org.xwiki.crypto.store.CertificateStoreException;
+import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.stability.Unstable;
 
@@ -41,6 +42,8 @@ import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.internal.SignedLicenseGenerator;
 
 /**
+ * Script services related to Licensing Management API.
+ *
  * @version $Id$
  * @since 1.1
  */
@@ -48,7 +51,7 @@ import com.xwiki.licensing.internal.SignedLicenseGenerator;
 @Named("licensing.manager")
 @Singleton
 @Unstable
-public class ManagerScriptService extends AbstractLicenseScriptService
+public class ManagerScriptService implements ScriptService
 {
     @Inject
     private SignedLicenseGenerator signedLicenseGenerator;
@@ -57,6 +60,20 @@ public class ManagerScriptService extends AbstractLicenseScriptService
     @Named("SHA1withRSAEncryption")
     private SignerFactory signerFactory;
 
+    /**
+     * Generate a signature for the passed license.
+     *
+     * @param license the license to sign (must contain a filled license type which will be used to find the right
+     *        Certificate)
+     * @param keyStore the store holding the keys
+     * @param certificateStore the store holding the certificates
+     * @param certificateSubject the DN for the certificate to use to sign the license. The certificate store will be
+     *        searched for a matching DN (example of DN
+     *        {@code CN=License Issuer 2016,OU=Licensing,O=XWiki SAS,L=Paris,C=FR})
+     * @param keyPassword the password to be able to get the matching key from the keystore
+     * @return a signed license
+     * @throws Exception if an error occurred at any level during the license signing process
+     */
     public License generate(License license, ScriptingKeyStore keyStore,
         ScriptingCertificateStore certificateStore, String certificateSubject, String keyPassword) throws Exception
     {
@@ -66,11 +83,26 @@ public class ManagerScriptService extends AbstractLicenseScriptService
             certificateStore.getCertificateProvider());
     }
 
+    /**
+     * Retrieve a identified license from a multi-license store.
+     *
+     * @param licenseStore the store from which to find the license
+     * @param licenseId the identifier of the license to be retrieved
+     * @return the retrieved license or NULL if the license has not be found in the store
+     * @throws IOException when an error occurs
+     */
     public License retrieveGeneratedLicense(ScriptLicenseStore licenseStore, LicenseId licenseId) throws IOException
     {
         return licenseStore.retrieve(licenseId);
     }
 
+    /**
+     * Store a given license into a given store.
+     *
+     * @param licenseStore the store into which to save the license
+     * @param license the license to be stored
+     * @throws IOException when an error occurs
+     */
     public void storeGeneratedLicense(ScriptLicenseStore licenseStore, License license) throws IOException
     {
         licenseStore.store(license);

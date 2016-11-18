@@ -28,6 +28,12 @@ import org.xwiki.properties.converter.AbstractConverter;
 
 import com.xwiki.licensing.LicensedFeatureId;
 
+/**
+ * Convert String to {@link LicensedFeatureId} and vice versa.
+ *
+ * @version $Id$
+ * @since 1.1
+ */
 @Component
 @Singleton
 public class LicenseFeatureIdConverter extends AbstractConverter<LicensedFeatureId>

@@ -28,6 +28,12 @@ import org.xwiki.properties.converter.AbstractConverter;
 
 import com.xwiki.licensing.LicenseId;
 
+/**
+ * Convert String to {@link LicenseId} and vice versa.
+ *
+ * @version $Id$
+ * @since 1.1
+ */
 @Component
 @Singleton
 public class LicenseIdConverter extends AbstractConverter<LicenseId>

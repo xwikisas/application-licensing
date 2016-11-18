@@ -27,9 +27,14 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.instance.InstanceId;
 import org.xwiki.properties.converter.AbstractConverter;
 
-// TODO: Remove this class once the feature is available in platform in the instance module. Registered with a lower
-// than default priority so that an implementation in xwiki platform will have precedence.
-// This is to allow depending on XWiki 8.3
+/**
+ * TODO: Remove this class once the Licensing module depends on 8.4.1+.
+ * Note that this component is registered with a lower than default priority so that when using this module on XWiki
+ * 8.4.1, the implementation of xwiki platform will have precedence.
+ *
+ * @version $Id$
+ * @since 1.1
+ */
 @Component
 @Singleton
 public class InstanceIdConverter extends AbstractConverter<InstanceId>

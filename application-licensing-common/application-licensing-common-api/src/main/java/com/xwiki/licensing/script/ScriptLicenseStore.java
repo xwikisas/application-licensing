@@ -30,6 +30,12 @@ import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.LicenseStoreReference;
 
+/**
+ * Wraps {@link LicenseStore} for scripts (perform permission checks, simpler API to use from scripts).
+ *
+ * @version $Id$
+ * @since 1.1
+ */
 public class ScriptLicenseStore
 {
     private LicenseStore licenseStore;
@@ -38,6 +44,11 @@ public class ScriptLicenseStore
 
     private ContextualAuthorizationManager contextualAuthorizationManager;
 
+    /**
+     * @param licenseStore the store to wrap
+     * @param licenseStoreReference the reference to the location where the store saves the licenses
+     * @param contextualAuthorizationManager the component to use to check for permission rights to access the store
+     */
     public ScriptLicenseStore(LicenseStore licenseStore, LicenseStoreReference licenseStoreReference,
         ContextualAuthorizationManager contextualAuthorizationManager)
     {
@@ -46,11 +57,24 @@ public class ScriptLicenseStore
         this.contextualAuthorizationManager = contextualAuthorizationManager;
     }
 
+    /**
+     * Retrieve a identified license from a multi-license store.
+     *
+     * @param licenseId the identifier of the license to be retrieved.
+     * @return the retrieved license or NULL if the license has not be found in the store.
+     * @throws IOException when an error occurs.
+     */
     public License retrieve(LicenseId licenseId) throws IOException
     {
         return this.licenseStore.retrieve(this.licenseStoreReference, licenseId);
     }
 
+    /**
+     * Store a given license into a given store.
+     *
+     * @param license the license to be stored.
+     * @throws IOException when an error occurs.
+     */
     public void store(License license) throws IOException
     {
         this.licenseStore.store(this.licenseStoreReference, license);
