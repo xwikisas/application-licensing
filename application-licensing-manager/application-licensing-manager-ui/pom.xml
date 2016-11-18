@@ -99,5 +99,13 @@
       <version>${platform.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- Needed for Class Sheet Binding to work -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-sheet-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>

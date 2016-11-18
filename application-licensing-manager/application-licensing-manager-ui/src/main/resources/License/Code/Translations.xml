@@ -43,6 +43,7 @@
 license.email=Email
 license.instanceId=Instance ID
 license.type=Type
+license.requestDate=Request Date
 license.issueDate=Issue Date
 license.expirationDate=Expiration Date
 license.featureIds=Extension Ids

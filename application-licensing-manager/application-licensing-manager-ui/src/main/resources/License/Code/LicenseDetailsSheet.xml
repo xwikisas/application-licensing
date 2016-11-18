@@ -39,7 +39,14 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="License.Code.LicenseDetailsMacros"/}}
+
+{{velocity}}
+#if ("$!request.action" == 'generate')
+  #generateLicense($doc.getValue('name'), $doc.getValue('email'), $doc.getValue('instanceId'), $doc.getValue('featureIds'), $doc.getValue('type'), true, $doc.documentReference)
+  ## Refresh page
+  $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
+#end
 ; Licensee Name
 : $doc.display('name')
 ; Licensee Email
@@ -48,13 +55,28 @@
 : $doc.display('instanceId')
 ; Extension IDs
 : $doc.display('featureIds')
-; Issue Date
-: $doc.display('issueDate')
+; Request Date
+: $doc.display('requestDate')
 ; License Type
 : $doc.display('type')
-
 #if ($xcontext.action == 'view')
-  ##------------- Display Expiration Date 
+  #macro(displayGenerateButton)
+    {{html clean='false'}}
+      &lt;form&gt;
+        &lt;input type='hidden' name='action' value='generate'/&gt;
+        &lt;span class='buttonwrapper'&gt;
+          &lt;input class='button' type='submit' value='Generate License'/&gt;
+        &lt;/span&gt;
+      &lt;/form&gt;
+    {{/html}}
+  #end
+  ##------------- Display Issue Date
+  #set ($issueDate = $doc.getValue('issueDate'))
+  #if ("$!issueDate" != '')
+    ; Issue Date
+    : $doc.display('issueDate')
+  #end
+  ##------------- Display Expiration Date
   #set ($expirationDate = $doc.getValue('expirationDate'))
   #if ("$!expirationDate" != '')
     ; Expiration Date
@@ -69,10 +91,12 @@
       : ((({{code language="none"}}$services.licensing.license.encode($license){{/code}})))
     #else
       {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
+
+      #displayGenerateButton
     #end
   #else
     ## No license ID, we consider that no license has been generated yet. Propose to generate one.
-    ... todo... generate license button here...
+    #displayGenerateButton
   #end
 #end
 {{/velocity}}</content>

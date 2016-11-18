@@ -65,7 +65,7 @@
   #elseif ($type.equalsIgnoreCase('free'))
     #set ($discard = $dateTime.addDays(365))
   #else
-    #set ($discard = $dateTime.addDays(10))
+    #set ($discard = $dateTime.addDays(11))
   #end
   #set ($license = $services.licensing.license.createLicense($type, $dateTime.getMillis(), $featureIds, $instanceId, {'name' : $name, 'email' : $email}))
   ## Keys are stored in the permanent directory, in a subdirectory named 'license-keystore'
@@ -84,6 +84,9 @@
       #if ("$!detailsObject" != '')
         #set ($discard = $detailsObject.set('hasLicense', '1'))
         #set ($discard = $detailsObject.set('licenseId', $signedLicense.id.id))
+        #set ($discard = $detailsObject.set('issueDate', $datetool.get('dd/MM/yyyy')))
+        #set ($dtf = $xwiki.jodatime.getDateTimeFormatterForPattern('dd/MM/yyyy'))
+        #set ($discard = $detailsObject.set('expirationDate', $dtf.print($dateTime)))
         #set ($discard = $detailsDocument.save('License ID added', true))
       #end
     #end
@@ -102,6 +105,7 @@
     #set ($discard = $nextObject.set('featureIds', $!featureIds))
     #set ($discard = $nextObject.set('type', $!type))
     #set ($discard = $nextObject.set('hasLicense', '0'))
+    #set ($discard = $nextObject.set('requestDate', $datetool.get('dd/MM/yyyy')))
     #set ($discard = $nextDocument.save('License details added', true))
     #if ($shouldGenerateLicense)
       #generateLicense($name $email $instanceId $featureIds $type true $nextPageReference)

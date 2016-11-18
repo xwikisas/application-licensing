@@ -158,6 +158,21 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </name>
+    <requestDate>
+      <customDisplay/>
+      <dateFormat>dd/MM/yyyy</dateFormat>
+      <disabled>0</disabled>
+      <emptyIsToday>0</emptyIsToday>
+      <name>requestDate</name>
+      <number>10</number>
+      <picker>1</picker>
+      <prettyName>Request Date</prettyName>
+      <size>20</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+    </requestDate>
     <type>
       <cache>0</cache>
       <customDisplay/>
