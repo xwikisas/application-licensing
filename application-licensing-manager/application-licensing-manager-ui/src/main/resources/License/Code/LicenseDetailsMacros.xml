@@ -41,19 +41,10 @@
   <hidden>false</hidden>
   <content>{{velocity}}
 #macro (findNextUniqueDetailsPageReference $nextPageReference)
-  ## Compute the new page name using the format "LicenseNNNNNNNNNN" where is a "0"-left-padded number.
-  ## Find the highest existing license detail page and add one.
-  #set ($query = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) as details where doc.name &lt;&gt; 'LicenseDetailsTemplate'"))
-  #if ($query.count() &gt; 0)
-    #set ($highestQuery = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) as details where doc.name &lt;&gt; 'LicenseDetailsTemplate' order by doc.name desc"))
-    #set ($highest = $highestQuery.setLimit(1).execute())
-    #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).name.substring(7)).intValue())
-    #set ($nextUniqueNumber = $numbertool.format('0000000000', $mathtool.add($currentNumber, 1)))
-  #else
-    #set ($nextUniqueNumber = '0000000001')
-  #end
+  ## Use a license id as the name of the page
+  #set ($licenseId = $services.licensing.license.createLicense().id.id)
   #set ($nextPageReference = $NULL)
-  #setVariable ("$nextPageReference", "License.Data.License${nextUniqueNumber}")
+  #setVariable ("$nextPageReference", $services.model.createDocumentReference('', ['License', 'Data'], $licenseId))
 #end
 #macro (generateLicense $name $email $instanceId $featureIds $type $shouldSaveLicense $licenseDetailsReference)
   ## For Trial licenses, have an expiration date of now + 10 days
@@ -67,16 +58,33 @@
   #else
     #set ($discard = $dateTime.addDays(11))
   #end
-  #set ($license = $services.licensing.license.createLicense($type, $dateTime.getMillis(), $featureIds, $instanceId, {'name' : $name, 'email' : $email}))
+  #set ($license = $services.licensing.license.createLicense())
+  #set ($discard = $license.setId($licenseDetailsReference.name))
+  #set ($discard = $license.setType($type))
+  #set ($discard = $license.addInstanceId($instanceId))
+  #set ($discard = $license.setExpirationDate($dateTime.getMillis()))
+  #set ($discard = $license.addLicenseeInfo('name', $name))
+  #set ($discard = $license.addLicenseeInfo('email', $email))
+  #foreach ($featureId in $stringtool.split($featureIds, ','))
+    #set ($discard = $license.addFeatureId($featureId))
+  #end
   ## Keys are stored in the permanent directory, in a subdirectory named 'license-keystore'
   #set ($keyStore = $services.crypto.store.getX509FileKeyStore('license-keystore'))
   ## Certificates are stored in wiki pages in a space named 'License.Certificates'
   #set ($certificateStore = $services.crypto.store.getX509SpaceCertificateStore($services.model.resolveSpace('License.Certificates')))
+  #if ($type.equalsIgnoreCase('paid'))
+    #set ($dn = "CN=Paid License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR")
+  #elseif ($type.equalsIgnoreCase('free'))
+    #set ($dn = "CN=Free License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR")
+  #else
+    #set ($dn = "CN=Trial License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR")
+  #end
   ## TODO: Each type of license has a different password, take it from a config.
-  #set ($signedLicense = $services.licensing.manager.generate($license, $keyStore, $certificateStore, "trialPassword"))
+  #set ($signedLicense = $services.licensing.manager.generate($license, $keyStore, $certificateStore, $dn, "trialPassword"))
   #if ("$!signedLicense" != '' &amp;&amp; $shouldSaveLicense)
     ## Persist the license
-    #set ($discard = $services.licensing.manager.storeGeneratedLicense($signedLicense))
+    #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
+    #set ($discard = $services.licensing.manager.storeGeneratedLicense($licenseStore, $signedLicense))
     ## Update the license details with the License ID and the fact that a license now exists
     #if ("$!licenseDetailsReference" != '')
       #set ($detailsDocument = $xwiki.getDocument($licenseDetailsReference))
@@ -99,6 +107,7 @@
   #if ($nextDocument.isNew())
     ## Add a LicenseDetails xobject and fill it
     #set ($nextObject = $nextDocument.newObject('License.Code.LicenseDetailsClass'))
+    #set ($discard = $nextObject.set('licenseId', $nextPageReference.name))
     #set ($discard = $nextObject.set('name', $!name))
     #set ($discard = $nextObject.set('email', $!email))
     #set ($discard = $nextObject.set('instanceId', $!instanceId))

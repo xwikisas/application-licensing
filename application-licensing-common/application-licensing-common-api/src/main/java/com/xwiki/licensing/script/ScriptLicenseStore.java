@@ -21,6 +21,10 @@ package com.xwiki.licensing.script;
 
 import java.io.IOException;
 
+import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
+
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseStore;
@@ -32,10 +36,14 @@ public class ScriptLicenseStore
 
     private LicenseStoreReference licenseStoreReference;
 
-    public ScriptLicenseStore(LicenseStore licenseStore, LicenseStoreReference licenseStoreReference)
+    private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    public ScriptLicenseStore(LicenseStore licenseStore, LicenseStoreReference licenseStoreReference,
+        ContextualAuthorizationManager contextualAuthorizationManager)
     {
         this.licenseStore = licenseStore;
         this.licenseStoreReference = licenseStoreReference;
+        this.contextualAuthorizationManager = contextualAuthorizationManager;
     }
 
     public License retrieve(LicenseId licenseId) throws IOException
@@ -46,5 +54,22 @@ public class ScriptLicenseStore
     public void store(License license) throws IOException
     {
         this.licenseStore.store(this.licenseStoreReference, license);
+    }
+
+    /**
+     * Note that we pass a Right even though it's not used. This is to plan for a WikiLicenseStoreReference in the
+     * future. When this is implemented we could write:
+     * <pre>{@code
+     * if (licenseStoreReference instanceof WikiLicenseStoreReference) {
+     *   contextualAuthorizationManager.checkAccess(right,
+     *       ((WikiLicenseStoreReference) licenseStoreReference).getReference());
+     * } else {
+     *   contextualAuthorizationManager.checkAccess(Right.PROGRAM);
+     * }
+     * }</pre>
+     */
+    private void checkAccess(Right right) throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.PROGRAM);
     }
 }

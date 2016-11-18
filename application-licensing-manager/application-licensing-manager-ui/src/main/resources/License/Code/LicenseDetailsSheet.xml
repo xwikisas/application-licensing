@@ -47,6 +47,8 @@
   ## Refresh page
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
 #end
+; License Id
+: $doc.display('licenseId')
 ; Licensee Name
 : $doc.display('name')
 ; Licensee Email
@@ -83,9 +85,11 @@
     : $!expirationDate
   #end
   ##------------- Display License 
-  #set ($licenseId = $doc.getValue('licenseId'))
-  #if ("$!licenseId" != '')
-    #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseId))
+  #set ($hasLicense = $doc.getValue('hasLicense'))
+  #if ("$!hasLicense" == '1')
+    #set ($licenseId = $doc.getValue('licenseId'))
+    #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
+    #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
     #if ("$!license" != '')
       ; License
       : ((({{code language="none"}}$services.licensing.license.encode($license){{/code}})))

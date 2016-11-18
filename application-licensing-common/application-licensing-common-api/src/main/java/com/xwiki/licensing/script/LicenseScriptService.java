@@ -20,8 +20,6 @@
 package com.xwiki.licensing.script;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,13 +27,11 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.crypto.BinaryStringEncoder;
-import org.xwiki.instance.InstanceId;
 import org.xwiki.properties.ConverterManager;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
-import com.xwiki.licensing.LicenseType;
-import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.SignedLicense;
 
 /**
@@ -57,25 +53,23 @@ public class LicenseScriptService extends AbstractLicenseScriptService
     @Named("Base64")
     private BinaryStringEncoder encoder;
 
-    public License createLicense(LicenseType licenseType, long expirationDate,
-        List<String> featureIdsAsString, InstanceId instanceId, Map<String, String> licenseInfo)
+    @Inject
+    private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    public License createLicense()
     {
-        License license = new License();
-        license.setType(licenseType);
-        for (String featureId : featureIdsAsString) {
-            license.addFeatureId(this.converterManager.convert(LicensedFeatureId.class, featureId));
-        }
-        license.addInstanceId(instanceId);
-        license.setExpirationDate(expirationDate);
-        for (Map.Entry<String, String> info : licenseInfo.entrySet()) {
-            license.addLicenseeInfo(info.getKey(), info.getValue());
-        }
-        return license;
+        return new License();
+    }
+
+    public ScriptLicenseStore getFileLicenseStore(String filename)
+    {
+        return getFileLicenseStore(filename, true);
     }
 
     public ScriptLicenseStore getFileLicenseStore(String filename, boolean multi)
     {
-        return new ScriptLicenseStore(this.filesystemLicenseStore, getFileLicenseStoreReference(filename, multi));
+        return new ScriptLicenseStore(this.filesystemLicenseStore, getFileLicenseStoreReference(filename, multi),
+            this.contextualAuthorizationManager);
     }
 
     public String encode(SignedLicense license) throws IOException

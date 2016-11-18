@@ -20,13 +20,11 @@
 package com.xwiki.licensing.script;
 
 import java.io.IOException;
-import java.util.Calendar;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.crypto.pkix.params.CertifiedPublicKey;
 import org.xwiki.crypto.pkix.params.x509certificate.DistinguishedName;
@@ -40,7 +38,6 @@ import org.xwiki.stability.Unstable;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseType;
-import com.xwiki.licensing.SignedLicense;
 import com.xwiki.licensing.internal.SignedLicenseGenerator;
 
 /**
@@ -53,8 +50,6 @@ import com.xwiki.licensing.internal.SignedLicenseGenerator;
 @Unstable
 public class ManagerScriptService extends AbstractLicenseScriptService
 {
-    private static final String GENERATED_STORE_NAME = "generated-licenses";
-
     @Inject
     private SignedLicenseGenerator signedLicenseGenerator;
 
@@ -62,47 +57,36 @@ public class ManagerScriptService extends AbstractLicenseScriptService
     @Named("SHA1withRSAEncryption")
     private SignerFactory signerFactory;
 
-    public SignedLicense generate(License license, ScriptingKeyStore keyStore,
-        ScriptingCertificateStore certificateStore, String keyPassword) throws Exception
+    public License generate(License license, ScriptingKeyStore keyStore,
+        ScriptingCertificateStore certificateStore, String certificateSubject, String keyPassword) throws Exception
     {
         return this.signedLicenseGenerator.generate(license,
-            keyStore.retrieve(getCertificate(license.getType(), certificateStore), keyPassword),
+            keyStore.retrieve(getCertificate(license.getType(), certificateStore, certificateSubject), keyPassword),
             this.signerFactory,
             certificateStore.getCertificateProvider());
     }
 
-    public License retrieveGeneratedLicense(LicenseId licenseId) throws IOException
+    public License retrieveGeneratedLicense(ScriptLicenseStore licenseStore, LicenseId licenseId) throws IOException
     {
-        ScriptLicenseStore licenseStore = new ScriptLicenseStore(this.filesystemLicenseStore,
-            getFileLicenseStoreReference(GENERATED_STORE_NAME, true));
         return licenseStore.retrieve(licenseId);
     }
 
-    public void storeGeneratedLicense(License license) throws IOException
+    public void storeGeneratedLicense(ScriptLicenseStore licenseStore, License license) throws IOException
     {
-        ScriptLicenseStore licenseStore = new ScriptLicenseStore(this.filesystemLicenseStore,
-            getFileLicenseStoreReference(GENERATED_STORE_NAME, true));
         licenseStore.store(license);
     }
 
-    private CertifiedPublicKey getCertificate(LicenseType licenseType, ScriptingCertificateStore certificateStore)
-        throws CertificateStoreException, AccessDeniedException
+    private CertifiedPublicKey getCertificate(LicenseType licenseType, ScriptingCertificateStore certificateStore,
+        String certificateSubject) throws CertificateStoreException, AccessDeniedException
     {
-        DistinguishedName subject = getLicenseSubject(licenseType);
+        DistinguishedName dn = new DistinguishedName(certificateSubject);
         for (CertifiedPublicKey certificate : certificateStore.getAllCertificates()) {
-            if (certificate.getSubject().equals(subject)) {
+            if (certificate.getSubject().equals(dn)) {
                 return certificate;
             }
         }
 
         throw new CertificateStoreException(
             String.format("Cannot find certificate in certificate store for license type [%s]", licenseType));
-    }
-
-    private DistinguishedName getLicenseSubject(LicenseType licenseType)
-    {
-        return new DistinguishedName(String.format("CN=%s License Issuer %s,OU=Licensing,O=XWiki SAS,L=Paris,C=FR",
-            StringUtils.capitalize(StringUtils.lowerCase(licenseType.toString())),
-            Calendar.getInstance().get(Calendar.YEAR)));
     }
 }

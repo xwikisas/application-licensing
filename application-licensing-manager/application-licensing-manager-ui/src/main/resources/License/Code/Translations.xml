@@ -39,7 +39,8 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>license.name=Name
+  <content>license.licenseId=Id
+license.name=Name
 license.email=Email
 license.instanceId=Instance ID
 license.type=Type

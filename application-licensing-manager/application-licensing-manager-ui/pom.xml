@@ -107,5 +107,13 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
+    <!-- Needed for Configurable Class -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-administration-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>
