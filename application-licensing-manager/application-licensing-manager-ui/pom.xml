@@ -37,7 +37,6 @@
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>License Manager Application</xwiki.extension.name>
     <xwiki.extension.category>application</xwiki.extension.category>
-    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
   </properties>
   <dependencies>
     <dependency>
