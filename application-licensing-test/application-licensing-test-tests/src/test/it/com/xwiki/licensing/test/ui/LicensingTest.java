@@ -108,7 +108,7 @@ public class LicensingTest extends AbstractTest
             + "\n"
             + "{{velocity}}\n"
             + "#addLicenseDetails('John' 'john@acme.com' 'b6ad6165-daaf-41a1-8a3f-9aa81451c402' "
-                + "'com.xwiki.activedirectory:application-activedirectory-main,"
+                + "'Active Directory Application', 'com.xwiki.activedirectory:application-activedirectory-main', '"
                     + "com.xwiki.activedirectory:application-activedirectory-api' 'trial' true)\n"
             + "success"
             + "{{/velocity}}";

@@ -49,6 +49,19 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <dependentFeatureIds>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>dependentFeatureIds</name>
+      <number>8</number>
+      <picker>0</picker>
+      <prettyName>Dependent Feature Ids</prettyName>
+      <size>120</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </dependentFeatureIds>
     <email>
       <customDisplay/>
       <disabled>0</disabled>
@@ -77,19 +90,32 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
     </expirationDate>
-    <featureIds>
+    <extensionName>
       <customDisplay/>
       <disabled>0</disabled>
-      <name>featureIds</name>
-      <number>8</number>
+      <name>extensionName</name>
+      <number>12</number>
       <picker>0</picker>
-      <prettyName>Ids of Extensions</prettyName>
-      <size>120</size>
+      <prettyName>Main Extension Name</prettyName>
+      <size>60</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </featureIds>
+    </extensionName>
+    <featureId>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>featureId</name>
+      <number>11</number>
+      <picker>0</picker>
+      <prettyName>Main Feature Id</prettyName>
+      <size>60</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </featureId>
     <hasLicense>
       <customDisplay/>
       <defaultValue/>

@@ -59,13 +59,14 @@
 {{/html}}
 #end
 
-#set($columns = ['licenseId', 'name', 'email', 'instanceId', 'featureIds', 'issueDate', 'expirationDate', 'type', 'hasLicense'])
+#set($columns = ['licenseId', 'name', 'email', 'instanceId', 'featureId', 'dependentFeatureIds', 'issueDate', 'expirationDate', 'type', 'hasLicense'])
 #set($columnsProperties = {
   'licenseId' : { 'link' : 'view', 'type' : 'text' },
   'name' : { 'link' : 'view', 'type' : 'text' },
   'email' : { 'html' : 'true', 'type' : 'text' },
   'instanceId' : { 'type' : 'text' },
-  'featureIds' : { 'type' : 'text' },
+  'featureId' : { 'type' : 'text' },
+  'dependentFeatureIds' : { 'type' : 'text' },
   'issueDate' : { 'type' : 'text' },
   'expirationDate' : { 'type' : 'text' },
   'type' : { 'type' : 'text' },

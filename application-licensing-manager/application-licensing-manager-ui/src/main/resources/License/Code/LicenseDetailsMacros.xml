@@ -46,7 +46,7 @@
   #set ($nextPageReference = $NULL)
   #setVariable ("$nextPageReference", $services.model.createDocumentReference('', ['License', 'Data'], $licenseId))
 #end
-#macro (generateLicense $name $email $instanceId $featureIds $type $shouldSaveLicense $licenseDetailsReference)
+#macro (generateLicense $name $email $instanceId $featureId $dependentFeatureIds $type $shouldSaveLicense $licenseDetailsReference)
   ## For Trial licenses, have an expiration date of now + 10 days
   ## For Paid licenses, have an expiration date of now + 1 year
   ## For Free licenses, have an expiration date of now + 1 year
@@ -65,8 +65,9 @@
   #set ($discard = $license.setExpirationDate($dateTime.getMillis()))
   #set ($discard = $license.addLicenseeInfo('name', $name))
   #set ($discard = $license.addLicenseeInfo('email', $email))
-  #foreach ($featureId in $stringtool.split($featureIds, ','))
-    #set ($discard = $license.addFeatureId($featureId))
+  #set ($discard = $license.addFeatureId($featureId))
+  #foreach ($dependentFeatureId in $stringtool.split($dependentFeatureIds, ', '))
+    #set ($discard = $license.addFeatureId($dependentFeatureId))
   #end
   ## Keys are stored in the permanent directory, in a subdirectory named 'license-keystore'
   #set ($keyStore = $services.crypto.store.getX509FileKeyStore('license-keystore'))
@@ -102,7 +103,7 @@
     #end
   #end
 #end
-#macro (addLicenseDetails $name $email $instanceId $featureIds $type $shouldGenerateLicense)
+#macro (addLicenseDetails $name $email $instanceId $extensionName $featureId $dependentFeatureIds $type $shouldGenerateLicense)
   #findNextUniqueDetailsPageReference($nextPageReference)
   #set ($nextDocument = $xwiki.getDocument($nextPageReference))
   ## Extra check to make sure we never overwrite an existing page
@@ -113,13 +114,15 @@
     #set ($discard = $nextObject.set('name', $!name))
     #set ($discard = $nextObject.set('email', $!email))
     #set ($discard = $nextObject.set('instanceId', $!instanceId))
-    #set ($discard = $nextObject.set('featureIds', $!featureIds))
+    #set ($discard = $nextObject.set('extensionName', $!extensionName))
+    #set ($discard = $nextObject.set('featureId', $!featureId))
+    #set ($discard = $nextObject.set('dependentFeatureIds', $!dependentFeatureIds))
     #set ($discard = $nextObject.set('type', $!type))
     #set ($discard = $nextObject.set('hasLicense', '0'))
     #set ($discard = $nextObject.set('requestDate', $datetool.get('dd/MM/yyyy')))
     #set ($discard = $nextDocument.save('License details added', true))
     #if ($shouldGenerateLicense)
-      #generateLicense($name $email $instanceId $featureIds $type true $nextPageReference)
+      #generateLicense($name $email $instanceId $featureId $dependentFeatureIds $type true $nextPageReference)
     #end
   #else
     {{error}}Internal error: Document [$nextDocument.documentReference] already exists! Contact your system administrator.{{/error}}
