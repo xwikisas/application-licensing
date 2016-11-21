@@ -128,5 +128,36 @@
     {{error}}Internal error: Document [$nextDocument.documentReference] already exists! Contact your system administrator.{{/error}}
   #end
 #end
+#macro (getExpiringLicensesForType $daysBeforeExpiration $type $expiringLicenses)
+  #set ($results = [])
+  #foreach ($days in $daysBeforeExpiration) 
+    #set ($query = $services.query.xwql("select license.name, license.email, license.extensionName from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
+    #set ($query = $query.bindValue('type', $type))
+    ## Compute current date + days
+    #set ($dateTime = $xwiki.jodatime.getDateTime())
+    #set ($dateBegin = $dateTime.plusDays($days).withTimeAtStartOfDay())
+    #set ($dateEnd = $dateTime.plusDays($days).plusDays(1).withTimeAtStartOfDay())
+    #set ($query = $query.bindValue('dateBegin', $dateBegin.toDate()))
+    #set ($query = $query.bindValue('dateEnd', $dateEnd.toDate()))
+    #foreach ($result in $query.execute())
+      #set ($map = {})
+      #set ($discard = $map.put('name', $result[0]))
+      #set ($discard = $map.put('email', $result[1]))
+      #set ($discard = $map.put('extensionName', $result[2]))
+      #set ($discard = $results.add($map))
+    #end
+  #end
+  #set ($expiringLicenses = $NULL)
+  #setVariable ("$expiringLicenses", $results)
+#end
+#macro (getExpiringLicenses $daysBeforeExpirationTrial $daysBeforeExpirationPaid $expiringLicenses)
+  #set ($totalResults = [])
+  #getExpiringLicensesForType($daysBeforeExpirationTrial, 'trial', $trialResults)
+  #set ($discard = $totalResults.addAll($trialResults))
+  #getExpiringLicensesForType($daysBeforeExpirationPaid, 'paid', $paidResults)
+  #set ($discard = $totalResults.addAll($paidResults))
+  #set ($expiringLicenses = $NULL)
+  #setVariable ("$expiringLicenses", $totalResults)
+#end
 {{/velocity}}</content>
 </xwikidoc>
