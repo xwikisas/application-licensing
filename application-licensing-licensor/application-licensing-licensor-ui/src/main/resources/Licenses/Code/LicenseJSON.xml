@@ -46,52 +46,52 @@
 #set ($jsonMap = {})
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))
-#set ($resultsCount = 0)
-#foreach ($set in $dependencies.entrySet())
-  #set ($resultsCount = $resultsCount + $set.value.size())
-#end
-#set ($discard = $jsonMap.put('totalrows', $$resultsCount))
-#set ($discard = $jsonMap.put('returnedrows', $$resultsCount))
 #set ($discard = $jsonMap.put('offset', $request.offset))
 #set ($discard = $jsonMap.put('reqNo', $request.reqNo))
 #set ($discard = $jsonMap.put('rows', []))
+#set ($resultsCount = 0)
 #foreach ($set in $dependencies.entrySet())
   #if ($set.key)
     #set ($wikiPrettyName = $services.wiki.getById($set.key.split(':')[1]).prettyName)
   #else
-    ## crete a pretty name for the applications installed at root level (Installed on Farm)
+    ## create a pretty name for the applications installed at root level (Installed on Farm)
     #set ($wikiPrettyName = $services.localization.render('licensor.wiki.installedOnFarm'))
   #end
   #foreach ($extension in $set.value)
-    #set ($extensionId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
-    #set ($license = $services.licensor.getLicenseForExtension($extension.id))
-    #set ($actions = "&lt;div class='licenseActions'&gt;")
-    ## use the JSON format in order to be parsable in javascript
-    #set ($JSONData = {
-      'extensionName': "${extension.name}",
-      'extensionId'  : "${extensionId}"
-    })
-    #setActions ($license $actions)
-    #if ($license.expirationDate == 0)
-      #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
-    #elseif ($license.expirationDate == $mathtool.pow(2,63))
-      ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use it since there is no other way to do it in velocity. 
-      #set ($expDate = $services.localization.render('licensor.status.infinite'))
-    #else
-      #set ($date = $datetool.getCalendar())
-      #set ($discard = $date.setTimeInMillis($license.expirationDate))
-      #set ($expDate = $datetool.format('dd/MM/yyyy', $date))
+    #if ($extension.type == 'xar')
+      #set ($resultsCount = $resultsCount + 1)
+      #set ($extensionId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
+      #set ($license = $services.licensor.getLicenseForExtension($extension.id))
+      #set ($actions = "&lt;div class='licenseActions'&gt;")
+      ## use the JSON format in order to be parsable in javascript
+      #set ($JSONData = {
+        'extensionName': "${extension.name}",
+        'extensionId'  : "${extensionId}"
+      })
+      #setActions ($license $actions)
+      #if ($license.expirationDate == 0)
+        #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
+      #elseif ($license.expirationDate == $mathtool.pow(2,63))
+        ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use it since there is no other way to do it in velocity. 
+        #set ($expDate = $services.localization.render('licensor.status.infinite'))
+      #else
+        #set ($date = $datetool.getCalendar())
+        #set ($discard = $date.setTimeInMillis($license.expirationDate))
+        #set ($expDate = $datetool.format('dd/MM/yyyy', $date))
+      #end
+      #set ($actions = "${actions}&lt;/div&gt;")
+      #set ($discard = $jsonMap.get('rows').add({
+        'doc_viewable' : true,
+        'name'   : $extension.name,
+        'status' : $expDate,
+        'wiki'   : $wikiPrettyName,
+        'actions': $actions
+      }))
     #end
-    #set ($actions = "${actions}&lt;/div&gt;")
-    #set ($discard = $jsonMap.get('rows').add({
-      'doc_viewable' : true,
-      'name'   : $extension.name,
-      'status' : $expDate,
-      'wiki'   : $wikiPrettyName,
-      'actions': $actions
-    }))
   #end
 #end
+#set ($discard = $jsonMap.put('totalrows', $$resultsCount))
+#set ($discard = $jsonMap.put('returnedrows', $$resultsCount))
 $jsontool.serialize($jsonMap)
 #macro (setActions $license $actions)
   #if ($license.type == 'FREE')
