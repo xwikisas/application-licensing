@@ -90,11 +90,11 @@
     #end
   #end
 #end
-#set ($discard = $jsonMap.put('totalrows', $$resultsCount))
-#set ($discard = $jsonMap.put('returnedrows', $$resultsCount))
+#set ($discard = $jsonMap.put('totalrows', $resultsCount))
+#set ($discard = $jsonMap.put('returnedrows', $resultsCount))
 $jsontool.serialize($jsonMap)
 #macro (setActions $license $actions)
-  #if ($license.type == 'FREE')
+  #if (!$license || $license.type == 'FREE')
     #addAction ('PAID' 'success' 'paid')
     #addAction ('TRIAL' 'primary' 'trial')
   #elseif ($license.expirationDate == 0 || ($license.type == 'TRIAL' &amp;&amp; $license.expirationDate &gt; $datetool.systemTime))
