@@ -45,7 +45,11 @@
 #end
 #set ($jsonMap = {})
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-#set ($payingExtensions = $services.extension.installed.getBackwardDependencies($licensorId, "wiki:${xcontext.database}"))
+#set ($dependenciesMap = $services.extension.installed.getBackwardDependencies($licensorId))
+#set ($payingExtensions = $collectionstool.set)
+#foreach ($value in $dependenciesMap.values())
+  #set ($discard = $payingExtensions.addAll($value))
+#end
 #set ($discard = $jsonMap.put('totalrows', $payingExtensions.size()))
 #set ($discard = $jsonMap.put('returnedrows', $payingExtensions.size()))
 #set ($discard = $jsonMap.put('offset', $request.offset))
