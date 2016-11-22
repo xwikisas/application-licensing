@@ -46,6 +46,14 @@
 #set ($jsonMap = {})
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))
+## The purpose of this set is to have all the backward dependencies (IDs as string) of the licensor and 
+## to easily get dependentFeatureIds for an extension.
+#set ($dependenciesIDs = $collectionstool.set)
+#foreach ($values in $dependencies.values())
+  #foreach ($value in $values)
+    #set ($discard = $dependenciesIDs.add($value.id.toString()))
+  #end
+#end
 #set ($discard = $jsonMap.put('offset', $request.offset))
 #set ($discard = $jsonMap.put('reqNo', $request.reqNo))
 #set ($discard = $jsonMap.put('rows', []))
@@ -59,20 +67,24 @@
   #end
   #foreach ($extension in $set.value)
     #if ($extension.type == 'xar')
+    ## $extension
       #set ($resultsCount = $resultsCount + 1)
-      #set ($extensionId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
+      #set ($featureId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
+      #set ($dependentFeatureIds = [])
+      #getDependentFeatureIds($extension $dependentFeatureIds)
       #set ($license = $services.licensor.getLicenseForExtension($extension.id))
       #set ($actions = "&lt;div class='licenseActions'&gt;")
       ## use the JSON format in order to be parsable in javascript
       #set ($JSONData = {
-        'extensionName': "${extension.name}",
-        'extensionId'  : "${extensionId}"
+        'extensionName'       : "$!{extension.name}",
+        'featureId'           : "$!{featureId}",
+        'dependentFeatureIds' : "$!{dependentFeatureIds}"
       })
       #setActions ($license $actions)
       #if ($license.expirationDate == 0)
         #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
       #elseif ($license.expirationDate == $mathtool.pow(2,63))
-        ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use it since there is no other way to do it in velocity. 
+        ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use it since there is no other way to do it in velocity.
         #set ($expDate = $services.localization.render('licensor.status.infinite'))
       #else
         #set ($date = $datetool.getCalendar())
@@ -109,6 +121,13 @@ $jsontool.serialize($jsonMap)
   #set ($discard = $JSONData.put('licenseType', $newType))
   #set ($label = $services.localization.render("licensor.${label}License.label"))
   #set ($actions = "${actions} &lt;button class='btn btn-${cssClass} licenseButton' data-button='$escapetool.xml($jsontool.serialize($JSONData))'&gt;${label}&lt;/button&gt;")
+#end
+#macro (getDependentFeatureIds $extension $dependentFeatureIds)
+  #foreach ($dependency in $extension.getDependencies())
+    #if ($dependenciesIDs.contains("${dependency.id}-${dependency.versionConstraint}"))
+      #set ($discard = $dependentFeatureIds.add($dependency))
+    #end
+  #end
 #end
 {{/velocity}}</content>
   <object>
