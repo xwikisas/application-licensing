@@ -159,5 +159,12 @@
   #set ($expiringLicenses = $NULL)
   #setVariable ("$expiringLicenses", $totalResults)
 #end
+#macro (countTrials $instanceId $featureId $trialCount)
+  #set ($query = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) license where license.instanceId = :instanceId and license.featureId = :featureId"))
+  #set ($query = $query.bindValue('instanceId', $instanceId))
+  #set ($query = $query.bindValue('featureId', $featureId))
+  #set ($trialCount = $NULL)
+  #setVariable ("$trialCount", $query.count())
+#end
 {{/velocity}}</content>
 </xwikidoc>
