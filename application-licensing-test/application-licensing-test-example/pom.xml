@@ -20,25 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.xwiki.licensing</groupId>
-    <artifactId>application-licensing</artifactId>
+    <artifactId>application-licensing-test</artifactId>
     <version>1.1-SNAPSHOT</version>
   </parent>
-  <artifactId>application-licensing-test</artifactId>
-  <name>Licensing Application - Tests - Parent POM</name>
-  <packaging>pom</packaging>
-  <description>Tests for the Licensing module</description>
+  <artifactId>application-licensing-test-example</artifactId>
+  <packaging>xar</packaging>
+  <name>Licensing Application - Tests - Paying Application Example</name>
+  <description>Example of a paying app for the functional tests</description>
   <properties>
-    <!-- Don't run backward-compatibility checks in test modules since we don't consider them as public APIs -->
-    <xwiki.revapi.skip>true</xwiki.revapi.skip>
-    <!-- Don't run Checkstyle in test modules -->
-    <xwiki.checkstyle.skip>true</xwiki.checkstyle.skip>
+    <!-- Don't run CLIRR here since there's no Java code. -->
+    <xwiki.clirr.skip>true</xwiki.clirr.skip>
   </properties>
-  <modules>
-    <module>application-licensing-test-example</module>
-    <module>application-licensing-test-tests</module>
-  </modules>
+  <dependencies>
+    <!-- This is what makes it a paying app that requires a license -->
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-licensor-api</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 </project>

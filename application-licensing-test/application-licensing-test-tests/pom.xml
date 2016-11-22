@@ -35,6 +35,9 @@
   <description>Tests for the Licensing module</description>
   <properties>
     <xwikiCfgSuperadminPassword>pass</xwikiCfgSuperadminPassword>
+    <!-- Configure the maven local repository as an extension repository so that we can install the Example application
+         (paying app) inside the test and ask for a trial license for it -->
+    <xwikiExtensionRepositories>maven-local:maven:file://${sys:user.home}/.m2/repository</xwikiExtensionRepositories>
     <!-- Functional tests are allowed to output content to the console -->
     <xwiki.surefire.captureconsole.skip>true</xwiki.surefire.captureconsole.skip>
     <!-- Override in order to add the Joda Time Plugin -->
@@ -46,6 +49,8 @@
       com.xpn.xwiki.plugin.skinx.LinkExtensionPlugin,\
       com.xpn.xwiki.plugin.jodatime.JodaTimePlugin
     </xwikiCfgPlugins>
+    <!-- Need to see the instance id in the License UI -->
+    <xwikiDbHbmCommonExtraMappings>instance.hbm.xml</xwikiDbHbmCommonExtraMappings>
   </properties>
   <dependencies>
     <dependency>
@@ -55,11 +60,50 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-component-script</artifactId>
       <version>${platform.version}</version>
       <scope>runtime</scope>
+    </dependency-->
+    <!-- We depend on the store app since we want to test the interaction with the remote store server (which we
+         simulate in the same wiki) -->
+    <dependency>
+      <groupId>com.xwiki.store</groupId>
+      <artifactId>application-store</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-test-example</artifactId>
+      <type>xar</type>
+      <!-- Make sure we don't include it in the generated distribution. However we want to depend on it so that this
+           module is built before that dependency in the maven reactor -->
+      <scope>provided</scope>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- Add support for Maven Repositories as Extension Repositories for our test -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-extension-script</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-extension-repository-maven</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-extension-handler-jar</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-extension-handler-xar</artifactId>
+      <version>${platform.version}</version>
     </dependency>
     <!-- Test dependencies -->
     <dependency>
@@ -75,11 +119,27 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <licensing.version>${project.version}</licensing.version>
+          </systemPropertyVariables>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-tool-packager-plugin</artifactId>
         <version>${platform.version}</version>
+        <dependencies>
+          <!-- TODO: remove the need for this dependency in the future. The reason we need it right now is because
+               the Packager Mojo will use the Import Mojo to import XARs but since we've defined the
+               xwikiDbHbmCommonExtraMappings property up there, it's using it and thus we need the mapping file to be
+               in the classpath. -->
+          <dependency>
+            <groupId>org.xwiki.platform</groupId>
+            <artifactId>xwiki-platform-instance</artifactId>
+            <version>${platform.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <phase>generate-test-resources</phase>

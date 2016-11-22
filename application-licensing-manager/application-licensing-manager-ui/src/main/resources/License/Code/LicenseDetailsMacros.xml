@@ -46,7 +46,7 @@
   #set ($nextPageReference = $NULL)
   #setVariable ("$nextPageReference", $services.model.createDocumentReference('', ['License', 'Data'], $licenseId))
 #end
-#macro (generateLicense $name $email $instanceId $featureId $dependentFeatureIds $type $shouldSaveLicense $licenseDetailsReference)
+#macro (generateLicense $name $email $instanceId $featureId $dependentFeatureIds $type $shouldSaveLicense $licenseDetailsReference $licenseAsString)
   ## For Trial licenses, have an expiration date of now + 10 days
   ## For Paid licenses, have an expiration date of now + 1 year
   ## For Free licenses, have an expiration date of now + 1 year
@@ -99,11 +99,13 @@
         #set ($dtf = $xwiki.jodatime.getDateTimeFormatterForPattern('dd/MM/yyyy'))
         #set ($discard = $detailsObject.set('expirationDate', $dtf.print($dateTime)))
         #set ($discard = $detailsDocument.save('License ID added', true))
+        #set ($licenseAsString = $NULL)
+        #setVariable ("$licenseAsString", $services.licensing.license.encode($signedLicense))
       #end
     #end
   #end
 #end
-#macro (addLicenseDetails $name $email $instanceId $extensionName $featureId $dependentFeatureIds $type $shouldGenerateLicense)
+#macro (addLicenseDetails $name $email $instanceId $extensionName $featureId $dependentFeatureIds $type $shouldGenerateLicense $licenseAsString)
   #findNextUniqueDetailsPageReference($nextPageReference)
   #set ($nextDocument = $xwiki.getDocument($nextPageReference))
   ## Extra check to make sure we never overwrite an existing page
@@ -122,7 +124,9 @@
     #set ($discard = $nextObject.set('requestDate', $datetool.get('dd/MM/yyyy')))
     #set ($discard = $nextDocument.save('License details added', true))
     #if ($shouldGenerateLicense)
-      #generateLicense($name $email $instanceId $featureId $dependentFeatureIds $type true $nextPageReference)
+      #generateLicense($name $email $instanceId $featureId $dependentFeatureIds $type true $nextPageReference $generatedLicense)
+      #set ($licenseAsString = $NULL)
+      #setVariable ("$licenseAsString", $generatedLicense)
     #end
   #else
     {{error}}Internal error: Document [$nextDocument.documentReference] already exists! Contact your system administrator.{{/error}}

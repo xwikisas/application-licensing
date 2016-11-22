@@ -25,11 +25,14 @@ import org.xwiki.test.ui.AbstractTest;
 import org.xwiki.test.ui.SuperAdminAuthenticationRule;
 import org.xwiki.test.ui.po.ViewPage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class LicensingTest extends AbstractTest
 {
+    private static final String EXAMPLE_ID = "com.xwiki.licensing:application-licensing-test-example";
+
+    private static final String VERSION = System.getProperty("licensing.version");
+
     @Rule
     public SuperAdminAuthenticationRule superAdminAuthenticationRule = new SuperAdminAuthenticationRule(getUtil());
 
@@ -38,7 +41,7 @@ public class LicensingTest extends AbstractTest
     {
         // Step 1: Generate Certificates and Keys by executing a script.
 
-        // Delete pages that we create in the test
+        // Delete page that we create in the test
         getUtil().rest().deletePage("License", "GenerateCertificatesAndKeys");
 
         // Create a page in which we populate the stores
@@ -114,5 +117,19 @@ public class LicensingTest extends AbstractTest
             + "{{/velocity}}";
         vp = getUtil().createPage("License", "AddLicenseDetails", content, "AddLicenseDetails");
         assertEquals("success", vp.getContent());
+
+        // Step 3: Install the Example application
+
+        // Delete page that we create in the test
+        getUtil().rest().deletePage("License", "InstallExampleApplication");
+
+        // Create a page in which we install the AD application and verify it's been installed correctly
+        content = "{{velocity}}\n"
+            + "#set ($job = $services.extension.install('" + EXAMPLE_ID + "', '" + VERSION + "', 'wiki:xwiki'))\n"
+            + "#set ($discard = $job.join())\n"
+            + "installed: $services.extension.installed.getInstalledExtension('" + EXAMPLE_ID + "', 'wiki:xwiki').id\n"
+            + "{{/velocity}}";
+        vp = getUtil().createPage("License", "InstallExampleApplication", content, "Install Example Application");
+        assertEquals("installed: " + EXAMPLE_ID + "-" + VERSION, vp.getContent());
     }
 }
