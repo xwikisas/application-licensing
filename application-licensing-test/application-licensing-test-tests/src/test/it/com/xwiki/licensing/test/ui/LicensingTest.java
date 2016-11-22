@@ -107,12 +107,13 @@ public class LicensingTest extends AbstractTest
         assertTrue(vp.getContent().contains("Trial:"));
 
         // Step 2: Add a new license details and generate a license
+
         content = "{{include reference='License.Code.LicenseDetailsMacros'/}}\n"
             + "\n"
             + "{{velocity}}\n"
             + "#addLicenseDetails('John' 'Doe' 'john@acme.com' 'b6ad6165-daaf-41a1-8a3f-9aa81451c402' "
                 + "'Active Directory Application', 'com.xwiki.activedirectory:application-activedirectory-main', '"
-                    + "com.xwiki.activedirectory:application-activedirectory-api' 'trial' true)\n"
+                    + "com.xwiki.activedirectory:application-activedirectory-api' 'trial' true $license)\n"
             + "success"
             + "{{/velocity}}";
         vp = getUtil().createPage("License", "AddLicenseDetails", content, "AddLicenseDetails");
@@ -123,11 +124,15 @@ public class LicensingTest extends AbstractTest
         // Delete page that we create in the test
         getUtil().rest().deletePage("License", "InstallExampleApplication");
 
-        // Create a page in which we install the AD application and verify it's been installed correctly
+        // Create a page in which we install the Example application and verify it's been installed correctly
         content = "{{velocity}}\n"
-            + "#set ($job = $services.extension.install('" + EXAMPLE_ID + "', '" + VERSION + "', 'wiki:xwiki'))\n"
-            + "#set ($discard = $job.join())\n"
-            + "installed: $services.extension.installed.getInstalledExtension('" + EXAMPLE_ID + "', 'wiki:xwiki').id\n"
+            + "#set ($installRequest = $services.extension.createInstallRequest("
+                + "'com.xwiki.licensing:application-licensing-test-example', '1.1-SNAPSHOT', 'wiki:xwiki'))\n"
+            + "#set ($discard = $installRequest.setInteractive(false))\n"
+            + "#set ($installJob = $services.extension.install($installRequest))\n"
+            + "#set ($discard = $installJob.join())\n"
+            + "installed: $services.extension.installed.getInstalledExtension("
+                + "'com.xwiki.licensing:application-licensing-test-example', 'wiki:xwiki').id\n"
             + "{{/velocity}}";
         vp = getUtil().createPage("License", "InstallExampleApplication", content, "Install Example Application");
         assertEquals("installed: " + EXAMPLE_ID + "-" + VERSION, vp.getContent());

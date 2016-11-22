@@ -59,13 +59,20 @@
       <version>${project.version}</version>
       <type>xar</type>
       <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.xwiki.licensing</groupId>
+          <artifactId>application-licensing-licensor-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-    <!--dependency>
+    <!-- Needed for the script executed during the test to generate the certificates and keys -->
+    <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-component-script</artifactId>
       <version>${platform.version}</version>
       <scope>runtime</scope>
-    </dependency-->
+    </dependency>
     <!-- We depend on the store app since we want to test the interaction with the remote store server (which we
          simulate in the same wiki) -->
     <dependency>
@@ -76,13 +83,10 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>com.xwiki.licensing</groupId>
-      <artifactId>application-licensing-test-example</artifactId>
-      <type>xar</type>
-      <!-- Make sure we don't include it in the generated distribution. However we want to depend on it so that this
-           module is built before that dependency in the maven reactor -->
-      <scope>provided</scope>
-      <version>${project.version}</version>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-instance</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
     </dependency>
     <!-- Add support for Maven Repositories as Extension Repositories for our test -->
     <dependency>
