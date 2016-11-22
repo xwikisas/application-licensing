@@ -43,6 +43,8 @@
 licensor.status=Expiration date
 licensor.status.noLicenseAvailable=No license available
 licensor.status.infinite=Infinite
+licensor.wiki=Wiki
+licensor.wiki.installedOnFarm=Installed on Farm
 licensor.actions=Actions
 licensor.trialLicense.label=Get Trial
 licensor.extendTrialLicense.label=Extend Trial
