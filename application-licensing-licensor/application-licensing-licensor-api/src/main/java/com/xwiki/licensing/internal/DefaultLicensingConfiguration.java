@@ -66,7 +66,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
             String storePath = this.configuration.get().getProperty(CK_PREFIX + "localStorePath");
 
             if (storePath == null) {
-                this.localStorePath = new File(this.environment.getPermanentDirectory(), "licenses/");
+                this.localStorePath = new File(this.environment.getPermanentDirectory(), "licenses");
             } else {
                 this.localStorePath = new File(storePath);
             }
