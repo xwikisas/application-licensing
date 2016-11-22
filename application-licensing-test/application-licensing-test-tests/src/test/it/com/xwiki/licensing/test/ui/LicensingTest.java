@@ -19,6 +19,8 @@
  */
 package com.xwiki.licensing.test.ui;
 
+import java.util.Arrays;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.test.ui.AbstractTest;
@@ -136,5 +138,11 @@ public class LicensingTest extends AbstractTest
             + "{{/velocity}}";
         vp = getUtil().createPage("License", "InstallExampleApplication", content, "Install Example Application");
         assertEquals("installed: " + EXAMPLE_ID + "-" + VERSION, vp.getContent());
+
+        // Step 4: Configure the Licensor UI store URLs to point to the current wiki
+        getUtil().updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
+            "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
+            "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense", "storeBuyURL",
+            "http://localhost:8080/xwiki/bin/view/Store/BuyLicense");
     }
 }
