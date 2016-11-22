@@ -40,7 +40,8 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>license.licenseId=Id
-license.name=Name
+license.firstName=First Name
+license.lastName=Last Name
 license.email=Email
 license.instanceId=Instance ID
 license.type=Type

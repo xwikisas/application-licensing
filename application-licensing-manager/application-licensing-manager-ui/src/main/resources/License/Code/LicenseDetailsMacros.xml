@@ -46,7 +46,7 @@
   #set ($nextPageReference = $NULL)
   #setVariable ("$nextPageReference", $services.model.createDocumentReference('', ['License', 'Data'], $licenseId))
 #end
-#macro (generateLicense $name $email $instanceId $featureId $dependentFeatureIds $type $shouldSaveLicense $licenseDetailsReference $licenseAsString)
+#macro (generateLicense $firstName $lastName $email $instanceId $featureId $dependentFeatureIds $type $shouldSaveLicense $licenseDetailsReference $licenseAsString)
   ## For Trial licenses, have an expiration date of now + 10 days
   ## For Paid licenses, have an expiration date of now + 1 year
   ## For Free licenses, have an expiration date of now + 1 year
@@ -63,7 +63,8 @@
   #set ($discard = $license.setType($type))
   #set ($discard = $license.addInstanceId($instanceId))
   #set ($discard = $license.setExpirationDate($dateTime.getMillis()))
-  #set ($discard = $license.addLicenseeInfo('name', $name))
+  #set ($discard = $license.addLicenseeInfo('firstName', $firstName))
+  #set ($discard = $license.addLicenseeInfo('lastName', $lastName))
   #set ($discard = $license.addLicenseeInfo('email', $email))
   #set ($discard = $license.addFeatureId($featureId))
   #foreach ($dependentFeatureId in $stringtool.split($dependentFeatureIds, ', '))
@@ -105,7 +106,7 @@
     #end
   #end
 #end
-#macro (addLicenseDetails $name $email $instanceId $extensionName $featureId $dependentFeatureIds $type $shouldGenerateLicense $licenseAsString)
+#macro (addLicenseDetails $firstName $lastName $email $instanceId $extensionName $featureId $dependentFeatureIds $type $shouldGenerateLicense $licenseAsString)
   #findNextUniqueDetailsPageReference($nextPageReference)
   #set ($nextDocument = $xwiki.getDocument($nextPageReference))
   ## Extra check to make sure we never overwrite an existing page
@@ -113,7 +114,8 @@
     ## Add a LicenseDetails xobject and fill it
     #set ($nextObject = $nextDocument.newObject('License.Code.LicenseDetailsClass'))
     #set ($discard = $nextObject.set('licenseId', $nextPageReference.name))
-    #set ($discard = $nextObject.set('name', $!name))
+    #set ($discard = $nextObject.set('firstName', $!firstName))
+    #set ($discard = $nextObject.set('lastName', $!lastName))
     #set ($discard = $nextObject.set('email', $!email))
     #set ($discard = $nextObject.set('instanceId', $!instanceId))
     #set ($discard = $nextObject.set('extensionName', $!extensionName))
@@ -124,7 +126,7 @@
     #set ($discard = $nextObject.set('requestDate', $datetool.get('dd/MM/yyyy')))
     #set ($discard = $nextDocument.save('License details added', true))
     #if ($shouldGenerateLicense)
-      #generateLicense($name $email $instanceId $featureId $dependentFeatureIds $type true $nextPageReference $generatedLicense)
+      #generateLicense($firstName $lastName $email $instanceId $featureId $dependentFeatureIds $type true $nextPageReference $generatedLicense)
       #set ($licenseAsString = $NULL)
       #setVariable ("$licenseAsString", $generatedLicense)
     #end
@@ -135,7 +137,7 @@
 #macro (getExpiringLicensesForType $daysBeforeExpiration $type $expiringLicenses)
   #set ($results = [])
   #foreach ($days in $daysBeforeExpiration) 
-    #set ($query = $services.query.xwql("select license.name, license.email, license.extensionName from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
+    #set ($query = $services.query.xwql("select license.firstName, license.lastName, license.email, license.extensionName from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
     #set ($query = $query.bindValue('type', $type))
     ## Compute current date + days
     #set ($dateTime = $xwiki.jodatime.getDateTime())
@@ -145,9 +147,10 @@
     #set ($query = $query.bindValue('dateEnd', $dateEnd.toDate()))
     #foreach ($result in $query.execute())
       #set ($map = {})
-      #set ($discard = $map.put('name', $result[0]))
-      #set ($discard = $map.put('email', $result[1]))
-      #set ($discard = $map.put('extensionName', $result[2]))
+      #set ($discard = $map.put('firstName', $result[0]))
+      #set ($discard = $map.put('lastName', $result[1]))
+      #set ($discard = $map.put('email', $result[2]))
+      #set ($discard = $map.put('extensionName', $result[3]))
       #set ($discard = $results.add($map))
     #end
   #end
