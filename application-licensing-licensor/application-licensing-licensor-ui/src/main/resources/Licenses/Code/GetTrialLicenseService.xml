@@ -42,20 +42,16 @@
   <content>{{velocity}}
 #if ($request.outputSyntax == 'plain')
   #set ($discard = $response.setContentType('application/json'))
-#end
-#set ($queryString = '')
-#foreach ($param in $request.parameterMap.entrySet())
-  #if ($foreach.index == 0)
-    #set ($queryString = "${param.key}=${request.get($param.key)}")
-  #else
-    #set ($queryString = "${queryString}&amp;${param.key}=${request.get($param.key)}")
+  #set ($queryString = "locale=${xwiki.localePreference}")
+  #foreach ($param in $request.parameterMap.entrySet())
+    #set ($queryString = "${queryString}&amp;${escapetool.url($param.key)}=${escapetool.url($request.get($param.key))}")
   #end
+  #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+  #set ($content = $xwiki.getURLContent("${licensingConfigDoc.storeTrialURL}?${queryString}"))
+  #if ($content.contains('error'))
+    #set ($discard = $response.setStatus(400))
+  #end
+  $content
 #end
-#set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-#set ($content = $xwiki.getURLContent("${licensingConfigDoc.storeTrialURL}?${escapetool.xml($queryString)}"))
-#if ($content.contains('error'))
-  #set ($discard = $response.setStatus(412))
-#end
-$content
 {{/velocity}}</content>
 </xwikidoc>
