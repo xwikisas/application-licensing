@@ -67,7 +67,6 @@
   #end
   #foreach ($extension in $set.value)
     #if ($extension.type == 'xar')
-    ## $extension
       #set ($resultsCount = $resultsCount + 1)
       #set ($featureId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
       #set ($dependentFeatureIds = [])
@@ -78,7 +77,7 @@
       #set ($JSONData = {
         'extensionName'       : "$!{extension.name}",
         'featureId'           : "$!{featureId}",
-        'dependentFeatureIds' : "$!{dependentFeatureIds}"
+        'dependentFeatureIds' : "$!{stringtool.join($dependenciesIDs, ',')}"
       })
       #setActions ($license $actions)
       #if ($license.expirationDate == 0)
