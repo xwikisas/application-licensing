@@ -71,7 +71,7 @@
       #set ($featureId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
       #set ($dependentFeatureIds = [])
       #getDependentFeatureIds($extension $dependentFeatureIds)
-      #set ($license = $services.licensor.getLicenseForExtension($extension.id))
+      #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
       #set ($actions = "&lt;div class='licenseActions'&gt;")
       ## use the JSON format in order to be parsable in javascript
       #set ($JSONData = {

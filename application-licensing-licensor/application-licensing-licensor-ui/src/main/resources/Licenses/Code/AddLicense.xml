@@ -45,7 +45,7 @@
 #end
 #if ("$!request.license" != '')
   #try()
-    #set ($result = $services.licensor.addLicense($request.license))
+    #set ($result = $services.licensing.licensor.addLicense($request.license))
   #end
   #if ($result &amp;&amp; "$!exception" == '')
     #set ($jsonRes = {'status': 'done', 'notification': "$services.localization.render('licensor.addLicense.success')"})
