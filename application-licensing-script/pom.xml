@@ -43,21 +43,11 @@
       <artifactId>xwiki-commons-script</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <!-- Note: We don't have runtime deps on application-licensing-licensor-api and application-licensing-manager-api
+         to avoid circular dependencies. Ideally we should split those modules and move out the script services -->
     <dependency>
       <groupId>com.xwiki.licensing</groupId>
       <artifactId>application-licensing-common-api</artifactId>
-      <version>${project.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.xwiki.licensing</groupId>
-      <artifactId>application-licensing-licensor-api</artifactId>
-      <version>${project.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.xwiki.licensing</groupId>
-      <artifactId>application-licensing-manager-api</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>

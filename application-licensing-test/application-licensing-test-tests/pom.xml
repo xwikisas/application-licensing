@@ -59,12 +59,6 @@
       <version>${project.version}</version>
       <type>xar</type>
       <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>com.xwiki.licensing</groupId>
-          <artifactId>application-licensing-licensor-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <!-- Needed for the script executed during the test to generate the certificates and keys -->
     <dependency>
