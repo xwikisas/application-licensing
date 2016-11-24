@@ -54,6 +54,7 @@ licensor.addLicense.adding=Adding license...
 licensor.addLicense.success=License successfully added!
 licensor.addLicense.denied=Failed! You need administration right to add a license.
 licensor.addLicense.error=Failed! The provided license could not be decoded.
+licensor.addLicense.nonJSON=Unexpected error: Received non-JSON content. Contact sales@xwiki.com.
 licensor.addLicense.gettingTrialLicense=Getting trial license...
 licensor.addLicense.useless=Failed! License is not compatible or useful for your server.
 licensor.addLicense.heading=Add License

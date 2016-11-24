@@ -413,7 +413,7 @@
         if(result.responseJSON) {
           new XWiki.widgets.Notification(result.responseJSON['notification'], result.responseJSON['status']);
         } else {
-          new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.error')", 'error');
+          new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error');
         }
         addLicenseSubmit.removeAttr('disabled');
       }
@@ -467,7 +467,11 @@
               addLicense.submit();
             },
             error: function(result) {
-              new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']);
+              if(result.responseJSON) {
+                new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']);
+              } else {
+                new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error');
+              }
             }
           });
         });
