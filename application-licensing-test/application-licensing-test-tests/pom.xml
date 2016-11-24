@@ -82,6 +82,13 @@
       <version>${platform.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- Needed for bypassing certificate checking -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rendering-macro-groovy</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Add support for Maven Repositories as Extension Repositories for our test -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>

@@ -144,5 +144,25 @@ public class LicensingTest extends AbstractTest
             "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
             "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense", "storeBuyURL",
             "http://localhost:8080/xwiki/bin/view/Store/BuyLicense");
+
+        // Step 5: Bypass the certificate checker since otherwise it'll fail since it'll check against the XWiki SAS
+        // official certificates
+        getUtil().rest().deletePage("License", "CertificateChecker");
+        content = "{{groovy}}\n"
+            + "import com.xwiki.licensing.*\n"
+            + "\n"
+            + "class VoidValidator implements LicenseValidator\n"
+            + "{\n"
+            + "    boolean isApplicable(License license) { return true }\n"
+            + "    boolean isSigned(License license) { return true }\n"
+            + "    boolean isValid(License license) { return true }\n"
+            + "}\n"
+            + "\n"
+            + "def licenseManager = services.component.getInstance(LicenseManager.class)\n"
+            + "licenseManager.licenseValidator = new VoidValidator() \n"
+            + "println 'ok'"
+            + "{{/groovy}}";
+        vp = getUtil().createPage("License", "CertificateChecker", content, "Certificate Checker");
+        assertEquals("ok", vp.getContent());
     }
 }
