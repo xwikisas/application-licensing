@@ -51,7 +51,7 @@
 #set ($dependenciesIDs = $collectionstool.set)
 #foreach ($values in $dependencies.values())
   #foreach ($value in $values)
-    #set ($discard = $dependenciesIDs.add($value.id.toString()))
+    #set ($discard = $dependenciesIDs.add("${value.properties.get('maven.groupid')}:${value.properties.get('maven.artifactid')}"))
   #end
 #end
 #set ($discard = $jsonMap.put('offset', $request.offset))
@@ -77,7 +77,7 @@
       #set ($JSONData = {
         'extensionName'       : "$!{extension.name}",
         'featureId'           : "$!{featureId}",
-        'dependentFeatureIds' : "$!{stringtool.join($dependenciesIDs, ',')}"
+        'dependentFeatureIds' : "$!{stringtool.join($dependentFeatureIds, ',')}"
       })
       #setActions ($license $actions)
       #if ($license.expirationDate == 0)
@@ -123,8 +123,8 @@ $jsontool.serialize($jsonMap)
 #end
 #macro (getDependentFeatureIds $extension $dependentFeatureIds)
   #foreach ($dependency in $extension.getDependencies())
-    #if ($dependenciesIDs.contains("${dependency.id}-${dependency.versionConstraint}"))
-      #set ($discard = $dependentFeatureIds.add($dependency))
+    #if ($dependenciesIDs.contains($dependency.id))
+      #set ($discard = $dependentFeatureIds.add($dependency.id))
     #end
   #end
 #end
