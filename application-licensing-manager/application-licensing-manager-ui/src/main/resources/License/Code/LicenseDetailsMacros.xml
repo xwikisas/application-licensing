@@ -136,8 +136,8 @@
 #end
 #macro (getExpiringLicensesForType $daysBeforeExpiration $type $expiringLicenses)
   #set ($results = [])
-  #foreach ($days in $daysBeforeExpiration) 
-    #set ($query = $services.query.xwql("select license.firstName, license.lastName, license.email, license.extensionName from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
+  #foreach ($days in $daysBeforeExpiration)
+    #set ($query = $services.query.xwql("select license.firstName, license.lastName, license.email, license.extensionName, license.expirationDate, license.type from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
     #set ($query = $query.bindValue('type', $type))
     ## Compute current date + days
     #set ($dateTime = $xwiki.jodatime.getDateTime())
@@ -151,6 +151,8 @@
       #set ($discard = $map.put('lastName', $result[1]))
       #set ($discard = $map.put('email', $result[2]))
       #set ($discard = $map.put('extensionName', $result[3]))
+      #set ($discard = $map.put('expirationDate', $result[4]))
+      #set ($discard = $map.put('type', $result[5]))
       #set ($discard = $results.add($map))
     #end
   #end
