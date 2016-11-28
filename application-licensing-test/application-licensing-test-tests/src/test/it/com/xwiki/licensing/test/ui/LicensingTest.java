@@ -35,6 +35,11 @@ import com.xwiki.licensing.test.po.LicensingAdminPage;
 
 import static org.junit.Assert.*;
 
+/**
+ * Functional tests for the Licensing module.
+ *
+ * @version $Id$
+ */
 public class LicensingTest extends AbstractTest
 {
     private static final String EXAMPLE_ID = "com.xwiki.licensing:application-licensing-test-example";
