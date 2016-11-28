@@ -39,5 +39,11 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>Hello</content>
+  <content>{{velocity}}
+#if ($services.licensing.licensor.hasLicensure())
+  Hello
+#else
+  Missing license
+#end
+{{/velocity}}</content>
 </xwikidoc>

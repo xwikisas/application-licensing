@@ -145,6 +145,10 @@ public class LicensingTest extends AbstractTest
         vp = getUtil().createPage("License", "InstallExampleApplication", content, "Install Example Application");
         assertEquals("installed: " + EXAMPLE_ID + "-" + VERSION, vp.getContent());
 
+        // Verify that there's no license for Example.WebHome
+        vp = getUtil().gotoPage("Example", "WebHome");
+        assertEquals("Missing license", vp.getContent());
+
         // Step 4: Configure the Licensor UI store URLs to point to the current wiki
         getUtil().updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
             "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
@@ -185,7 +189,8 @@ public class LicensingTest extends AbstractTest
         lap.setLicenseOwnershipDetails("John", "Doe", "john@acme.com");
         final LicensingAdminPage lap2 = lap.clickGetTrialButton();
 
-        // Wait till the license expiration cell is no longer displaying "No license available"
+        // Wait till the license expiration cell is no longer displaying "No license available", proving that it's
+        // been updated after the license has been set.
         getDriver().waitUntilCondition(new ExpectedCondition<Object>() {
             public Boolean apply(WebDriver driver) {
                 LiveTableElement laplt = lap2.getLiveTable();
@@ -193,5 +198,9 @@ public class LicensingTest extends AbstractTest
                 return !laplt.getCell(firstRow, 2).getText().equals("No license available");
             }
         });
+
+        // Step 7: Verify that the Example page has a license
+        vp = getUtil().gotoPage("Example", "WebHome");
+        assertEquals("Hello", vp.getContent());
     }
 }
