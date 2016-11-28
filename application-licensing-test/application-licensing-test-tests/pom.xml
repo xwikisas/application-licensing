@@ -112,6 +112,12 @@
     </dependency>
     <!-- Test dependencies -->
     <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-test-pageobjects</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-test-ui</artifactId>
       <version>${platform.version}</version>

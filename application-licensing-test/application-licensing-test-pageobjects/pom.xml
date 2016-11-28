@@ -24,22 +24,23 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.xwiki.licensing</groupId>
-    <artifactId>application-licensing</artifactId>
+    <artifactId>application-licensing-test</artifactId>
     <version>1.1-SNAPSHOT</version>
   </parent>
-  <artifactId>application-licensing-test</artifactId>
-  <name>Licensing Application - Tests - Parent POM</name>
-  <packaging>pom</packaging>
-  <description>Tests for the Licensing module</description>
-  <properties>
-    <!-- Don't run backward-compatibility checks in test modules since we don't consider them as public APIs -->
-    <xwiki.revapi.skip>true</xwiki.revapi.skip>
-    <!-- Don't run Checkstyle in test modules -->
-    <xwiki.checkstyle.skip>true</xwiki.checkstyle.skip>
-  </properties>
-  <modules>
-    <module>application-licensing-test-example</module>
-    <module>application-licensing-test-pageobjects</module>
-    <module>application-licensing-test-tests</module>
-  </modules>
+  <artifactId>application-licensing-test-pageobjects</artifactId>
+  <name>Licensing Application - Tests - Page Objects</name>
+  <packaging>jar</packaging>
+  <description>Page Objects for Licensing functional tests</description>
+  <dependencies>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-test-ui</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-administration-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+  </dependencies>
 </project>

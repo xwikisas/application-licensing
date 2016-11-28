@@ -23,9 +23,15 @@ import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.xwiki.test.ui.AbstractTest;
 import org.xwiki.test.ui.SuperAdminAuthenticationRule;
+import org.xwiki.test.ui.po.LiveTableElement;
 import org.xwiki.test.ui.po.ViewPage;
+
+import com.xwiki.licensing.test.po.LicensingAdminPage;
 
 import static org.junit.Assert.*;
 
@@ -154,7 +160,7 @@ public class LicensingTest extends AbstractTest
             + "class VoidValidator implements LicenseValidator\n"
             + "{\n"
             + "    boolean isApplicable(License license) { return true }\n"
-            + "    boolean isSigned(License license) { return true }\n"
+            + "    boolean isSigned(License license) { return license instanceof SignedLicense }\n"
             + "    boolean isValid(License license) { return true }\n"
             + "}\n"
             + "\n"
@@ -164,5 +170,28 @@ public class LicensingTest extends AbstractTest
             + "{{/groovy}}";
         vp = getUtil().createPage("License", "CertificateChecker", content, "Certificate Checker");
         assertEquals("ok", vp.getContent());
+
+        // Step 6: Navigate to the License Admin UI, fill ownership details and click "Get Trial". Verify that the
+        // license has an expiration date.
+
+        // Initially epxiration date should display "No license available"
+        LicensingAdminPage lap = LicensingAdminPage.gotoPage();
+        LiveTableElement laplt = lap.getLiveTable();
+        assertEquals(1, laplt.getRowCount());
+        WebElement firstRow = laplt.getRow(1);
+        assertEquals("No license available", laplt.getCell(firstRow, 2).getText());
+
+        // Fill ownership details, click "Get Trial" and verify expiration date
+        lap.setLicenseOwnershipDetails("John", "Doe", "john@acme.com");
+        final LicensingAdminPage lap2 = lap.clickGetTrialButton();
+
+        // Wait till the license expiration cell is no longer displaying "No license available"
+        getDriver().waitUntilCondition(new ExpectedCondition<Object>() {
+            public Boolean apply(WebDriver driver) {
+                LiveTableElement laplt = lap2.getLiveTable();
+                WebElement firstRow = laplt.getRow(1);
+                return !laplt.getCell(firstRow, 2).getText().equals("No license available");
+            }
+        });
     }
 }
