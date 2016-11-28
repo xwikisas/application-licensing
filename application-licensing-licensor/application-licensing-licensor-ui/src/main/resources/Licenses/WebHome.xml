@@ -413,9 +413,9 @@
         // remove always the previous error message
         $('.errormessage').remove();
         if(result.responseJSON) {
-          addLicense.append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ result.responseJSON['notification'] +'&lt;/div&gt;');
+          addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ result.responseJSON['notification'] +'&lt;/div&gt;');
         } else {
-          addLicense.append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ "$services.localization.render('licensor.addLicense.nonJSON')" +'&lt;/div&gt;');
+          addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ "$services.localization.render('licensor.addLicense.nonJSON')" +'&lt;/div&gt;');
         }
         addLicenseSubmit.removeAttr('disabled');
       }
