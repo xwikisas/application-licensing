@@ -403,17 +403,19 @@
       },
       complete:function() {
         this.progressNotification.hide();
-        // reload the page to update the livetable and to clear the form
-        location.reload(true);
       },
       success: function(result) {
         new XWiki.widgets.Notification(result['notification'], result['status']);
+        // reload the page to update the livetable and to clear the form
+        location.reload(true);
       },
       error: function(result) {
+        // remove always the previous error message
+        $('.errormessage').remove();
         if(result.responseJSON) {
-          new XWiki.widgets.Notification(result.responseJSON['notification'], result.responseJSON['status']);
+          addLicense.append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ result.responseJSON['notification'] +'&lt;/div&gt;');
         } else {
-          new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error');
+          addLicense.append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ "$services.localization.render('licensor.addLicense.nonJSON')" +'&lt;/div&gt;');
         }
         addLicenseSubmit.removeAttr('disabled');
       }
