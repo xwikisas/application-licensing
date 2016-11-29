@@ -146,10 +146,10 @@
       </storeTrialURL>
     </class>
     <property>
-      <storeBuyURL>https://store.xwiki.com/xwiki/bin/view/License/BuyLicense/</storeBuyURL>
+      <storeBuyURL>https://store.xwiki.com/xwiki/bin/view/Store/BuyLicense</storeBuyURL>
     </property>
     <property>
-      <storeTrialURL>https://store.xwiki.com/xwiki/bin/get/License/Code/GetTrialLicense</storeTrialURL>
+      <storeTrialURL>https://store.xwiki.com/xwiki/bin/get/Store/GetTrialLicense</storeTrialURL>
     </property>
   </object>
 </xwikidoc>
