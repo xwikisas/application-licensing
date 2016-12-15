@@ -10,4 +10,4 @@ Manage and enforce application licenses for paid extensions
 * License: LGPL 2.1
 * Translations: N/A 
 * Sonar Dashboard: N/A 
-* [Continuous Integration Status](http://ci.xwikisas.com/job/application-licensing/) 
+* Continuous Integration Status: [![Build Status](http://ci.xwikisas.com/buildStatus/icon?job=application-licensing)](http://ci.xwikisas.com/job/application-licensing/) 
