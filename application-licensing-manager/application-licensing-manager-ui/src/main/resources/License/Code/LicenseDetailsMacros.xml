@@ -56,6 +56,12 @@
   #elseif ($type.equalsIgnoreCase('free'))
     #set ($discard = $dateTime.addDays(365))
   #else
+    #countTrials($instanceId $featureId $trialCount)
+    #if ($trialCount &gt; 0)
+      ## This case represents the 'Extend Trial'
+      #getExpirationDate($instanceId $featureId $date)
+      #set ($dateTime = $xwiki.jodatime.getMutableDateTime($date.time))
+    #end
     #set ($discard = $dateTime.addDays(11))
   #end
   #set ($license = $services.licensing.license.createLicense())
@@ -169,11 +175,23 @@
   #setVariable ("$expiringLicenses", $totalResults)
 #end
 #macro (countTrials $instanceId $featureId $trialCount)
-  #set ($query = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) license where license.instanceId = :instanceId and license.featureId = :featureId"))
-  #set ($query = $query.bindValue('instanceId', $instanceId))
-  #set ($query = $query.bindValue('featureId', $featureId))
+  #getLicenseQuery($instanceId $featureId $query)
   #set ($trialCount = $NULL)
   #setVariable ("$trialCount", $query.count())
+#end
+#macro (getExpirationDate $instanceId $featureId $date)
+  #getLicenseQuery($instanceId $featureId $query)
+  #set ($result = $query.setLimit(1).execute())
+  #set ($resultDoc = $xwiki.getDocument($result[0]))
+  #set ($date = $NULL)
+  #setVariable ("$date", $resultDoc.getValue('expirationDate'))
+#end
+#macro (getLicenseQuery $instanceId $featureId $query)
+  #set ($computedQuery = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) license where license.instanceId = :instanceId and license.featureId = :featureId order by license.expirationDate desc"))
+  #set ($computedQuery = $computedQuery.bindValue('instanceId', $instanceId))
+  #set ($computedQuery = $computedQuery.bindValue('featureId', $featureId))
+  #set ($query = $NULL)
+  #setVariable ("$query", $computedQuery)
 #end
 {{/velocity}}</content>
 </xwikidoc>
