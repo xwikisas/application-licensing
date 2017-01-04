@@ -56,9 +56,11 @@
   #elseif ($type.equalsIgnoreCase('free'))
     #set ($discard = $dateTime.addDays(365))
   #else
+    ## We needed a way to handle the Extend Trial action so the user won't loose it
+    ## E.g.: If an user gets a trial and trys to extend it before the expiration date, the 11 days will be added
+    ## to the expiration date and not to the current date.
     #countTrials($instanceId $featureId $trialCount)
-    #if ($trialCount &gt; 0)
-      ## This case represents the 'Extend Trial'
+    #if ($trialCount &gt;= 1)
       #getExpirationDate($instanceId $featureId $date)
       #set ($dateTime = $xwiki.jodatime.getMutableDateTime($date.time))
     #end
