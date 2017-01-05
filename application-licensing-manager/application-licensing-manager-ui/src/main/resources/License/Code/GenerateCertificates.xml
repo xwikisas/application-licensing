@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.2" reference="License.Code.GenerateCertificates" locale="">
+  <web>License.Code</web>
+  <name>GenerateCertificates</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1483602866000</creationDate>
+  <parent>xwiki:License.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1483602878000</date>
+  <contentUpdateDate>1483602878000</contentUpdateDate>
+  <version>1.1</version>
+  <title>Generate Yearly Certificates</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+#if ("$!request.action" != 'Generate')
+This will generate License Certificates for ${datetool.year}.
+
+{{html}}
+&lt;form class="xform" action="" method="POST"&gt;
+ &lt;dl&gt;
+  &lt;dt&gt;Free Key Intermediate CA password&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="password" name="freeCAPassword" /&gt;
+  &lt;/dd&gt;
+  &lt;dt&gt;Trial Key Intermediate CA password&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="password" name="trialCAPassword" /&gt;
+  &lt;/dd&gt;
+  &lt;dt&gt;Paid Key Intermediate CA password&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="password" name="paidCAPassword" /&gt;
+  &lt;/dd&gt;
+  &lt;dt&gt;Free Key Issuer new password&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="password" name="freePassword" /&gt;
+  &lt;/dd&gt;
+  &lt;dt&gt;Trial Key Issuer new password&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="password" name="trialPassword" /&gt;
+  &lt;/dd&gt;
+  &lt;dt&gt;Paid Key Issuer new password&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;input type="password" name="paidPassword" /&gt;
+  &lt;/dd&gt;
+ &lt;/dl&gt;
+&lt;div class="button-wrapper"&gt;
+  &lt;input class="button" type="submit" name="action" value="Generate" /&gt;
+&lt;/div&gt;
+&lt;/form&gt;
+{{/html}}
+
+#else
+
+  #set($keystore = $services.crypto.store.getX509FileKeyStore('license-keystore'))
+  #set($certstore = $services.crypto.store.getX509SpaceCertificateStore($services.model.resolveSpace('License.Certificates')))
+  #set($base64Encoder = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder','Base64'))
+  #set($hexEncoder = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder','Hex'))
+
+  ## Retrieve the Intermediate certificates
+  #foreach ($certifiedPublicKey in $certstore.getAllCertificates())
+    #set ($subject = $certifiedPublicKey.subject.name)
+    #if ($subject == 'CN=Trial License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR')
+      #set ($trialInterCA = $keystore.retrieve($certifiedPublicKey, $request.trialCAPassword))
+    #elseif ($subject == 'CN=Free License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR')
+      #set ($freeInterCA = $keystore.retrieve($certifiedPublicKey, $request.freeCAPassword))
+    #elseif ($subject == 'CN=Paid License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR')
+      #set ($paidInterCA = $keystore.retrieve($certifiedPublicKey, $request.paidCAPassword))
+    #end
+  #end
+
+  Intermediate certificates found:
+  * $trialInterCA.certificate.subject.name
+  * $freeInterCA.certificate.subject.name
+  * $paidInterCA.certificate.subject.name
+
+  ## Generate the new certificates
+  #set($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set($freeKeyPair = $services.crypto.rsa.issueCertificate($freeInterCA, $keyPair, "CN=Free License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR", 740, [$services.crypto.x509name.createX509Rfc822Name('contact@xwiki.com')]))
+  #set($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set($trialKeyPair = $services.crypto.rsa.issueCertificate($trialInterCA, $keyPair, "CN=Trial License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR", 740, [$services.crypto.x509name.createX509Rfc822Name('trial@xwiki.com')]))
+  #set($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set($paidKeyPair = $services.crypto.rsa.issueCertificate($paidInterCA, $keyPair, "CN=Paid License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR", 740, [$services.crypto.x509name.createX509Rfc822Name('contact@xwiki.com')]))
+
+Newly created certified key pair:
+  * Free key pair: $hexEncoder.encode($freeKeyPair.certificate.subjectKeyIdentifier) - $base64Encoder.encode($freeKeyPair.certificate.subjectKeyIdentifier)
+  * Trial key pair: $hexEncoder.encode($trialKeyPair.certificate.subjectKeyIdentifier) - $base64Encoder.encode($trialKeyPair.certificate.subjectKeyIdentifier)
+  * Paid key pair: $hexEncoder.encode($paidKeyPair.certificate.subjectKeyIdentifier) - $base64Encoder.encode($paidKeyPair.certificate.subjectKeyIdentifier)
+
+  #set($discard = $keystore.store($freeKeyPair, $request.freePassword))
+  #set($discard = $keystore.store($trialKeyPair, $request.trialPassword))
+  #set($discard = $keystore.store($paidKeyPair, $request.paidPassword))
+
+  #set($discard = $certstore.store($freeKeyPair.certificate))
+  #set($discard = $certstore.store($trialKeyPair.certificate))
+  #set($discard = $certstore.store($paidKeyPair.certificate))
+#end
+{{/velocity}}</content>
+</xwikidoc>
