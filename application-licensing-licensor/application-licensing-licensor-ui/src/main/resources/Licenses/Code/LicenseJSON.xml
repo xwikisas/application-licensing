@@ -94,6 +94,7 @@
       #set ($discard = $jsonMap.get('rows').add({
         'doc_viewable' : true,
         'name'   : $extension.name,
+        'version': $extension.version.value,
         'status' : $expDate,
         'wiki'   : $wikiPrettyName,
         'actions': $actions

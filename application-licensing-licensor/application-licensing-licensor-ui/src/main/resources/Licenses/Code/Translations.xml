@@ -40,6 +40,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>licensor.name=Extension name
+licensor.version=Version
 licensor.status=Expiration date
 licensor.status.noLicenseAvailable=No license available
 licensor.status.infinite=Infinite

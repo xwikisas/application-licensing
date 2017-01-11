@@ -65,9 +65,10 @@
     $services.localization.render('licensor.licenseManager.hint')
   &lt;/fieldset&gt;
 {{/html}}
-#set($columns = ['name', 'status', 'wiki', 'actions'])
+#set($columns = ['name', 'version', 'status', 'wiki', 'actions'])
 #set($columnsProperties = {
   'name'    : {'type' : 'text'},
+  'version' : {'type' : 'text', 'size' : '3'},
   'status'  : {'type' : 'text'},
   'wiki'    : {'type' : 'text'},
   'actions' : {'type' : 'text', 'html':true}
