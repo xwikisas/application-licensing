@@ -426,7 +426,9 @@
       If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
   **/
   $('#licenseManager').on('click', '.licenseButton', function() {
-    // check the input fields to be filled with data
+    // Make licenseActions buttons inactive when any of them is clicked
+    $(this).siblings().prop('disabled', true)
+    $(this).prop('disabled', true )
     var doSubmit = true;
     var ownerDetailsForm = $('#ownerDetails');
     ownerDetailsForm.find('input:visible').each(function() {
