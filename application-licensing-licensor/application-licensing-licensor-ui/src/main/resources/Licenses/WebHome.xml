@@ -429,6 +429,7 @@
     // Make licenseActions buttons inactive when any of them is clicked
     $(this).siblings().prop('disabled', true)
     $(this).prop('disabled', true )
+    // check the input fields to be filled with data
     var doSubmit = true;
     var ownerDetailsForm = $('#ownerDetails');
     ownerDetailsForm.find('input:visible').each(function() {
