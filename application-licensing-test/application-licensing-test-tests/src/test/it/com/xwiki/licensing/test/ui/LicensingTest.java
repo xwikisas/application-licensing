@@ -140,7 +140,7 @@ public class LicensingTest extends AbstractTest
         // Create a page in which we install the Example application and verify it's been installed correctly
         content = "{{velocity}}\n"
             + "#set ($installRequest = $services.extension.createInstallRequest("
-                + "'com.xwiki.licensing:application-licensing-test-example', '1.1-SNAPSHOT', 'wiki:xwiki'))\n"
+                + "'com.xwiki.licensing:application-licensing-test-example', '"+ VERSION +"', 'wiki:xwiki'))\n"
             + "#set ($discard = $installRequest.setInteractive(false))\n"
             + "#set ($installJob = $services.extension.install($installRequest))\n"
             + "#set ($discard = $installJob.join())\n"
@@ -188,7 +188,7 @@ public class LicensingTest extends AbstractTest
         LiveTableElement laplt = lap.getLiveTable();
         assertEquals(1, laplt.getRowCount());
         WebElement firstRow = laplt.getRow(1);
-        assertEquals("No license available", laplt.getCell(firstRow, 2).getText());
+        assertEquals("No license available", laplt.getCell(firstRow, 3).getText());
 
         // Fill ownership details, click "Get Trial" and verify expiration date
         lap.setLicenseOwnershipDetails("John", "Doe", "john@acme.com");
@@ -200,7 +200,7 @@ public class LicensingTest extends AbstractTest
             public Boolean apply(WebDriver driver) {
                 LiveTableElement laplt = lap2.getLiveTable();
                 WebElement firstRow = laplt.getRow(1);
-                return !laplt.getCell(firstRow, 2).getText().equals("No license available");
+                return !laplt.getCell(firstRow, 3).getText().equals("No license available");
             }
         });
 
