@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.2" reference="Licenses.Code.Translations" locale="fr_FR">
+  <web>Licenses.Code</web>
+  <name>Translations</name>
+  <language>fr_FR</language>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>1</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1484206679000</creationDate>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1484206679000</date>
+  <contentUpdateDate>1484206679000</contentUpdateDate>
+  <version>1.1</version>
+  <title>Translations</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>licensor.name=Nom de l'extension
+licensor.version=Version
+licensor.status=Date d'expiration
+licensor.status.noLicenseAvailable=Aucune licence disponible
+licensor.status.infinite=Infini
+licensor.wiki=Wiki
+licensor.wiki.installedOnFarm=Installé sur la ferme
+licensor.actions=Actions
+licensor.trialLicense.label=Obtenir une licence d'essai
+licensor.extendTrialLicense.label=Prolonger l'essai
+licensor.paidLicense.label=Acheter
+licensor.renewLicense.label=Renouveler
+licensor.addLicense.adding=Ajout de la licence en cours...
+licensor.addLicense.success=La licence a été ajoutée avec succès !
+licensor.addLicense.denied=Échoué ! Vous avez besoin de détenir des droits administrateurs pour ajouter une licence.
+licensor.addLicense.error=Échoué ! La licence fournie ne peut pas être décodée. Merci de contacter XWiki à l'adresse suivante : sales@xwiki.com.
+licensor.addLicense.nonJSON=Erreur inattendue: Le contenu reçu n'est pas au format JSON. Merci de contacter XWiki à l'adresse suivante : sales@xwiki.com.
+licensor.addLicense.gettingTrialLicense=Obtention d'une licence d'essai en cours ...
+licensor.addLicense.useless=Échoué ! La licence n'est pas compatible ni utile pour votre serveur. Veuillez contacter sales@xwiki.com
+licensor.addLicense.heading=Ajouter une licence
+licensor.addLicense.hint=Une fois que vous recevez le code de la licence, copiez-le ici pour activer la ou les extensions auxquelles elle est associée.
+licensor.ownerDetails.firstName.label=Prénom
+licensor.ownerDetails.lastName.label=Nom de famille
+licensor.ownerDetails.email.label=Courriel
+licensor.ownerDetails.instanceId.label=Identifiant de l'instance
+licensor.ownerDetails.instanceId.hint=Identifiant unique de vos licences associé à votre instance XWiki.
+licensor.ownerDetails.missingData=Ce champ est requis !
+licensor.ownerDetails.heading=Propriétaire de la licence
+licensor.ownerDetails.hint=Remplissez les champs suivants afin d'acheter une licence ou d'en obtenir une.
+licensor.licenseManager.heading=Extensions sous licence
+licensor.licenseManager.hint=Voici une liste des extensions installées dans votre wiki qui nécessite l'activation d'une licence.
+</content>
+</xwikidoc>
