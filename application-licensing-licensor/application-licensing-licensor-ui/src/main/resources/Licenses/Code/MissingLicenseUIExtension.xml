@@ -38,7 +38,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content/>
   <object>
     <name>Licenses.Code.MissingLicenseUIExtension</name>
@@ -124,8 +124,7 @@
 #foreach ($set in $dependencies.entrySet())
   #foreach ($extension in $set.value)
     #if ($extension.type == 'xar')
-      #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
-      #if ($license.expirationDate == 0)
+      #if ($services.licensing.licensor.hasLicensureForExtension($extension.id))
 &lt;li&gt;$extension.name&lt;/li&gt;
       #end
     #end
