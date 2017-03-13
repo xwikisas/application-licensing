@@ -113,27 +113,29 @@
       </scope>
     </class>
     <property>
-      <content>{{velocity}}
-#if ($hasAdmin)
-#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-#set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))
-{{error}}
-{{html clean=false}}&lt;p&gt;{{/html}}$services.localization.render('licensor.missingLicenses', ['[[', "&gt;&gt;path:$xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=Licenses')]]"])
-{{html clean=false}}&lt;/p&gt;
-&lt;ul&gt;
-#foreach ($set in $dependencies.entrySet())
-  #foreach ($extension in $set.value)
-    #if ($extension.type == 'xar')
-      #if ($services.licensing.licensor.hasLicensureForExtension($extension.id))
-&lt;li&gt;$extension.name&lt;/li&gt;
-      #end
-    #end
-  #end
-#end
-&lt;/ul&gt;
-{{/html}}
-{{/error}}
-#end
+      <content>{{velocity}}&#xd;
+#if ($hasAdmin)&#xd;
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')&#xd;
+#set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))&#xd;
+#set ($list = "")&#xd;
+#foreach ($set in $dependencies.entrySet())&#xd;
+  #foreach ($extension in $set.value)&#xd;
+    #if ($extension.type == 'xar')&#xd;
+      #if (!$services.licensing.licensor.hasLicensureForExtension($extension.id))&#xd;
+        #set ($list = "${list}&lt;li>$extension.name&lt;/li>")&#xd;
+      #end&#xd;
+    #end&#xd;
+  #end&#xd;
+#end&#xd;
+#if ($list != "")&#xd;
+{{error}}&#xd;
+{{html clean=false}}&lt;p>{{/html}}$services.localization.render('licensor.missingLicenses', ['[[', ">>path:$xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=Licenses')]]"])&#xd;
+{{html clean=false}}&lt;/p>&#xd;
+&lt;ul>$list&lt;/ul>&#xd;
+{{/html}}&#xd;
+{{/error}}&#xd;
+#end&#xd;
+#end&#xd;
 {{/velocity}}</content>
     </property>
     <property>
