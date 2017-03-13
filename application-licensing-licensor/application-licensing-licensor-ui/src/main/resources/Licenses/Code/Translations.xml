@@ -70,6 +70,7 @@ licensor.ownerDetails.heading=License Ownership
 licensor.ownerDetails.hint=Fill in the following fields in order to buy a license or to get a trial one.
 licensor.licenseManager.heading=Licensed Extensions
 licensor.licenseManager.hint=Here's a list of extensions installed in your wiki that require a license to be activated.
+licensor.missingLicenses=The following extensions do not have a license. Please visit the {0}Licenses section{1}.
 </content>
   <object>
     <name>Licenses.Code.Translations</name>

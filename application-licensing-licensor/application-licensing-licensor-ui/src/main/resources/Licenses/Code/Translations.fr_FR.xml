@@ -70,5 +70,6 @@ licensor.ownerDetails.heading=Propriétaire de la licence
 licensor.ownerDetails.hint=Remplissez les champs suivants afin d'acheter une licence ou d'en obtenir une.
 licensor.licenseManager.heading=Extensions sous licence
 licensor.licenseManager.hint=Voici une liste des extensions installées dans votre wiki qui nécessite l'activation d'une licence.
+licensor.missingLicenses=Les extensions suivantes n'ont pas de license. Veuillez visiter la {0}page Licenses{1}.
 </content>
 </xwikidoc>
