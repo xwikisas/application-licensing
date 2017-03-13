@@ -117,22 +117,24 @@
 #if ($hasAdmin)
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))
-{{error}}
-{{html clean=false}}&lt;p&gt;{{/html}}$services.localization.render('licensor.missingLicenses', ['[[', "&gt;&gt;path:$xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=Licenses')]]"])
-{{html clean=false}}&lt;/p&gt;
-&lt;ul&gt;
+#set ($list = "")
 #foreach ($set in $dependencies.entrySet())
   #foreach ($extension in $set.value)
     #if ($extension.type == 'xar')
-      #if ($services.licensing.licensor.hasLicensureForExtension($extension.id))
-&lt;li&gt;$extension.name&lt;/li&gt;
+      #if (!$services.licensing.licensor.hasLicensureForExtension($extension.id))
+        #set ($list = "${list}&lt;li&gt;$extension.name&lt;/li&gt;")
       #end
     #end
   #end
 #end
-&lt;/ul&gt;
+#if ($list != "")
+{{error}}
+{{html clean=false}}&lt;p&gt;{{/html}}$services.localization.render('licensor.missingLicenses', ['[[', "&gt;&gt;path:$xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=Licenses')]]"])
+{{html clean=false}}&lt;/p&gt;
+&lt;ul&gt;$list&lt;/ul&gt;
 {{/html}}
 {{/error}}
+#end
 #end
 {{/velocity}}</content>
     </property>
