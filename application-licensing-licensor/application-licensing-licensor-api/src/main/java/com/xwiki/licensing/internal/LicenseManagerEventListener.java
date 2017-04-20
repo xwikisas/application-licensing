@@ -21,6 +21,7 @@ package com.xwiki.licensing.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -86,7 +87,10 @@ public class LicenseManagerEventListener implements EventListener
         } else if (event instanceof ExtensionUninstalledEvent) {
             licenseManager.uninstallExtensionLicense(installedExtension);
         } else if (event instanceof ExtensionUpgradedEvent) {
-            licenseManager.uninstallExtensionLicense((InstalledExtension) data);
+            Collection<InstalledExtension> previousExtensions = (Collection<InstalledExtension>) data;
+            for (InstalledExtension previousExtension : previousExtensions) {
+                licenseManager.uninstallExtensionLicense(previousExtension);
+            }
             licenseManager.installExtensionLicense(extensionEvent.getNamespace(), installedExtension);
         }
     }
