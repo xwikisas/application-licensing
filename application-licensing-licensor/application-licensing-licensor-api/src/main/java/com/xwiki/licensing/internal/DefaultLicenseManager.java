@@ -179,7 +179,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                         logger.debug("Register licence [{}] for extension [{}]", license.getId(), extension.getId());
                     }
                     // Register the new license for this extension
-                    putLicenseClearSecurity(extension.getId(), license);
+                    registerLicense(extension.getId(), license);
                     return extension.getId();
                 }
             }
@@ -223,7 +223,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         return licensedFeatureIds;
     }
 
-    private void putLicenseClearSecurity(ExtensionId extId, License license)
+    private void registerLicense(ExtensionId extId, License license)
     {
         extensionToLicense.put(extId, license);
         clearSecurityCacheForXarExtension(extId);
@@ -274,7 +274,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
         if (backwardDeps != null && backwardDeps.contains(extension)
             && extensionToLicense.get(extensionId) == null) {
-            putLicenseClearSecurity(extensionId, resolveLicenseForExtension(extension));
+            registerLicense(extensionId, resolveLicenseForExtension(extension));
         }
     }
 
@@ -370,9 +370,10 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         }
     }
 
-    private void clearSecurityCacheForXarExtension(ExtensionId extId)
+    private void clearSecurityCacheForXarExtension(ExtensionId extensionId)
     {
-        InstalledExtension extension = xarInstalledExtensionRepository.getInstalledExtension(extId);
+        // We need to clear the cache because its content might be wrong after a licensing state change
+        InstalledExtension extension = xarInstalledExtensionRepository.getInstalledExtension(extensionId);
         if (extension != null && extension instanceof XarInstalledExtension) {
             logger.debug("Clearing security cache for extension [{}]", extension);
             licensingSecurityCacheRuleInvalidator.invalidate((XarInstalledExtension) extension);
