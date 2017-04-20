@@ -131,12 +131,17 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             linkLicenceToInstalledExtension(entry.getKey(), entry.getValue());
         }
 
+        Collection<ExtensionId> licensed = getLicensedExtensions();
+
         // Add Unlicensed licenses to all extension installed that are under license
-        for (ExtensionId id : getLicensedExtensions()) {
+        for (ExtensionId id : licensed) {
             if (extensionToLicense.putIfAbsent(id, License.UNLICENSED) == null) {
                 logger.debug("Mark extension [{}] unlicensed", id);
             }
         }
+
+        // Clear the security cache to ensure a clean state
+        clearSecurityCacheForXarExtensions(licensed);
     }
 
     private Collection<ExtensionId> linkLicenceToInstalledExtension(Collection<LicensedFeatureId> licIds,
@@ -174,7 +179,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                         logger.debug("Register licence [{}] for extension [{}]", license.getId(), extension.getId());
                     }
                     // Register the new license for this extension
-                    extensionToLicense.put(extension.getId(), license);
+                    putLicenseClearSecurity(extension.getId(), license);
                     return extension.getId();
                 }
             }
@@ -216,6 +221,12 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             logger.debug("License [{}] is NOT applicable to this wiki instance", license.getId());
         }
         return licensedFeatureIds;
+    }
+
+    private void putLicenseClearSecurity(ExtensionId extId, License license)
+    {
+        extensionToLicense.put(extId, license);
+        clearSecurityCacheForXarExtension(extId);
     }
 
     private void replaceLicense(LicensedFeatureId extId, License existingLicense, License newLicense)
@@ -263,7 +274,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
         if (backwardDeps != null && backwardDeps.contains(extension)
             && extensionToLicense.get(extensionId) == null) {
-            extensionToLicense.put(extensionId, resolveLicenseForExtension(extension));
+            putLicenseClearSecurity(extensionId, resolveLicenseForExtension(extension));
         }
     }
 
@@ -355,11 +366,16 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     private void clearSecurityCacheForXarExtensions(Collection<ExtensionId> extensionIds)
     {
         for (ExtensionId extId : extensionIds) {
-            InstalledExtension extension = xarInstalledExtensionRepository.getInstalledExtension(extId);
-            if (extension != null && extension instanceof XarInstalledExtension) {
-                logger.debug("Clearing security cache for extension [{}]", extension);
-                licensingSecurityCacheRuleInvalidator.invalidate((XarInstalledExtension) extension);
-            }
+            clearSecurityCacheForXarExtension(extId);
+        }
+    }
+
+    private void clearSecurityCacheForXarExtension(ExtensionId extId)
+    {
+        InstalledExtension extension = xarInstalledExtensionRepository.getInstalledExtension(extId);
+        if (extension != null && extension instanceof XarInstalledExtension) {
+            logger.debug("Clearing security cache for extension [{}]", extension);
+            licensingSecurityCacheRuleInvalidator.invalidate((XarInstalledExtension) extension);
         }
     }
 
