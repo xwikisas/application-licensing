@@ -29,7 +29,7 @@
   </parent>
   <groupId>com.xwiki.licensing</groupId>
   <artifactId>application-licensing</artifactId>
-  <version>1.4.2</version>
+  <version>1.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
@@ -37,7 +37,7 @@
     <connection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</connection>
     <developerConnection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</developerConnection>
     <url>https://git.xwikisas.com/xwiki-sas-products/application-licensing</url>
-    <tag>application-licensing-1.4.2</tag>
+    <tag>application-licensing-1.2</tag>
   </scm>
   <issueManagement>
     <system>jira</system>
