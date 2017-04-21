@@ -25,7 +25,7 @@
   <parent>
     <artifactId>application-licensing-common</artifactId>
     <groupId>com.xwiki.licensing</groupId>
-    <version>1.4.2-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-common-model</artifactId>
   <name>Licensing Application - Common - Model</name>
