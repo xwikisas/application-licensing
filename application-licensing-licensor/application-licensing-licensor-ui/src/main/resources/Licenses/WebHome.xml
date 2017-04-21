@@ -449,8 +449,15 @@
       });
       // add the data from the button to the form
       var json = $.parseJSON($(this).attr('data-button'));
+      
       $.each(json, function(index, value) {
-        ownerDetailsForm.append("&lt;input type='hidden' name='" + index + "' value='" + value + "'&gt;")
+        var detailInput = $('input[name=' + index + ']');
+        // check if the input exists
+        if (detailInput.val()) {
+          detailInput.val(value);
+        } else {
+          ownerDetailsForm.append("&lt;input type='hidden' name='" + index + "' value='" + value + "'&gt;")
+        }
       });
       // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and return a license if needed.
       if (json.licenseType === 'TRIAL') {
