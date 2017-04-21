@@ -427,9 +427,6 @@
       If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
   **/
   $('#licenseManager').on('click', '.licenseButton', function() {
-    // Make licenseActions buttons inactive when any of them is clicked
-    $(this).siblings().prop('disabled', true)
-    $(this).prop('disabled', true )
     // check the input fields to be filled with data
     var doSubmit = true;
     var ownerDetailsForm = $('#ownerDetails');
@@ -442,6 +439,9 @@
       }
     });
     if (doSubmit) {
+      // Make licenseActions buttons inactive when any of them is clicked
+      $(this).siblings().prop('disabled', true)
+      $(this).prop('disabled', true )
       // update the licensing owner details
       $.post({
         url : "${xwiki.getURL('Licenses.Code.UpdateOwnerDetails')}",
