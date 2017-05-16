@@ -139,6 +139,12 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.debug("Mark extension [{}] unlicensed", id);
             }
         }
+
+        // Important: don't clear the security cache here by calling clearSecurityCacheForXarExtensions(licensed)
+        // since that would lock XWiki at startup since this method is called when the Security system is initializing
+        // and thus a lock is set up and the implementation of LicensingSecurityCacheRuleInvalidator is also asking
+        // for the same lock...
+        // See LICENSING-57
     }
 
     private Collection<ExtensionId> linkLicenceToInstalledExtension(Collection<LicensedFeatureId> licIds,
