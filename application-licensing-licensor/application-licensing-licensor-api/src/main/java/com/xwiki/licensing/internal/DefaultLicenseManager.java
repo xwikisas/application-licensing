@@ -139,9 +139,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.debug("Mark extension [{}] unlicensed", id);
             }
         }
-
-        // Clear the security cache to ensure a clean state
-        clearSecurityCacheForXarExtensions(licensed);
     }
 
     private Collection<ExtensionId> linkLicenceToInstalledExtension(Collection<LicensedFeatureId> licIds,
