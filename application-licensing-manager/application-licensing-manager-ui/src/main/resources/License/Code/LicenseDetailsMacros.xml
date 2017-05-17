@@ -40,6 +40,12 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
+  ## We use the author of the page that uses this macro as the current author to execute the code since
+  ## the Licensing code is protected and only viewable to administrators for privacy reasons.
+  #set ($originalCurrentUserReference = $xcontext.context.userReference)
+  #set ($discard = $xcontext.context.setUserReference($doc.author))
+{{/velocity}}
+{{velocity}}
 #macro (findNextUniqueDetailsPageReference $nextPageReference)
   ## Use a license id as the name of the page
   #set ($licenseId = $services.licensing.license.createLicense().id.id)
@@ -195,5 +201,6 @@
   #set ($query = $NULL)
   #setVariable ("$query", $computedQuery)
 #end
+#set ($discard = $xcontext.context.setUserReference($originalCurrentUserReference))
 {{/velocity}}</content>
 </xwikidoc>
