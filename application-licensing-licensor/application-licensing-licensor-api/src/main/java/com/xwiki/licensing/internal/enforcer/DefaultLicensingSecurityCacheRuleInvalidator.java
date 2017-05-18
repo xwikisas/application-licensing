@@ -26,6 +26,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -65,6 +66,9 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     @Inject
     private DocumentReferenceResolver<EntityReference> documentReferenceResolver;
 
+    @Inject
+    private Logger logger;
+
     @Override
     public void invalidateAll()
     {
@@ -73,20 +77,22 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
         if (xcontextProvider.get() == null) {
             return;
         }
-        
-        readWriteLock.writeLock().lock();
+
+        boolean locked = acquireLock();
         try {
             securityCache.remove(
                 securityReferenceFactory.newEntityReference(null));
         } finally {
-            readWriteLock.writeLock().unlock();
+            if (locked) {
+                readWriteLock.writeLock().unlock();
+            }
         }
     }
 
     @Override
     public void invalidate(XarInstalledExtension extension)
     {
-        readWriteLock.writeLock().lock();
+        boolean locked = acquireLock();
         try {
             for (String namespace : extension.getNamespaces()) {
                 if (namespace.startsWith("wiki:")) {
@@ -101,7 +107,24 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
                 }
             }
         } finally {
-            readWriteLock.writeLock().unlock();
+            if (locked) {
+                readWriteLock.writeLock().unlock();
+            }
         }
+    }
+
+    private boolean acquireLock()
+    {
+        // This class is used by the LicenseManager component at initialization time or when a new license is added
+        // (more generally when the license cache is modified). However setting the write lock would block if the
+        // Authorization Manager is currently loading security rules (DefaultSecurityCacheLoader#load() sets a read
+        // lock preventing the write lock from being acquired and resulting in a dead lock).
+        // Thus to prevent this we only acquire the lock if it's not already locked.
+        boolean locked = readWriteLock.writeLock().tryLock();
+        if (!locked) {
+            this.logger.warn("Failed to acquire read lock in LicensingSecurityCacheRuleInvalidator. "
+                + "Continuing without lock.");
+        }
+        return locked;
     }
 }
