@@ -71,8 +71,8 @@
          simulate in the same wiki) -->
     <dependency>
       <groupId>com.xwiki.store</groupId>
-      <artifactId>application-store</artifactId>
-      <version>1.0</version>
+      <artifactId>application-store-ui</artifactId>
+      <version>1.4</version>
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
@@ -193,4 +193,19 @@
       </build>
     </profile>
   </profiles>
+  <!-- Needed to able to find the Licensing Manager UI dependency (application-store-ui) which is not related in the
+       public store repo but in some XWiki SAS internal repo. -->
+  <repositories>
+    <repository>
+      <id>nexus.xwikisas.com-client-releases</id>
+      <name>XWiki SAS Maven2 Remote Repository for Releases</name>
+      <url>https://nexus.xwikisas.com/nexus/content/repositories/client-releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 </project>
