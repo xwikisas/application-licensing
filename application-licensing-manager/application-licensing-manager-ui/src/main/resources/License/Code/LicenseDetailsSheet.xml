@@ -31,8 +31,8 @@
   <parent>License.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1479314299000</date>
-  <contentUpdateDate>1479314299000</contentUpdateDate>
+  <date>1498815494000</date>
+  <contentUpdateDate>1498815494000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
@@ -43,7 +43,7 @@
 
 {{velocity}}
 #if ("$!request.action" == 'generate')
-  #generateLicense($doc.getValue('firstName'), $doc.getValue('LastName'), $doc.getValue('email'), $doc.getValue('instanceId'), $doc.getValue('featureId'), $doc.getValue('dependentFeatureIds'), $doc.getValue('type'), true, $doc.documentReference)
+  #generateLicense($doc.getValue('firstName'), $doc.getValue('LastName'), $doc.getValue('email'), $doc.getValue('instanceId'), $doc.getValue('featureId'), $doc.getValue('dependentFeatureIds'), $doc.getValue('type'), $doc.getValue('issueDate'), $doc.getValue('expirationDate'), true, $doc.documentReference)
   ## Refresh page
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
 #end
