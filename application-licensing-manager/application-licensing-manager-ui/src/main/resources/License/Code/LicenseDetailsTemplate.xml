@@ -31,8 +31,8 @@
   <parent>License.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1479304921000</date>
-  <contentUpdateDate>1479304713000</contentUpdateDate>
+  <date>1498829887000</date>
+  <contentUpdateDate>1498821064000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
@@ -54,11 +54,24 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
+      <dependentFeatureIds>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>dependentFeatureIds</name>
+        <number>9</number>
+        <picker>0</picker>
+        <prettyName>Dependent Feature Ids</prettyName>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </dependentFeatureIds>
       <email>
         <customDisplay/>
         <disabled>0</disabled>
         <name>email</name>
-        <number>2</number>
+        <number>3</number>
         <picker>0</picker>
         <prettyName>Licensee Email</prettyName>
         <size>60</size>
@@ -73,7 +86,7 @@
         <disabled>0</disabled>
         <emptyIsToday>0</emptyIsToday>
         <name>expirationDate</name>
-        <number>7</number>
+        <number>8</number>
         <picker>1</picker>
         <prettyName>Expiration Date</prettyName>
         <size>20</size>
@@ -82,19 +95,45 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
       </expirationDate>
-      <featureIds>
+      <extensionName>
         <customDisplay/>
         <disabled>0</disabled>
-        <name>featureIds</name>
-        <number>8</number>
+        <name>extensionName</name>
+        <number>13</number>
         <picker>0</picker>
-        <prettyName>Ids of Extensions</prettyName>
-        <size>120</size>
+        <prettyName>Main Extension Name</prettyName>
+        <size>60</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </featureIds>
+      </extensionName>
+      <featureId>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>featureId</name>
+        <number>12</number>
+        <picker>0</picker>
+        <prettyName>Main Feature Id</prettyName>
+        <size>60</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </featureId>
+      <firstName>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>firstName</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>Licensee First Name</prettyName>
+        <size>60</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </firstName>
       <hasLicense>
         <customDisplay/>
         <defaultValue/>
@@ -102,7 +141,7 @@
         <displayFormType>select</displayFormType>
         <displayType/>
         <name>hasLicense</name>
-        <number>8</number>
+        <number>10</number>
         <prettyName>Has License</prettyName>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
@@ -113,7 +152,7 @@
         <customDisplay/>
         <disabled>0</disabled>
         <name>instanceId</name>
-        <number>3</number>
+        <number>4</number>
         <picker>0</picker>
         <prettyName>instance ID</prettyName>
         <size>60</size>
@@ -128,7 +167,7 @@
         <disabled>0</disabled>
         <emptyIsToday>0</emptyIsToday>
         <name>issueDate</name>
-        <number>5</number>
+        <number>7</number>
         <picker>1</picker>
         <prettyName>Issue Date</prettyName>
         <size>20</size>
@@ -137,11 +176,24 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
       </issueDate>
+      <lastName>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>lastName</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>Licensee Last Name</prettyName>
+        <size>60</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </lastName>
       <licenseId>
         <customDisplay/>
         <disabled>0</disabled>
         <name>licenseId</name>
-        <number>9</number>
+        <number>11</number>
         <picker>0</picker>
         <prettyName>License ID</prettyName>
         <size>60</size>
@@ -150,19 +202,21 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </licenseId>
-      <name>
+      <requestDate>
         <customDisplay/>
+        <dateFormat>dd/MM/yyyy</dateFormat>
         <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <picker>0</picker>
-        <prettyName>Licensee Name</prettyName>
-        <size>60</size>
+        <emptyIsToday>0</emptyIsToday>
+        <name>requestDate</name>
+        <number>6</number>
+        <picker>1</picker>
+        <prettyName>Request Date</prettyName>
+        <size>20</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
         <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
+        <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+      </requestDate>
       <type>
         <cache>0</cache>
         <customDisplay/>
@@ -170,7 +224,7 @@
         <displayType>radio</displayType>
         <multiSelect>0</multiSelect>
         <name>type</name>
-        <number>4</number>
+        <number>5</number>
         <picker>0</picker>
         <prettyName>License Type</prettyName>
         <relationalStorage>0</relationalStorage>
@@ -181,18 +235,27 @@
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
         <validationRegExp/>
-        <values>Trial|Paid</values>
+        <values>free=Free|trial=Trial|paid=Paid</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </type>
     </class>
     <property>
+      <dependentFeatureIds/>
+    </property>
+    <property>
       <email/>
     </property>
     <property>
-      <expirationDate>2016-11-16 14:58:36.250</expirationDate>
+      <expirationDate/>
     </property>
     <property>
-      <featureIds/>
+      <extensionName/>
+    </property>
+    <property>
+      <featureId/>
+    </property>
+    <property>
+      <firstName/>
     </property>
     <property>
       <hasLicense/>
@@ -201,10 +264,16 @@
       <instanceId/>
     </property>
     <property>
-      <issueDate>2016-11-16 14:58:36.250</issueDate>
+      <issueDate/>
     </property>
     <property>
-      <name/>
+      <lastName/>
+    </property>
+    <property>
+      <licenseId/>
+    </property>
+    <property>
+      <requestDate/>
     </property>
     <property>
       <type/>
