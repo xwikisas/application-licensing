@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>8.4</version>
+    <version>8.5</version>
   </parent>
   <groupId>com.xwiki.licensing</groupId>
   <artifactId>application-licensing</artifactId>
@@ -34,8 +34,7 @@
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
   <properties>
-    <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
-    <xwiki.issueManagement.url>https://jira.xwikisas.com/projects/LICENSING</xwiki.issueManagement.url>
+    <xwiki.issueManagement.jira.id>LICENSING</xwiki.issueManagement.jira.id>
 </properties>
   <scm>
     <connection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</connection>
