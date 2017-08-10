@@ -170,7 +170,7 @@
 #macro (getExpiringLicensesForType $daysBeforeExpiration $type $expiringLicenses)
   #set ($results = [])
   #foreach ($days in $daysBeforeExpiration)
-    #set ($query = $services.query.xwql("select license.firstName, license.lastName, license.email, license.extensionName, license.expirationDate, license.type from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
+    #set ($query = $services.query.xwql("select license.firstName, license.lastName, license.email, license.extensionName, license.expirationDate, license.type, license.instanceId, license.licenseId from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
     #set ($query = $query.bindValue('type', $type))
     ## Compute current date + days
     #set ($dateTime = $xwiki.jodatime.getDateTime())
@@ -179,14 +179,21 @@
     #set ($query = $query.bindValue('dateBegin', $dateBegin.toDate()))
     #set ($query = $query.bindValue('dateEnd', $dateEnd.toDate()))
     #foreach ($result in $query.execute())
-      #set ($map = {})
-      #set ($discard = $map.put('firstName', $result[0]))
-      #set ($discard = $map.put('lastName', $result[1]))
-      #set ($discard = $map.put('email', $result[2]))
-      #set ($discard = $map.put('extensionName', $result[3]))
-      #set ($discard = $map.put('expirationDate', $result[4]))
-      #set ($discard = $map.put('type', $result[5]))
-      #set ($discard = $results.add($map))
+      #set ($currentLicenseId = $result[7])
+      #set ($instanceId = $result[6])
+      #set ($extensionName = $result[3])
+      ## Check for the best license (highest expiration date) and send expiration notification only for it
+      #set ($bestLicenseId = $services.query.xwql('select license.licenseId from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.extensionName = :extensionName and license.instanceId = :instanceId order by license.expirationDate desc').bindValue('instanceId', $instanceId).bindValue('extensionName', $extensionName).execute()[0])
+      #if ($currentLicenseId.equals($bestLicenseId))
+        #set ($map = {})
+        #set ($discard = $map.put('firstName', $result[0]))
+        #set ($discard = $map.put('lastName', $result[1]))
+        #set ($discard = $map.put('email', $result[2]))
+        #set ($discard = $map.put('extensionName', $extensionName))
+        #set ($discard = $map.put('expirationDate', $result[4]))
+        #set ($discard = $map.put('type', $result[5]))
+        #set ($discard = $results.add($map))
+      #end
     #end
   #end
   #set ($expiringLicenses = $NULL)
