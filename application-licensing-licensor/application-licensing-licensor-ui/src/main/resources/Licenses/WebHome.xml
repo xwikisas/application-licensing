@@ -38,7 +38,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{velocity}}
 #set ($discard = $xwiki.ssx.use('Licenses.WebHome'))
 #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
