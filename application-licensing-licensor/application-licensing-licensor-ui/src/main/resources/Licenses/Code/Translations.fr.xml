@@ -20,25 +20,24 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="Licenses.Code.Translations" locale="fr_FR">
+<xwikidoc version="1.3" reference="Licenses.Code.Translations" locale="fr">
   <web>Licenses.Code</web>
   <name>Translations</name>
-  <language>fr_FR</language>
+  <language>fr</language>
   <defaultLanguage>en</defaultLanguage>
   <translation>1</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1484206679000</creationDate>
-  <parent>Licenses.Code.WebHome</parent>
+  <creationDate>1503934442000</creationDate>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1484206679000</date>
-  <contentUpdateDate>1484206679000</contentUpdateDate>
+  <date>1503991701000</date>
+  <contentUpdateDate>1503991701000</contentUpdateDate>
   <version>1.1</version>
   <title>Translations</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
-  <hidden>true</hidden>
+  <hidden>false</hidden>
   <content>licensor.name=Nom de l'extension
 licensor.version=Version
 licensor.status=Date d'expiration
@@ -70,6 +69,5 @@ licensor.ownerDetails.heading=Propriétaire de la licence
 licensor.ownerDetails.hint=Remplissez les champs suivants afin d'acheter une licence ou d'en obtenir une.
 licensor.licenseManager.heading=Extensions sous licence
 licensor.licenseManager.hint=Voici une liste des extensions installées dans votre wiki qui nécessite l'activation d'une licence.
-licensor.missingLicenses=Les extensions suivantes n''ont pas de license. Veuillez visiter la {0}page Licenses{1}.
-</content>
+licensor.missingLicenses=Les extensions suivantes n''ont pas de license. Veuillez visiter la {0}page Licenses{1}.</content>
 </xwikidoc>
