@@ -34,16 +34,12 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
 import org.xwiki.instance.InstanceIdManager;
-import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryFilter;
-import org.xwiki.query.QueryManager;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
@@ -57,25 +53,22 @@ import com.xwiki.licensing.SignedLicense;
  */
 @Component
 @Singleton
-public class DefaultLicenseValidator implements LicenseValidator, Initializable
+public class DefaultLicenseValidator implements LicenseValidator
 {
     private static final Map<LicenseType, List<String>> VALID_CERTIFICATES = new HashMap<LicenseType, List<String>>();
     static {
-        VALID_CERTIFICATES.put(LicenseType.FREE,  Arrays.asList("eicpWbt5RNWbOa4uiDqK5aOpr0E="));
+        VALID_CERTIFICATES.put(LicenseType.FREE, Arrays.asList("eicpWbt5RNWbOa4uiDqK5aOpr0E="));
         VALID_CERTIFICATES.put(LicenseType.TRIAL, Arrays.asList("o6yt/slI4P6qUQF8dpC5yYaJDA4="));
-        VALID_CERTIFICATES.put(LicenseType.PAID,  Arrays.asList("HW571yMdXhhx59oF96hKBNgh30M="));
+        VALID_CERTIFICATES.put(LicenseType.PAID, Arrays.asList("HW571yMdXhhx59oF96hKBNgh30M="));
     }
 
     private static final List<String> REVOKED_CERTIFICATES = Collections.emptyList();
 
-    private static final String GET_USERS_QUERY = "from doc.object(XWiki.XWikiUsers) as user";
+    @Inject
+    private Logger logger;
 
     @Inject
-    private QueryManager queryManager;
-
-    @Inject
-    @Named("count")
-    private QueryFilter countFilter;
+    private UserCounter userCounter;
 
     @Inject
     private Provider<InstanceIdManager> instanceIdManagerProvider;
@@ -83,20 +76,6 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     @Inject
     @Named("Base64")
     private BinaryStringEncoder base64Encoder;
-
-    private long cachedUserCount;
-
-    @Override
-    public void initialize() throws InitializationException
-    {
-        try {
-            cachedUserCount =
-                (long) queryManager.createQuery(GET_USERS_QUERY, Query.XWQL).addFilter(countFilter).execute().get(0);
-        } catch (QueryException e) {
-            // Lucky guy will not be restricted, ignoring since it is not major.
-            cachedUserCount = 0;
-        }
-    }
 
     @Override
     public boolean isApplicable(License license)
@@ -138,7 +117,20 @@ public class DefaultLicenseValidator implements LicenseValidator, Initializable
     @Override
     public boolean isValid(License license)
     {
-        return license.getExpirationDate() >= new Date().getTime()
-            && license.getMaxUserCount() >= cachedUserCount;
+        return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
+    }
+
+    private boolean checkUserCount(License license)
+    {
+        long maxUserCount = license.getMaxUserCount();
+        try {
+            // A negative max user count means no user limit.
+            return maxUserCount < 0 || maxUserCount >= this.userCounter.getUserCount();
+        } catch (Exception e) {
+            this.logger.warn("Failed to check the user limit. Assuming the license is not valid. Root cause is: [{}].",
+                ExceptionUtils.getRootCauseMessage(e));
+            // Assume the license is invalid if we can't count the users.
+            return false;
+        }
     }
 }

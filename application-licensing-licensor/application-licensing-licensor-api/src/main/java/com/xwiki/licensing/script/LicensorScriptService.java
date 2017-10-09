@@ -26,6 +26,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.avalon.framework.activity.Initializable;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.crypto.BinaryStringEncoder;
@@ -38,10 +40,12 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.Licensor;
+import com.xwiki.licensing.internal.UserCounter;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
 
 /**
@@ -54,6 +58,9 @@ import com.xwiki.licensing.internal.enforcer.LicensingUtils;
 @Singleton
 public class LicensorScriptService implements ScriptService, Initializable
 {
+    @Inject
+    private Logger logger;
+
     @Inject
     private Licensor licensor;
 
@@ -72,6 +79,9 @@ public class LicensorScriptService implements ScriptService, Initializable
 
     @Inject
     private Converter<License> converter;
+
+    @Inject
+    private UserCounter userCounter;
 
     @Override
     public void initialize() throws InitializationException
@@ -210,6 +220,21 @@ public class LicensorScriptService implements ScriptService, Initializable
     {
         if (!licensor.hasLicensure()) {
             // TODO: redirect to a buy license stuff
+        }
+    }
+
+    /**
+     * @return the user count
+     * @since 1.6
+     */
+    @Unstable
+    public Long getUserCount()
+    {
+        try {
+            return this.userCounter.getUserCount();
+        } catch (Exception e) {
+            this.logger.warn("Failed to count the users. Root cause is: [{}].", ExceptionUtils.getRootCauseMessage(e));
+            return null;
         }
     }
 }

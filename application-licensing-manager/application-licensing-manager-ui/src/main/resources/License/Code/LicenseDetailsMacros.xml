@@ -79,12 +79,13 @@
       #set ($discard = $dateTime.addDays(11))
     #end
   #else
-    #set ($dateTime = $xwiki.jodatime.getMutableDateTime($expirationDate.time))  
+    #set ($dateTime = $xwiki.jodatime.getMutableDateTime($expirationDate.time))
   #end
   #set ($computedExpirationDate = $NULL)
   #setVariable ("$computedExpirationDate", $dateTime)
 #end
-#macro (generateLicense $firstName $lastName $email $instanceId $featureId $dependentFeatureIds $type $issueDate $expirationDate $shouldSaveLicense $licenseDetailsReference $licenseAsString)
+#macro (generateLicense $firstName $lastName $email $instanceId $featureId $dependentFeatureIds $type $issueDate
+    $expirationDate $maxUserCount $shouldSaveLicense $licenseDetailsReference $licenseAsString)
   ## Compute the expiration date but only if it's not defined. If defined then use the defined value
   #computeExpirationDate($expirationDate $type $instanceId $featureId $computedExpirationDate)
   ## Create License object
@@ -93,6 +94,7 @@
   #set ($discard = $license.setType($type))
   #set ($discard = $license.addInstanceId($instanceId))
   #set ($discard = $license.setExpirationDate($computedExpirationDate.getMillis()))
+  #set ($discard = $license.setMaxUserCount($maxUserCount))
   #set ($discard = $license.addLicenseeInfo('firstName', $firstName))
   #set ($discard = $license.addLicenseeInfo('lastName', $lastName))
   #set ($discard = $license.addLicenseeInfo('email', $email))
@@ -139,7 +141,8 @@
     #end
   #end
 #end
-#macro (addLicenseDetails $firstName $lastName $email $instanceId $extensionName $featureId $dependentFeatureIds $type $shouldGenerateLicense $licenseAsString)
+#macro (addLicenseDetails $firstName $lastName $email $instanceId $extensionName $featureId $dependentFeatureIds $type
+    $maxUserCount $shouldGenerateLicense $licenseAsString)
   #findNextUniqueDetailsPageReference($nextPageReference)
   #set ($nextDocument = $xwiki.getDocument($nextPageReference))
   ## Extra check to make sure we never overwrite an existing page
@@ -155,11 +158,13 @@
     #set ($discard = $nextObject.set('featureId', $!featureId))
     #set ($discard = $nextObject.set('dependentFeatureIds', $!dependentFeatureIds))
     #set ($discard = $nextObject.set('type', $!type))
+    #set ($discard = $nextObject.set('maxUserCount', $maxUserCount))
     #set ($discard = $nextObject.set('hasLicense', '0'))
     #set ($discard = $nextObject.set('requestDate', $datetool.get('dd/MM/yyyy')))
     #set ($discard = $nextDocument.save('License details added', true))
     #if ($shouldGenerateLicense)
-      #generateLicense($firstName $lastName $email $instanceId $featureId $dependentFeatureIds $type $NULL $NULL true $nextPageReference $generatedLicense)
+      #generateLicense($firstName $lastName $email $instanceId $featureId $dependentFeatureIds $type $NULL $NULL
+        $maxUserCount true $nextPageReference $generatedLicense)
       #set ($licenseAsString = $NULL)
       #setVariable ("$licenseAsString", $generatedLicense)
     #end
@@ -170,7 +175,13 @@
 #macro (getExpiringLicensesForType $daysBeforeExpiration $type $expiringLicenses)
   #set ($results = [])
   #foreach ($days in $daysBeforeExpiration)
-    #set ($query = $services.query.xwql("select license.firstName, license.lastName, license.email, license.extensionName, license.expirationDate, license.type, license.instanceId, license.licenseId from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd"))
+    #set ($statement =
+      'select license.firstName, license.lastName, license.email, license.extensionName, license.expirationDate,' +
+      ' license.type, license.instanceId, license.licenseId, license.maxUserCount ' +
+      'from Document doc, doc.object(License.Code.LicenseDetailsClass) license ' +
+      'where license.type = :type and license.expirationDate &gt;= :dateBegin and license.expirationDate &lt; :dateEnd'
+    )
+    #set ($query = $services.query.xwql($statement))
     #set ($query = $query.bindValue('type', $type))
     ## Compute current date + days
     #set ($dateTime = $xwiki.jodatime.getDateTime())
@@ -183,7 +194,14 @@
       #set ($instanceId = $result[6])
       #set ($extensionName = $result[3])
       ## Check for the best license (highest expiration date) and send expiration notification only for it
-      #set ($bestLicenseId = $services.query.xwql('select license.licenseId from Document doc, doc.object(License.Code.LicenseDetailsClass) license where license.extensionName = :extensionName and license.instanceId = :instanceId order by license.expirationDate desc').bindValue('instanceId', $instanceId).bindValue('extensionName', $extensionName).execute()[0])
+      #set ($statement =
+        'select license.licenseId ' +
+        'from Document doc, doc.object(License.Code.LicenseDetailsClass) license ' +
+        'where license.extensionName = :extensionName and license.instanceId = :instanceId ' +
+        'order by license.expirationDate desc'
+      )
+      #set ($bestLicenseId = $services.query.xwql($statement).bindValue('instanceId', $instanceId
+        ).bindValue('extensionName', $extensionName).execute()[0])
       #if ($currentLicenseId.equals($bestLicenseId))
         #set ($map = {})
         #set ($discard = $map.put('firstName', $result[0]))
@@ -191,6 +209,7 @@
         #set ($discard = $map.put('email', $result[2]))
         #set ($discard = $map.put('extensionName', $extensionName))
         #set ($discard = $map.put('expirationDate', $result[4]))
+        #set ($discard = $map.put('maxUserCount', $result[8]))
         #set ($discard = $map.put('type', $result[5]))
         #set ($discard = $results.add($map))
       #end
@@ -221,7 +240,12 @@
   #setVariable ("$date", $resultDoc.getValue('expirationDate'))
 #end
 #macro (getLicenseQuery $instanceId $featureId $query)
-  #set ($computedQuery = $services.query.xwql("from doc.object(License.Code.LicenseDetailsClass) license where license.instanceId = :instanceId and license.featureId = :featureId order by license.expirationDate desc"))
+  #set ($statement =
+    'from doc.object(License.Code.LicenseDetailsClass) license ' +
+    'where license.instanceId = :instanceId and license.featureId = :featureId ' +
+    'order by license.expirationDate desc'
+  )
+  #set ($computedQuery = $services.query.xwql($statement))
   #set ($computedQuery = $computedQuery.bindValue('instanceId', $instanceId))
   #set ($computedQuery = $computedQuery.bindValue('featureId', $featureId))
   #set ($query = $NULL)

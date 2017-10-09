@@ -48,6 +48,7 @@ license.type=Type
 license.requestDate=Request Date
 license.issueDate=Issue Date
 license.expirationDate=Expiration Date
+license.maxUserCount=User Limit
 license.featureId=Extension Id
 license.dependentFeatureIds=Dependent Extension Ids
 license.hasLicense=License?

@@ -43,7 +43,10 @@
 
 {{velocity}}
 #if ("$!request.action" == 'generate')
-  #generateLicense($doc.getValue('firstName'), $doc.getValue('LastName'), $doc.getValue('email'), $doc.getValue('instanceId'), $doc.getValue('featureId'), $doc.getValue('dependentFeatureIds'), $doc.getValue('type'), $doc.getValue('issueDate'), $doc.getValue('expirationDate'), true, $doc.documentReference)
+  #generateLicense($doc.getValue('firstName'), $doc.getValue('LastName'), $doc.getValue('email'),
+    $doc.getValue('instanceId'), $doc.getValue('featureId'), $doc.getValue('dependentFeatureIds'),
+    $doc.getValue('type'), $doc.getValue('issueDate'), $doc.getValue('expirationDate'),
+    $doc.getValue('maxUserCount'),true, $doc.documentReference)
   ## Refresh page
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
 #end
@@ -63,6 +66,8 @@
 : $doc.display('featureId')
 ; Dependent Extension IDs
 : $doc.display('dependentFeatureIds')
+; User Limit
+: $doc.display('maxUserCount')
 ; Request Date
 : $doc.display('requestDate')
 ; License Type

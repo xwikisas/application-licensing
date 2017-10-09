@@ -44,7 +44,10 @@
 {{velocity}}
 #if ($hasAdmin &amp;&amp; "$!request.action" == 'add')
   #findNextUniqueDetailsPageReference($detailsPageReference)
-  $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'inline', "template=${request.template}&amp;License.Code.LicenseDetailsClass_0_licenseId=$detailsPageReference.name"))
+  $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'inline', $escapetool.url({
+    'template': $request.template,
+    'License.Code.LicenseDetailsClass_0_licenseId': $detailsPageReference.name
+  })))
 #end
 
 #if ($hasAdmin)
@@ -59,7 +62,8 @@
 {{/html}}
 #end
 
-#set($columns = ['licenseId', 'firstName', 'lastName', 'email', 'instanceId', 'featureId', 'dependentFeatureIds', 'issueDate', 'expirationDate', 'type', 'hasLicense'])
+#set($columns = ['licenseId', 'firstName', 'lastName', 'email', 'instanceId', 'featureId', 'dependentFeatureIds',
+  'issueDate', 'expirationDate', 'maxUserCount', 'type', 'hasLicense'])
 #set($columnsProperties = {
   'licenseId' : { 'link' : 'view', 'type' : 'text' },
   'firstName' : { 'link' : 'view', 'type' : 'text' },
@@ -70,10 +74,11 @@
   'dependentFeatureIds' : { 'type' : 'text' },
   'issueDate' : { 'type' : 'text' },
   'expirationDate' : { 'type' : 'text' },
+  'maxUserCount' : { 'type' : 'number' },
   'type' : { 'type' : 'text' },
   'hasLicense' : { 'type' : 'text' }
 })
-#set($options = { 
+#set($options = {
    'className' : 'License.Code.LicenseDetailsClass',
    'translationPrefix' : 'license.'
 })
