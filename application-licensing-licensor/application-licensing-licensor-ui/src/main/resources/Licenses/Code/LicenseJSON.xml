@@ -46,7 +46,7 @@
 #set ($jsonMap = {})
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))
-## The purpose of this set is to have all the backward dependencies (IDs as string) of the licensor and 
+## The purpose of this set is to have all the backward dependencies (IDs as string) of the licensor and
 ## to easily get dependentFeatureIds for an extension.
 #set ($dependenciesIDs = $collectionstool.set)
 #foreach ($values in $dependencies.values())
@@ -58,6 +58,7 @@
 #set ($discard = $jsonMap.put('reqNo', $request.reqNo))
 #set ($discard = $jsonMap.put('rows', []))
 #set ($resultsCount = 0)
+#set ($userCount = $services.licensing.licensor.userCount)
 #foreach ($set in $dependencies.entrySet())
   #if ($set.key)
     #set ($wikiPrettyName = $services.wiki.getById($set.key.split(':')[1]).prettyName)
@@ -77,25 +78,44 @@
       #set ($JSONData = {
         'extensionName'       : "$!{extension.name}",
         'featureId'           : "$!{featureId}",
-        'dependentFeatureIds' : "$!{stringtool.join($dependentFeatureIds, ',')}"
+        'dependentFeatureIds' : "$!{stringtool.join($dependentFeatureIds, ',')}",
+        'userCount'           : $userCount
       })
       #setActions ($license $actions)
       #if ($license.expirationDate == 0)
+        #set ($expDateStatus = 'danger')
         #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
       #elseif ($license.expirationDate == $mathtool.pow(2,63))
-        ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use it since there is no other way to do it in velocity.
+        ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use
+        ## it since there is no other way to do it in velocity.
+        #set ($expDateStatus = 'success')
         #set ($expDate = $services.localization.render('licensor.status.infinite'))
       #else
-        #set ($date = $datetool.getCalendar())
-        #set ($discard = $date.setTimeInMillis($license.expirationDate))
-        #set ($expDate = $datetool.format('dd/MM/yyyy', $date))
+        #set ($expDateStatus = "#if ($license.expirationDate &gt; $datetool.date.time)success#{else}danger#end")
+        #set ($expDate = $datetool.format('dd/MM/yyyy', $license.expirationDate))
       #end
+      #set ($expDate = "&lt;span class='text-$!expDateStatus'&gt;$!escapetool.xml($expDate)&lt;/span&gt;")
+      #if (!$license.maxUserCount || $license.maxUserCount == $mathtool.pow(2,63))
+        ## The default value for the maxUserCount field of a license is Long.MAX_VALUE so when we encounter this value
+        ## we consider that the max user count was not specified. Note that $mathtool.pow(2,63) return this maximum
+        ## value and we use it since there is no other way to do it in Velocity.
+        #set ($userLimitStatus = 'muted')
+        #set ($userLimit = $services.localization.render('licensor.userLimit.unspecified'))
+      #elseif ($license.maxUserCount &lt; 0)
+        #set ($userLimitStatus = 'success')
+        #set ($userLimit = $services.localization.render('licensor.userLimit.unlimited'))
+      #else
+        #set ($userLimitStatus = "#if ($userCount &lt;= $license.maxUserCount)success#{else}danger#end")
+        #set ($userLimit = "$!userCount / $!license.maxUserCount")
+      #end
+      #set ($userLimit = "&lt;span class='text-$!userLimitStatus'&gt;$!escapetool.xml($userLimit)&lt;/span&gt;")
       #set ($actions = "${actions}&lt;/div&gt;")
       #set ($discard = $jsonMap.get('rows').add({
         'doc_viewable' : true,
         'name'   : $extension.name,
         'version': $extension.version.value,
         'status' : $expDate,
+        'userLimit': $userLimit,
         'wiki'   : $wikiPrettyName,
         'actions': $actions
       }))
@@ -119,7 +139,8 @@ $jsontool.serialize($jsonMap)
 #macro (addAction $newType $cssClass $label)
   #set ($discard = $JSONData.put('licenseType', $newType))
   #set ($label = $services.localization.render("licensor.${label}License.label"))
-  #set ($actions = "${actions} &lt;button class='btn btn-${cssClass} licenseButton' data-button='$escapetool.xml($jsontool.serialize($JSONData))'&gt;${label}&lt;/button&gt;")
+  #set ($actions = "${actions} &lt;button class='btn btn-${cssClass} licenseButton'" +
+    " data-button='$escapetool.xml($jsontool.serialize($JSONData))'&gt;${label}&lt;/button&gt;")
 #end
 #macro (getDependentFeatureIds $extension $dependentFeatureIds)
   #foreach ($dependency in $extension.getDependencies())

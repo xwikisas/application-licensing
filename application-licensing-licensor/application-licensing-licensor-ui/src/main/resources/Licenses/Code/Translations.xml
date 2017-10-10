@@ -39,11 +39,14 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>licensor.name=Extension name
+  <content>licensor.name=Extension Name
 licensor.version=Version
-licensor.status=Expiration date
+licensor.status=Expiration Date
 licensor.status.noLicenseAvailable=No license available
 licensor.status.infinite=Infinite
+licensor.userLimit=User Limit
+licensor.userLimit.unspecified=-
+licensor.userLimit.unlimited=Unlimited
 licensor.wiki=Wiki
 licensor.wiki.installedOnFarm=Installed on Farm
 licensor.actions=Actions

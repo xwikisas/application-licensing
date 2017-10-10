@@ -65,21 +65,23 @@
     $services.localization.render('licensor.licenseManager.hint')
   &lt;/fieldset&gt;
 {{/html}}
-#set($columns = ['name', 'version', 'status', 'wiki', 'actions'])
+#set($columns = ['name', 'version', 'status', 'userLimit', 'wiki', 'actions'])
 #set($columnsProperties = {
-  'name'    : {'type' : 'text'},
-  'version' : {'type' : 'text', 'size' : '3'},
-  'status'  : {'type' : 'text'},
-  'wiki'    : {'type' : 'text'},
-  'actions' : {'type' : 'text', 'html':true}
+  'name': {'filterable': false, 'sortable': false},
+  'version': {'filterable': false, 'sortable': false},
+  'status': {'filterable': false, 'sortable': false, 'html': true},
+  'userLimit': {'filterable': false, 'sortable': false, 'html': true},
+  'wiki': {'filterable': false, 'sortable': false},
+  'actions': {'filterable': false, 'sortable': false, 'html': true}
 })
-#set($options = { 
+#set($options = {
   'resultPage':'Licenses.Code.LicenseJSON',
   'translationPrefix' : 'licensor.'
 })
 #livetable('licenseManager' $columns $columnsProperties $options)
 {{html clean=false}}
-  &lt;form id="addLicense" class="xform half" action="$xwiki.getURL('Licenses.Code.AddLicense', 'get', 'outputSyntax=plain')" method="post"&gt;
+  &lt;form id="addLicense" class="xform half" action="$xwiki.getURL('Licenses.Code.AddLicense', 'get',
+      'outputSyntax=plain')" method="post"&gt;
     &lt;fieldset class='header'&gt;
       &lt;legend&gt;$services.localization.render('licensor.addLicense.heading')&lt;/legend&gt;
       &lt;p&gt;$services.localization.render('licensor.addLicense.hint')&lt;/p&gt;
