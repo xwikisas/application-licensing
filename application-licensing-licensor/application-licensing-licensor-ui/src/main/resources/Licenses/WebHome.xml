@@ -390,6 +390,7 @@
     </property>
     <property>
       <code>require(['jquery', 'xwiki-events-bridge'], function ($) {
+  $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons());
   var addLicense = $("#addLicense");
   var addLicenseSubmit = addLicense.find("input[type='submit']");
   addLicense.submit(function(event) {
@@ -427,28 +428,29 @@
       If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
   **/
   $('#licenseManager').on('click', '.licenseButton', function() {
+    var currentButton = $(this);
     // check the input fields to be filled with data
     var doSubmit = true;
     var ownerDetailsForm = $('#ownerDetails');
     ownerDetailsForm.find('input:visible').each(function() {
-      $(this).removeClass('required')
-      if (!$(this).val()) {
+      currentButton.removeClass('required')
+      if (!currentButton.val()) {
         doSubmit = false;
-        $(this).addClass('required')
-        $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}")
+        currentButton.addClass('required')
+        currentButton.attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}")
       }
     });
     if (doSubmit) {
       // Make licenseActions buttons inactive when any of them is clicked
-      $(this).siblings().prop('disabled', true)
-      $(this).prop('disabled', true )
+      currentButton.siblings().prop('disabled', true)
+      currentButton.prop('disabled', true )
       // update the licensing owner details
       $.post({
         url : "${xwiki.getURL('Licenses.Code.UpdateOwnerDetails')}",
         data: $(ownerDetailsForm).serialize()
       });
       // add the data from the button to the form
-      var json = $.parseJSON($(this).attr('data-button'));
+      var json = $.parseJSON(currentButton.attr('data-button'));
       
       $.each(json, function(index, value) {
         var detailInput = $('input[name=' + index + ']');
@@ -476,7 +478,16 @@
             },
             success: function(result) {
               // use the existing addLicense form, add the license and submit.
-              $(addLicense).find('textarea').val(result['data'])
+              $(addLicense).find('textarea').val(result['data']);
+              // cache the "hasTrials" value in local storage
+              var urlParams = new URLSearchParams(this.data);
+              var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
+              var hasTrialValue = result['hasTrials'];
+              localStorage.setItem(hasTrialsKey, hasTrialValue);
+              // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
+              var buyButton = currentButton.siblings();
+              buyButton.removeAttr('disabled');
+              currentButton.remove();
               addLicense.submit();
             },
             error: function(result) {
@@ -492,6 +503,26 @@
       ownerDetailsForm.submit();
     }
   });
+
+  // Remove "Extend Trial" buttons from livetable, if the trial licenses limits were reached   
+  var updateLivetableButtons = function() {
+    var instanceId = $('#instanceId').val();
+    $('.licenseActions .btn-primary').each(function() {
+      // compute the key to check in the localStorage
+      var dataButton = $(this).attr('data-button');
+      var jsonData = jQuery.parseJSON(dataButton)
+      var featureId = jsonData['featureId'];
+      var hasTrialsKey = computeHasTrialKey(instanceId, featureId);
+      if (localStorage.getItem(hasTrialsKey) === 'false') {
+        // remove the "Extend Trial" button
+        $(this).remove();
+      }
+    });
+  };
+
+  var computeHasTrialKey = function(instanceId, featureId) {
+    return instanceId + '_' + featureId;
+  }
 });
 </code>
     </property>
