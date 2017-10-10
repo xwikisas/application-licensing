@@ -390,144 +390,108 @@
     </property>
     <property>
       <code>require(['jquery', 'xwiki-events-bridge'], function ($) {
-  $(document).ready(function() {
-    $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons());
-    var addLicense = $("#addLicense");
-    var addLicenseSubmit = addLicense.find("input[type='submit']");
-    addLicense.submit(function(event) {
-      event.preventDefault();
-      $.ajax({
-        type: $(this).attr('method'),
-        url : $(this).attr('action'),
-        data: $(this).serialize(),
-        beforeSend: function() {
-          this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
-          addLicenseSubmit.attr('disabled', 'disabled');
-        },
-        complete:function() {
-          this.progressNotification.hide();
-        },
-        success: function(result) {
-          new XWiki.widgets.Notification(result['notification'], result['status']);
-          // reload the page to update the livetable and to clear the form
-          // location.reload(true);
-        },
-        error: function(result) {
-          // remove always the previous error message
-          $('.errormessage').remove();
-          if(result.responseJSON) {
-            addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ result.responseJSON['notification'] +'&lt;/div&gt;');
-          } else {
-            addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ "$services.localization.render('licensor.addLicense.nonJSON')" +'&lt;/div&gt;');
-          }
-          addLicenseSubmit.removeAttr('disabled');
+  var addLicense = $("#addLicense");
+  var addLicenseSubmit = addLicense.find("input[type='submit']");
+  addLicense.submit(function(event) {
+    event.preventDefault();
+    $.ajax({
+      type: $(this).attr('method'),
+      url : $(this).attr('action'),
+      data: $(this).serialize(),
+      beforeSend: function() {
+        this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
+        addLicenseSubmit.attr('disabled', 'disabled');
+      },
+      complete:function() {
+        this.progressNotification.hide();
+      },
+      success: function(result) {
+        new XWiki.widgets.Notification(result['notification'], result['status']);
+        // reload the page to update the livetable and to clear the form
+        location.reload(true);
+      },
+      error: function(result) {
+        // remove always the previous error message
+        $('.errormessage').remove();
+        if(result.responseJSON) {
+          addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ result.responseJSON['notification'] +'&lt;/div&gt;');
+        } else {
+          addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ "$services.localization.render('licensor.addLicense.nonJSON')" +'&lt;/div&gt;');
         }
-      });
-    });
-
-    /** Manages the license buttons from the licenses livetable.
-        If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
-    **/
-    $('#licenseManager').on('click', '.licenseButton', function() {
-      var currentButton = $(this);
-      // check the input fields to be filled with data
-      var doSubmit = true;
-      var ownerDetailsForm = $('#ownerDetails');
-      ownerDetailsForm.find('input:visible').each(function() {
-        currentButton.removeClass('required')
-        if (!currentButton.val()) {
-          doSubmit = false;
-          currentButton.addClass('required')
-          currentButton.attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}")
-        }
-      });
-      if (doSubmit) {
-        // Make licenseActions buttons inactive when any of them is clicked
-        currentButton.siblings().prop('disabled', true)
-        currentButton.prop('disabled', true )
-        // update the licensing owner details
-        $.post({
-          url : "${xwiki.getURL('Licenses.Code.UpdateOwnerDetails')}",
-          data: $(ownerDetailsForm).serialize()
-        });
-        // add the data from the button to the form
-        var json = $.parseJSON(currentButton.attr('data-button'));
-        
-        $.each(json, function(index, value) {
-          var detailInput = $('input[name=' + index + ']');
-          // check if the input exists
-          if (detailInput.val()) {
-            detailInput.val(value);
-          } else {
-            ownerDetailsForm.append("&lt;input type='hidden' name='" + index + "' value='" + value + "'&gt;")
-          }
-        });
-        // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and return a license if needed.
-        if (json.licenseType === 'TRIAL') {
-          ownerDetailsForm.submit(function(event) {
-            event.preventDefault();
-            var url = "${xwiki.getURL('Licenses.Code.GetTrialLicenseService', 'get', 'outputSyntax=plain')}";
-            $.ajax({
-              type: $(this).attr('method'),
-              url : url,
-              data: $(this).serialize(),
-              beforeSend: function() {
-                console.log(localStorage)
-                this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
-              },
-              complete: function(result) {
-                this.progressNotification.hide();
-              },
-              success: function(result) {
-                // use the existing addLicense form, add the license and submit.
-                $(addLicense).find('textarea').val(result['data']);
-                // cache the "hasTrials" value in local storage
-                var urlParams = new URLSearchParams(this.data);
-                var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
-                var hasTrialValue = result['hasTrials'];
-                localStorage.setItem(hasTrialsKey, hasTrialValue);
-                // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
-                var buyButton = currentButton.siblings();
-                buyButton.removeAttr('disabled');
-                currentButton.remove();
-                addLicense.submit();
-              },
-              error: function(result) {
-                if(result.responseJSON) {
-                  new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']);
-                } else {
-                  new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error');
-                }
-              }
-            });
-          });
-        }
-        ownerDetailsForm.submit();
+        addLicenseSubmit.removeAttr('disabled');
       }
     });
   });
 
-  
-  // Remove "Extend Trial" buttons from livetable, if the trial licenses limits were reached
-   
-  var updateLivetableButtons = function() {
-    var instanceId = $('#instanceId').val();
-    $('.licenseActions .btn-primary').each(function() {
-      // compute the key to check in the localStorage
-      var dataButton = $(this).attr('data-button');
-      var jsonData = jQuery.parseJSON(dataButton)
-      var featureId = jsonData['featureId'];
-      var hasTrialsKey = computeHasTrialKey(instanceId, featureId);
-      if (localStorage.getItem(hasTrialsKey) === 'false') {
-        // remove the "Extend Trial" button
-        $(this).remove();
+  /** Manages the license buttons from the licenses livetable.
+      If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
+  **/
+  $('#licenseManager').on('click', '.licenseButton', function() {
+    // check the input fields to be filled with data
+    var doSubmit = true;
+    var ownerDetailsForm = $('#ownerDetails');
+    ownerDetailsForm.find('input:visible').each(function() {
+      $(this).removeClass('required')
+      if (!$(this).val()) {
+        doSubmit = false;
+        $(this).addClass('required')
+        $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}")
       }
     });
-  };
-
-  var computeHasTrialKey = function(instanceId, featureId) {
-    return instanceId + '_' + featureId;
-  }
+    if (doSubmit) {
+      // Make licenseActions buttons inactive when any of them is clicked
+      $(this).siblings().prop('disabled', true)
+      $(this).prop('disabled', true )
+      // update the licensing owner details
+      $.post({
+        url : "${xwiki.getURL('Licenses.Code.UpdateOwnerDetails')}",
+        data: $(ownerDetailsForm).serialize()
+      });
+      // add the data from the button to the form
+      var json = $.parseJSON($(this).attr('data-button'));
+      
+      $.each(json, function(index, value) {
+        var detailInput = $('input[name=' + index + ']');
+        // check if the input exists
+        if (detailInput.val()) {
+          detailInput.val(value);
+        } else {
+          ownerDetailsForm.append("&lt;input type='hidden' name='" + index + "' value='" + value + "'&gt;")
+        }
+      });
+      // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and return a license if needed.
+      if (json.licenseType === 'TRIAL') {
+        ownerDetailsForm.submit(function(event) {
+          event.preventDefault();
+          var url = "${xwiki.getURL('Licenses.Code.GetTrialLicenseService', 'get', 'outputSyntax=plain')}";
+          $.ajax({
+            type: $(this).attr('method'),
+            url : url,
+            data: $(this).serialize(),
+            beforeSend: function() {
+              this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
+            },
+            complete: function(result) {
+              this.progressNotification.hide();
+            },
+            success: function(result) {
+              // use the existing addLicense form, add the license and submit.
+              $(addLicense).find('textarea').val(result['data'])
+              addLicense.submit();
+            },
+            error: function(result) {
+              if(result.responseJSON) {
+                new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']);
+              } else {
+                new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error');
+              }
+            }
+          });
+        });
+      }
+      ownerDetailsForm.submit();
+    }
+  });
 });
 </code>
     </property>
