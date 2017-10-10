@@ -434,11 +434,11 @@
       var doSubmit = true;
       var ownerDetailsForm = $('#ownerDetails');
       ownerDetailsForm.find('input:visible').each(function() {
-        currentButton.removeClass('required')
-        if (!currentButton.val()) {
+        $(this).removeClass('required');
+        if (!$(this).val()) {
           doSubmit = false;
-          currentButton.addClass('required')
-          currentButton.attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}")
+          $(this).addClass('required');
+          $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}");
         }
       });
       if (doSubmit) {
