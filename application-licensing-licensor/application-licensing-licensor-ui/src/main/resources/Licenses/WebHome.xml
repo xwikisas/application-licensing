@@ -486,9 +486,11 @@
                 var hasTrialValue = result['hasTrials'];
                 localStorage.setItem(hasTrialsKey, hasTrialValue);
                 // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
-                var buyButton = currentButton.siblings();
-                buyButton.removeAttr('disabled');
-                currentButton.remove();
+                if (hasTrialValue === 'false') {
+                  var buyButton = currentButton.siblings();
+                  buyButton.removeAttr('disabled');
+                  currentButton.remove();
+                }
                 addLicense.submit();
               },
               error: function(result) {
