@@ -80,6 +80,7 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-watchlist-ui</artifactId>
       <version>${platform.version}</version>
+      <type>xar</type>
       <scope>runtime</scope>
     </dependency>
     <dependency>
