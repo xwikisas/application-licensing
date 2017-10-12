@@ -89,5 +89,13 @@
       <version>${rendering.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- Required by the Licensor administration section. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-administration-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>

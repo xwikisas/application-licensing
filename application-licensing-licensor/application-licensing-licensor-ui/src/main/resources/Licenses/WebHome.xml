@@ -289,7 +289,7 @@
       <displayBeforeCategory/>
     </property>
     <property>
-      <displayInCategory/>
+      <displayInCategory>extensionmanager</displayInCategory>
     </property>
     <property>
       <displayInSection>Licenses</displayInSection>
@@ -307,7 +307,7 @@
       <propertiesToShow/>
     </property>
     <property>
-      <sectionOrder/>
+      <sectionOrder>600</sectionOrder>
     </property>
   </object>
   <object>
@@ -404,25 +404,23 @@
         data: $(this).serialize(),
         beforeSend: function() {
           this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
-          addLicenseSubmit.attr('disabled', 'disabled');
+          addLicenseSubmit.prop('disabled', true);
+          // Remove the previous error message.
+          addLicense.next('.errormessage').remove();
         },
         complete:function() {
           this.progressNotification.hide();
+          addLicenseSubmit.prop('disabled', false);
         },
         success: function(result) {
           new XWiki.widgets.Notification(result['notification'], result['status']);
-          // reload the page to update the livetable and to clear the form
+          // Reload the page to update the live table and the notification message.
           location.reload(true);
         },
         error: function(result) {
-          // remove always the previous error message
-          $('.errormessage').remove();
-          if(result.responseJSON) {
-            addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ result.responseJSON['notification'] +'&lt;/div&gt;');
-          } else {
-            addLicense.parent().append('&lt;br/&gt;&lt;div class="box errormessage"&gt;'+ "$services.localization.render('licensor.addLicense.nonJSON')" +'&lt;/div&gt;');
-          }
-          addLicenseSubmit.removeAttr('disabled');
+          var errorMessage = result.responseJSON ? result.responseJSON['notification'] :
+            $jsontool.serialize($services.localization.render('licensor.addLicense.nonJSON'));
+          $('&lt;div class="box errormessage"/&gt;').text(errorMessage).insertAfter(addLicense);
         }
       });
     });
@@ -529,8 +527,7 @@
   var computeHasTrialKey = function(instanceId, featureId) {
     return instanceId + '_' + featureId;
   }
-});
-</code>
+});</code>
     </property>
     <property>
       <name/>
@@ -639,32 +636,12 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>.actions .licenseActions a:link,
-.actions .licenseActions a:link:hover {
-  color: #fff;
-}
-
-.licenseActions a{
-  margin-right: 10px;
-}
-
-#ownerDetails input[type="email"] {
-  background-color: #fff;
-  background-image: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
-  color: #555555;
-  display: block;
-  font-size: 14px;
-  height: 34px;
-  line-height: 1.42857;
-  padding: 6px 12px;
-  transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
-}
-
-#ownerDetails input.required {
+      <code>#ownerDetails input.required {
   border:1px solid red;
+}
+
+#addLicense + .errormessage {
+  margin-top: .7em;
 }</code>
     </property>
     <property>
@@ -674,7 +651,7 @@
       <name/>
     </property>
     <property>
-      <parse/>
+      <parse>0</parse>
     </property>
     <property>
       <use>currentPage</use>
