@@ -95,7 +95,7 @@
     ; Expiration Date
     : $!expirationDate
   #end
-  ##------------- Display License 
+  ##------------- Display License
   #set ($hasLicense = $doc.getValue('hasLicense'))
   #if ("$!hasLicense" == '1')
     #set ($licenseId = $doc.getValue('licenseId'))
