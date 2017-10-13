@@ -40,12 +40,6 @@ public class License implements Comparable<License>
      */
     public static final License UNLICENSED = new License();
 
-    /**
-     * A bug existed that cause InstanceId comparison to fail wrongly, this is a check for that issue in order
-     * to use a workaround when comparison is needed.
-     */
-    private static final boolean INSTANCE_ID_EQUALS_BROKEN = new InstanceId() != new InstanceId();
-
     static {
         UNLICENSED.setId(new LicenseId("00000000-0000-0000-0000-000000000000"));
         UNLICENSED.setExpirationDate(0L);
@@ -172,23 +166,13 @@ public class License implements Comparable<License>
 
     /**
      * Check if this license is applicable for a given instance.
+     * 
      * @param id the identifier of the instance to be checked.
      * @return true if this license is applicable for the given instance.
      */
     public boolean isApplicableTo(InstanceId id)
     {
-        if (!INSTANCE_ID_EQUALS_BROKEN) {
-            return instanceIds.contains(id);
-        } else if (id == null || id.getInstanceId() == null) {
-            return false;
-        } else {
-            for (InstanceId instanceId : getInstanceIds()) {
-                if (id.getInstanceId().equals(instanceId.getInstanceId())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return this.instanceIds != null && this.instanceIds.contains(id);
     }
 
     /**
@@ -293,16 +277,18 @@ public class License implements Comparable<License>
             return license1;
         }
 
-        if (license1.getId().equals(license2.getId())) {
-            return license1;
-        }
-
         if (license1 instanceof SignedLicense) {
             if (!(license2 instanceof SignedLicense)) {
                 return license1;
             }
         } else if (license2 instanceof SignedLicense) {
             return license2;
+        }
+
+        // The licenses are either both signed or both not signed.
+
+        if (license1.getId().equals(license2.getId())) {
+            return license1;
         }
 
         if (license1.getExpirationDate() != license2.getExpirationDate()) {
@@ -408,16 +394,12 @@ public class License implements Comparable<License>
             return this;
         }
 
-        private EqualsBuilder appendCollection(Collection< ? > lhs, Collection< ? > rhs) {
+        private EqualsBuilder appendCollection(Collection<?> lhs, Collection<?> rhs)
+        {
             for (Object lobj : lhs) {
                 boolean found = false;
                 for (Object robj : rhs) {
-                    if (INSTANCE_ID_EQUALS_BROKEN && lobj instanceof InstanceId) {
-                        if (((InstanceId) lobj).getInstanceId().equals(((InstanceId) robj).getInstanceId())) {
-                            found = true;
-                            break;
-                        }
-                    } else if (lobj.equals(robj)) {
+                    if (lobj.equals(robj)) {
                         found = true;
                         break;
                     }
