@@ -19,193 +19,206 @@
  */
 package com.xwiki.licensing.test.ui;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 
+import org.apache.commons.io.IOUtils;
+import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.test.ExtensionTestUtils;
+import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.test.ui.AbstractTest;
 import org.xwiki.test.ui.SuperAdminAuthenticationRule;
 import org.xwiki.test.ui.po.LiveTableElement;
 import org.xwiki.test.ui.po.ViewPage;
+import org.xwiki.text.StringUtils;
 
-import com.xwiki.licensing.test.po.LicensingAdminPage;
+import com.xwiki.licensing.LicenseType;
+import com.xwiki.licensing.test.po.LicenseDetailsEditPage;
+import com.xwiki.licensing.test.po.LicenseDetailsViewPage;
+import com.xwiki.licensing.test.po.LicenseNotificationPane;
+import com.xwiki.licensing.test.po.LicensesAdminPage;
+import com.xwiki.licensing.test.po.LicensesHomePage;
 
 import static org.junit.Assert.*;
 
 /**
- * Functional tests for the Licensing module.
+ * Functional tests for the Licensing application.
  *
  * @version $Id$
  */
 public class LicensingTest extends AbstractTest
 {
-    private static final String EXAMPLE_ID = "com.xwiki.licensing:application-licensing-test-example";
-
-    private static final String VERSION = System.getProperty("licensing.version");
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
     @Rule
     public SuperAdminAuthenticationRule superAdminAuthenticationRule = new SuperAdminAuthenticationRule(getUtil());
 
-    @Test
-    public void generateLicense() throws Exception
+    private String instanceId;
+
+    @Before
+    public void configure() throws Exception
     {
-        // Step 1: Generate Certificates and Keys by executing a script.
+        // Install the example application.
 
-        // Delete page that we create in the test
-        getUtil().rest().deletePage("License", "GenerateCertificatesAndKeys");
+        if (!getUtil().pageExists("Example", "WebHome")) {
+            ExtensionTestUtils extensionTestUtils = new ExtensionTestUtils(getUtil());
+            extensionTestUtils.install(new ExtensionId("com.xwiki.licensing:application-licensing-test-example",
+                System.getProperty("licensing.version")));
+        }
 
-        // Create a page in which we populate the stores
-        String content = "{{velocity}}\n"
-            + "#set($keystore = $services.crypto.store.getX509FileKeyStore('license-keystore'))\n"
-            + "#set($certstore = $services.crypto.store.getX509SpaceCertificateStore("
-                + "$services.model.resolveSpace('License.Certificates')))\n"
-            + "#set($binaryEncoder = "
-                + "$services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder','Base64'))\n"
-            + "#if ($request.proceed == 1)\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($rootCA = $services.crypto.rsa.issueRootCACertificate($keyPair, "
-                + "'CN=Licence Root CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 730000))\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($freeInterCA = $services.crypto.rsa.issueIntermediateCertificate($rootCA, $keyPair, "
-                + "'CN=Free License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 365000))\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($trialInterCA = $services.crypto.rsa.issueIntermediateCertificate($rootCA, $keyPair, "
-                + "'CN=Trial License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 365000))\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($paidInterCA = $services.crypto.rsa.issueIntermediateCertificate($rootCA, $keyPair, "
-                + "'CN=Paid License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 365000))\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($freeKeyPair = $services.crypto.rsa.issueCertificate($freeInterCA, $keyPair, "
-                + "\"CN=Free License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR\", 74000, "
-                    + "[$services.crypto.x509name.createX509Rfc822Name('free@acme.com')]))\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($trialKeyPair = $services.crypto.rsa.issueCertificate($trialInterCA, $keyPair, "
-                + "\"CN=Trial License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR\", 74000, "
-                    + "[$services.crypto.x509name.createX509Rfc822Name('trial@acme.com')]))\n"
-            + "#set($keyPair = $services.crypto.rsa.generateKeyPair())\n"
-            + "#set($paidKeyPair = $services.crypto.rsa.issueCertificate($paidInterCA, $keyPair, "
-                + "\"CN=Paid License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR\", 74000, "
-                    + "[$services.crypto.x509name.createX509Rfc822Name('paid@acme.com')]))\n"
-            + "#set($discard = $keystore.store($rootCA, 'rootPassword'))\n"
-            + "#set($discard = $keystore.store($freeInterCA, 'freePassword'))\n"
-            + "#set($discard = $keystore.store($trialInterCA, 'trialPassword'))\n"
-            + "#set($discard = $keystore.store($paidInterCA, 'paidPassword'))\n"
-            + "#set($discard = $keystore.store($freeKeyPair, 'freePassword'))\n"
-            + "#set($discard = $keystore.store($trialKeyPair, 'trialPassword'))\n"
-            + "#set($discard = $keystore.store($paidKeyPair, 'paidPassword'))\n"
-            + "#set($discard = $certstore.store($rootCA.certificate))\n"
-            + "#set($discard = $certstore.store($freeInterCA.certificate))\n"
-            + "#set($discard = $certstore.store($trialInterCA.certificate))\n"
-            + "#set($discard = $certstore.store($paidInterCA.certificate))\n"
-            + "#set($discard = $certstore.store($freeKeyPair.certificate))\n"
-            + "#set($discard = $certstore.store($trialKeyPair.certificate))\n"
-            + "#set($discard = $certstore.store($paidKeyPair.certificate))\n"
-            + "Free: $binaryEncoder.encode($freeInterCA.certificate.subjectKeyIdentifier)\n"
-            + "Trial: $binaryEncoder.encode($trialInterCA.certificate.subjectKeyIdentifier)\n"
-            + "Paid: $binaryEncoder.encode($paidInterCA.certificate.subjectKeyIdentifier)\n"
-            + "#else\n"
-            + "  #foreach ($certificate in $certstore.getAllCertificates())\n"
-            + "    * $certificate.subject.name $binaryEncoder.encode($certificate.subjectKeyIdentifier)\n"
-            + "  #end\n"
-            + "#end"
-            + "{{/velocity}}";
-        getUtil().createPage("License", "GenerateCertificatesAndKeys", content, "GenerateCertificatesAndKeys");
-        getUtil().gotoPage("License", "GenerateCertificatesAndKeys", "view", "proceed=1");
-        ViewPage vp = new ViewPage();
-        assertTrue(vp.getContent().contains("Free:"));
-        assertTrue(vp.getContent().contains("Paid:"));
-        assertTrue(vp.getContent().contains("Trial:"));
+        // Generate Certificates and Keys.
 
-        // Step 2: Add a new license details and generate a license
+        LocalDocumentReference generateCertificatesAndKeys =
+            new LocalDocumentReference(Arrays.asList("License", "Code"), "GenerateCertificatesAndKeys");
+        if (!getUtil().rest().exists(generateCertificatesAndKeys)) {
+            try (InputStream content = getClass().getResourceAsStream("/GenerateCertificatesAndKeys.wiki")) {
+                getUtil().rest().savePage(generateCertificatesAndKeys,
+                    IOUtils.toString(content, StandardCharsets.UTF_8), "");
+            }
 
-        content = "{{include reference='License.Code.LicenseDetailsMacros'/}}\n"
-            + "\n"
-            + "{{velocity}}\n"
-            + "#addLicenseDetails('John' 'Doe' 'john@acme.com' 'b6ad6165-daaf-41a1-8a3f-9aa81451c402' "
-                + "'Active Directory Application', 'com.xwiki.activedirectory:application-activedirectory-main', '"
-                    + "com.xwiki.activedirectory:application-activedirectory-api' 'trial' true $license)\n"
-            + "success"
-            + "{{/velocity}}";
-        vp = getUtil().createPage("License", "AddLicenseDetails", content, "AddLicenseDetails");
-        assertEquals("success", vp.getContent());
+            getUtil().gotoPage(generateCertificatesAndKeys, "view", "proceed=1");
+        }
 
-        // Step 3: Install the Example application
+        // Use the generated certificates.
 
-        // Delete page that we create in the test
-        getUtil().rest().deletePage("License", "InstallExampleApplication");
+        LocalDocumentReference useCertificates =
+            new LocalDocumentReference(Arrays.asList("License", "Code"), "UseCertificates");
+        if (!getUtil().rest().exists(useCertificates)) {
+            try (InputStream content = getClass().getResourceAsStream("/UseCertificates.wiki")) {
+                getUtil().rest().savePage(useCertificates, IOUtils.toString(content, StandardCharsets.UTF_8), "");
+            }
+        }
 
-        // Create a page in which we install the Example application and verify it's been installed correctly
-        content = "{{velocity}}\n"
-            + "#set ($installRequest = $services.extension.createInstallRequest("
-                + "'com.xwiki.licensing:application-licensing-test-example', '"+ VERSION +"', 'wiki:xwiki'))\n"
-            + "#set ($discard = $installRequest.setInteractive(false))\n"
-            + "#set ($installJob = $services.extension.install($installRequest))\n"
-            + "#set ($discard = $installJob.join())\n"
-            + "installed: $services.extension.installed.getInstalledExtension("
-                + "'com.xwiki.licensing:application-licensing-test-example', 'wiki:xwiki').id\n"
-            + "{{/velocity}}";
-        vp = getUtil().createPage("License", "InstallExampleApplication", content, "Install Example Application");
-        assertEquals("installed: " + EXAMPLE_ID + "-" + VERSION, vp.getContent());
+        getUtil().gotoPage(useCertificates, "view", "proceed=1");
+        assertEquals("OK", new ViewPage().getContent());
 
-        // Verify that there's no license for Example.WebHome
-        vp = getUtil().gotoPage("Example", "WebHome");
-        assertEquals("Missing license", vp.getContent());
+        // Configure the store URLs (buy and trial) to point to the current wiki.
 
-        // Step 4: Configure the Licensor UI store URLs to point to the current wiki
         getUtil().updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
             "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
             "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense", "storeBuyURL",
             "http://localhost:8080/xwiki/bin/view/Store/BuyLicense");
+    }
 
-        // Step 5: Bypass the certificate checker since otherwise it'll fail since it'll check against the XWiki SAS
-        // official certificates
-        getUtil().rest().deletePage("License", "CertificateChecker");
-        content = "{{groovy}}\n"
-            + "import com.xwiki.licensing.*\n"
-            + "\n"
-            + "class VoidValidator implements LicenseValidator\n"
-            + "{\n"
-            + "    boolean isApplicable(License license) { return true }\n"
-            + "    boolean isSigned(License license) { return license instanceof SignedLicense }\n"
-            + "    boolean isValid(License license) { return true }\n"
-            + "}\n"
-            + "\n"
-            + "def licenseManager = services.component.getInstance(LicenseManager.class)\n"
-            + "licenseManager.licenseValidator = new VoidValidator() \n"
-            + "println 'ok'"
-            + "{{/groovy}}";
-        vp = getUtil().createPage("License", "CertificateChecker", content, "Certificate Checker");
-        assertEquals("ok", vp.getContent());
+    @Test
+    public void generateLicense() throws Exception
+    {
+        // Verify that there's no license for Example.WebHome
+        ViewPage viewPage = getUtil().gotoPage("Example", "WebHome");
+        // The superadmin user can still see the page.
+        assertEquals("Missing license", viewPage.getContent());
+        // The rest of the users are not allowed view it.
+        getUtil().createUserAndLoginWithRedirect("alice", "test", getUtil().getURL("Example", "WebHome"));
+        assertEquals("You are not allowed to view this page or perform this action.",
+            getDriver().findElementByCssSelector("p.xwikimessage").getText());
 
-        // Step 6: Navigate to the License Admin UI, fill ownership details and click "Get Trial". Verify that the
-        // license has an expiration date.
+        // Verify the notification for the missing license.
+        // The simple users should not see the notification.
+        getUtil().gotoPage(getTestClassName(), getTestMethodName());
+        assertFalse(viewPage.hasNotificationsMenu());
+        // Users with administration rights should see it though.
+        getUtil().loginAsSuperAdminAndGotoPage(getUtil().getURL(getTestClassName(), getTestMethodName()));
+        viewPage.toggleNotificationsMenu();
+        LicenseNotificationPane notification = new LicenseNotificationPane();
+        assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
-        // Initially epxiration date should display "No license available"
-        LicensingAdminPage lap = LicensingAdminPage.gotoPage();
-        LiveTableElement laplt = lap.getLiveTable();
-        assertEquals(1, laplt.getRowCount());
-        WebElement firstRow = laplt.getRow(1);
-        assertEquals("No license available", laplt.getCell(firstRow, 3).getText());
+        // Navigate to the Licenses administration section.
+        LicensesAdminPage licensesAdminSection = notification.clickLicensesSectionLink();
 
-        // Fill ownership details, click "Get Trial" and verify expiration date
-        lap.setLicenseOwnershipDetails("John", "Doe", "john@acme.com");
-        final LicensingAdminPage lap2 = lap.clickGetTrialButton();
+        // Initially expiration date should display "No license available".
+        LiveTableElement liveTable = licensesAdminSection.getLiveTable();
+        assertEquals(1, liveTable.getRowCount());
+        WebElement firstRow = liveTable.getRow(1);
+        assertEquals("No license available", liveTable.getCell(firstRow, 3).getText());
+        assertEquals("1 / 0", liveTable.getCell(firstRow, 4).getText());
 
-        // Wait till the license expiration cell is no longer displaying "No license available", proving that it's
-        // been updated after the license has been set.
-        getDriver().waitUntilCondition(new ExpectedCondition<Object>() {
-            public Boolean apply(WebDriver driver) {
-                LiveTableElement laplt = lap2.getLiveTable();
-                WebElement firstRow = laplt.getRow(1);
-                return !laplt.getCell(firstRow, 3).getText().equals("No license available");
-            }
-        });
+        // Import an invalid license.
+        licensesAdminSection.addLicense("foo");
+        assertEquals("Failed! The provided license could not be decoded. Please contact sales@xwiki.com.",
+            licensesAdminSection.getErrorMessage());
 
-        // Step 7: Verify that the Example page has a license
-        vp = getUtil().gotoPage("Example", "WebHome");
-        assertEquals("Hello", vp.getContent());
+        // Import a license that is not meant for the current XWiki instance.
+        try (InputStream incompatibleLicense = getClass().getResourceAsStream("/incompatible.license")) {
+            licensesAdminSection.addLicense(IOUtils.toString(incompatibleLicense, StandardCharsets.UTF_8));
+        }
+        assertEquals("Failed! License is not compatible or useful for your server. Please contact sales@xwiki.com",
+            licensesAdminSection.getErrorMessage());
+
+        this.instanceId = licensesAdminSection.getInstanceId();
+
+        // Generate and import an expired license with unspecified number of users.
+        addLicense(LicenseType.FREE, "21/06/2017", "");
+
+        // Check the license live table.
+        assertEquals(1, liveTable.getRowCount());
+        firstRow = liveTable.getRow(1);
+        assertEquals("21/06/2017", liveTable.getCell(firstRow, 3).getText());
+        assertEquals("-", liveTable.getCell(firstRow, 4).getText());
+
+        // Check the license notification message.
+        licensesAdminSection.toggleNotificationsMenu();
+        notification = new LicenseNotificationPane();
+        assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
+
+        // Generate and import a license for 0 users
+        addLicense(LicenseType.TRIAL, null, "0");
+
+        // Check the license live table.
+        assertEquals(1, liveTable.getRowCount());
+        firstRow = liveTable.getRow(1);
+        assertEquals(DATE_FORMAT.format(new DateTime().plusDays(11).toDate()),
+            liveTable.getCell(firstRow, 3).getText());
+        assertEquals("1 / 0", liveTable.getCell(firstRow, 4).getText());
+
+        // Check the license notification message.
+        licensesAdminSection.toggleNotificationsMenu();
+        notification = new LicenseNotificationPane();
+        assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
+
+        // Generate and import a license for unlimited users
+        addLicense(LicenseType.PAID, null, "-1");
+
+        // Check the license live table.
+        assertEquals(1, liveTable.getRowCount());
+        firstRow = liveTable.getRow(1);
+        assertEquals(DATE_FORMAT.format(new DateTime().plusDays(365).toDate()),
+            liveTable.getCell(firstRow, 3).getText());
+        assertEquals("Unlimited", liveTable.getCell(firstRow, 4).getText());
+
+        // Check the license notification message.
+        assertFalse(licensesAdminSection.hasNotificationsMenu());
+
+        // Verify that the Example page now has a license.
+        viewPage = getUtil().gotoPage("Example", "WebHome");
+        assertEquals("Hello", viewPage.getContent());
+
+        // Try also with a simple user.
+        getUtil().loginAndGotoPage("alice", "test", getUtil().getURL("Example", "WebHome"));
+        assertEquals("Hello", viewPage.getContent());
+    }
+
+    private void addLicense(LicenseType type, String expirationDate, String userLimit)
+    {
+        LicenseDetailsEditPage licenseDetails = LicensesHomePage.gotoPage().clickAddLicenseDetails();
+        licenseDetails.setLicenseeFirstName("John").setLicenseeLastName("Doe").setLicenseeEmail("john@acme.com")
+            .setInstanceId(this.instanceId).setExtensionName("Paid Application Example")
+            .setExtensionId("com.xwiki.licensing:application-licensing-test-example").setUserLimit(userLimit)
+            .setLicenseType(type.name().toLowerCase());
+        LicenseDetailsViewPage licenseDetailsView = licenseDetails.clickSaveAndView();
+        if (!StringUtils.isEmpty(expirationDate)) {
+            String licenseId = licenseDetailsView.getHTMLMetaDataValue("page");
+            getUtil().updateObject(Arrays.asList("License", "Data"), licenseId, "License.Code.LicenseDetailsClass", 0,
+                "expirationDate", expirationDate);
+        }
+        String license = licenseDetailsView.generateLicense();
+        LicensesAdminPage.gotoPage().addLicense(license);
     }
 }

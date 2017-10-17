@@ -1,0 +1,30 @@
+{{groovy}}
+import com.xwiki.licensing.internal.DefaultLicenseValidator;
+import com.xwiki.licensing.LicenseType;
+import org.apache.commons.lang3.reflect.FieldUtils;
+
+def certificates = FieldUtils.readDeclaredStaticField(DefaultLicenseValidator.class, "VALID_CERTIFICATES", true)
+def certificateStore = services.crypto.store.getX509SpaceCertificateStore(
+  services.model.resolveSpace('License.Certificates'))
+def binaryEncoder = services.component.getInstance(org.xwiki.crypto.BinaryStringEncoder.class, 'Base64')
+
+for (def certificate : certificateStore.getAllCertificates()) {
+  def licenseType = null
+  if (certificate.subject.name.contains('CN=Free License Intermediate')) {
+    licenseType = LicenseType.FREE
+  } else if (certificate.subject.name.contains('CN=Trial License Intermediate')) {
+    licenseType = LicenseType.TRIAL
+  } else if (certificate.subject.name.contains('CN=Paid License Intermediate')) {
+    licenseType = LicenseType.PAID
+  }
+  if (licenseType) {
+    if (request.proceed == '1') {
+      certificates.put(licenseType, [binaryEncoder.encode(certificate.subjectKeyIdentifier)])
+    } else {
+      println licenseType + ': ' + binaryEncoder.encode(certificate.subjectKeyIdentifier)
+    }
+  }
+}
+
+println "OK"
+{{/groovy}}

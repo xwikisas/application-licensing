@@ -1,0 +1,53 @@
+{{velocity}}
+#set ($keystore = $services.crypto.store.getX509FileKeyStore('license-keystore'))
+#set ($certstore = $services.crypto.store.getX509SpaceCertificateStore(
+  $services.model.resolveSpace('License.Certificates')))
+#set ($binaryEncoder = $services.component.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Base64'))
+#if ($request.proceed == 1)
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($rootCA = $services.crypto.rsa.issueRootCACertificate($keyPair,
+    'CN=Licence Root CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 730000))
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($freeInterCA = $services.crypto.rsa.issueIntermediateCertificate($rootCA, $keyPair,
+    'CN=Free License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 365000))
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($trialInterCA = $services.crypto.rsa.issueIntermediateCertificate($rootCA, $keyPair,
+    'CN=Trial License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 365000))
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($paidInterCA = $services.crypto.rsa.issueIntermediateCertificate($rootCA, $keyPair,
+    'CN=Paid License Intermediate CA,OU=Licensing,O=XWiki SAS,L=Paris,C=FR', 365000))
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($freeKeyPair = $services.crypto.rsa.issueCertificate($freeInterCA, $keyPair,
+    "CN=Free License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR", 74000,
+    [$services.crypto.x509name.createX509Rfc822Name('free@acme.com')]))
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($trialKeyPair = $services.crypto.rsa.issueCertificate($trialInterCA, $keyPair,
+    "CN=Trial License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR", 74000,
+    [$services.crypto.x509name.createX509Rfc822Name('trial@acme.com')]))
+  #set ($keyPair = $services.crypto.rsa.generateKeyPair())
+  #set ($paidKeyPair = $services.crypto.rsa.issueCertificate($paidInterCA, $keyPair,
+    "CN=Paid License Issuer ${datetool.year},OU=Licensing,O=XWiki SAS,L=Paris,C=FR", 74000,
+    [$services.crypto.x509name.createX509Rfc822Name('paid@acme.com')]))
+  #set ($discard = $keystore.store($rootCA, 'rootPassword'))
+  #set ($discard = $keystore.store($freeInterCA, 'freePassword'))
+  #set ($discard = $keystore.store($trialInterCA, 'trialPassword'))
+  #set ($discard = $keystore.store($paidInterCA, 'paidPassword'))
+  #set ($discard = $keystore.store($freeKeyPair, 'freePassword'))
+  #set ($discard = $keystore.store($trialKeyPair, 'trialPassword'))
+  #set ($discard = $keystore.store($paidKeyPair, 'paidPassword'))
+  #set ($discard = $certstore.store($rootCA.certificate))
+  #set ($discard = $certstore.store($freeInterCA.certificate))
+  #set ($discard = $certstore.store($trialInterCA.certificate))
+  #set ($discard = $certstore.store($paidInterCA.certificate))
+  #set ($discard = $certstore.store($freeKeyPair.certificate))
+  #set ($discard = $certstore.store($trialKeyPair.certificate))
+  #set ($discard = $certstore.store($paidKeyPair.certificate))
+  Free: (% class="certificate-free" %)$binaryEncoder.encode($freeInterCA.certificate.subjectKeyIdentifier)(%%)
+  Trial: (% class="certificate-trial" %)$binaryEncoder.encode($trialInterCA.certificate.subjectKeyIdentifier)(%%)
+  Paid: (% class="certificate-paid" %)$binaryEncoder.encode($paidInterCA.certificate.subjectKeyIdentifier)(%%)
+#else
+  #foreach ($certificate in $certstore.getAllCertificates())
+    * $certificate.subject.name $binaryEncoder.encode($certificate.subjectKeyIdentifier)
+  #end
+#end
+{{/velocity}}

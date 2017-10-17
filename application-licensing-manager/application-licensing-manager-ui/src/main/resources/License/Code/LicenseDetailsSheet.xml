@@ -93,7 +93,7 @@
   #set ($expirationDate = $doc.getValue('expirationDate'))
   #if ("$!expirationDate" != '')
     ; Expiration Date
-    : $!expirationDate
+    : $doc.display('expirationDate')
   #end
   ##------------- Display License
   #set ($hasLicense = $doc.getValue('hasLicense'))
@@ -103,7 +103,7 @@
     #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
     #if ("$!license" != '')
       ; License
-      : ((({{code language="none"}}$services.licensing.license.encode($license){{/code}})))
+      : {{html clean="false"}}&lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;{{/html}}
     #else
       {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
 

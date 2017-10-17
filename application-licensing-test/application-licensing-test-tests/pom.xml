@@ -36,11 +36,11 @@
   <properties>
     <xwikiCfgSuperadminPassword>pass</xwikiCfgSuperadminPassword>
     <!-- Configure the maven local repository as an extension repository so that we can install the Example application
-         (paying app) inside the test and ask for a trial license for it -->
+         (paying app) from the test. -->
     <xwikiExtensionRepositories>maven-local:maven:file://${sys:user.home}/.m2/repository</xwikiExtensionRepositories>
     <!-- Functional tests are allowed to output content to the console -->
     <xwiki.surefire.captureconsole.skip>true</xwiki.surefire.captureconsole.skip>
-    <!-- Override in order to add the Joda Time Plugin -->
+    <!-- Override in order to add the Joda Time Plugin required by the license manager application. -->
     <xwikiCfgPlugins>\
       com.xpn.xwiki.plugin.skinx.JsSkinExtensionPlugin,\
       com.xpn.xwiki.plugin.skinx.JsSkinFileExtensionPlugin,\
@@ -60,29 +60,21 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
-    <!-- Needed for the script executed during the test to generate the certificates and keys -->
+    <!-- Required by the script used to generate the certificates. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-component-script</artifactId>
       <version>${platform.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <!-- We depend on the store app since we want to test the interaction with the remote store server (which we
-         simulate in the same wiki) -->
-    <dependency>
-      <groupId>com.xwiki.store</groupId>
-      <artifactId>application-store-ui</artifactId>
-      <version>1.4</version>
-      <type>xar</type>
-      <scope>runtime</scope>
-    </dependency>
+    <!-- Required for the instance.hbm.xml file. See the Packager plugin configuration. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-instance</artifactId>
       <version>${platform.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <!-- Needed for bypassing certificate checking -->
+    <!-- Required by ExtensionTestUtils (which we use to install the example application). -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-rendering-macro-groovy</artifactId>
@@ -110,6 +102,14 @@
       <artifactId>xwiki-platform-extension-handler-xar</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- The component manager fails to load WikiMacroEventListener when wikimacro-api and wikimacro-store are installed
+      at runtime. We force them as core extensions. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rendering-wikimacro-store</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>com.xwiki.licensing</groupId>
@@ -120,6 +120,12 @@
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-test-ui</artifactId>
+      <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-extension-test-utils</artifactId>
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
@@ -193,19 +199,4 @@
       </build>
     </profile>
   </profiles>
-  <!-- Needed to able to find the Licensing Manager UI dependency (application-store-ui) which is not related in the
-       public store repo but in some XWiki SAS internal repo. -->
-  <repositories>
-    <repository>
-      <id>nexus.xwikisas.com-client-releases</id>
-      <name>XWiki SAS Maven2 Remote Repository for Releases</name>
-      <url>https://nexus.xwikisas.com/nexus/content/repositories/client-releases/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 </project>
