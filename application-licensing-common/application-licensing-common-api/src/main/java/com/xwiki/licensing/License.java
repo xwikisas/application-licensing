@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.xwiki.instance.InstanceId;
@@ -287,7 +288,7 @@ public class License implements Comparable<License>
 
         // The licenses are either both signed or both not signed.
 
-        if (license1.getId().equals(license2.getId())) {
+        if (Objects.equals(license1.getId(), license2.getId())) {
             return license1;
         }
 

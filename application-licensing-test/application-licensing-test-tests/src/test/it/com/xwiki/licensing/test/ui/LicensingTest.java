@@ -120,6 +120,10 @@ public class LicensingTest extends AbstractTest
         assertEquals("You are not allowed to view this page or perform this action.",
             getDriver().findElementByCssSelector("p.xwikimessage").getText());
 
+        // Verify that the excluded page is accessible without a license.
+        getUtil().gotoPage("Example", "ApplicationsPanelEntry");
+        assertEquals("No license needed.", viewPage.getContent());
+
         // Verify the notification for the missing license.
         // The simple users should not see the notification.
         getUtil().gotoPage(getTestClassName(), getTestMethodName());
