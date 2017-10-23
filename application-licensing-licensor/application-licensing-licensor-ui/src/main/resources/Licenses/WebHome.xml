@@ -488,7 +488,7 @@
                 // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
                 if (hasTrialValue === 'false') {
                   var buyButton = currentButton.siblings();
-                  buyButton.removeAttr('disabled');
+                  buyButton.prop('disabled', false);
                   currentButton.remove();
                 }
                 addLicense.submit();
