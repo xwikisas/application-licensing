@@ -452,7 +452,7 @@
         });
         // add the data from the button to the form
         var json = $.parseJSON(currentButton.attr('data-button'));
-        
+
         $.each(json, function(index, value) {
           var detailInput = $('input[name=' + index + ']');
           // check if the input exists

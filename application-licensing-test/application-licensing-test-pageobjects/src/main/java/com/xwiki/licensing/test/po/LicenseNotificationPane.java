@@ -36,10 +36,10 @@ import org.xwiki.test.ui.po.BaseElement;
  */
 public class LicenseNotificationPane extends BaseElement
 {
-    @FindBy(css = "li.notifications-payingapps-item a")
+    @FindBy(css = ".notifications-missingLicenses a")
     private WebElement licensesSectionLink;
 
-    @FindBys({@FindBy(css = "li.notifications-payingapps-item li")})
+    @FindBys({@FindBy(css = ".notifications-missingLicenses li")})
     private List<WebElement> extensionListItems;
 
     public LicensesAdminPage clickLicensesSectionLink()
