@@ -33,18 +33,15 @@
   <packaging>pom</packaging>
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
-  <properties>
-    <xwiki.issueManagement.jira.id>LICENSING</xwiki.issueManagement.jira.id>
-</properties>
   <scm>
-    <connection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</connection>
-    <developerConnection>scm:git:https://git.xwikisas.com/xwiki-sas-products/application-licensing.git</developerConnection>
-    <url>https://git.xwikisas.com/xwiki-sas-products/application-licensing</url>
+    <connection>scm:git:https://github.com/xwikisas/application-licensing.git</connection>
+    <developerConnection>scm:git:https://github.com/xwikisas/application-licensing.git</developerConnection>
+    <url>https://github.com/xwikisas/application-licensing</url>
     <tag>application-licensing-1.2</tag>
   </scm>
   <issueManagement>
-    <system>jira</system>
-    <url>http://jira.xwikisas.com/browse/LICENSING</url>
+    <system>GitHub</system>
+    <url>https://github.com/xwikisas/application-licensing/issues</url>
   </issueManagement>
   <developers>
     <developer>
