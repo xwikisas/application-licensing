@@ -4,7 +4,7 @@ Manage and enforce application licenses for paid extensions
 
 * Project Lead: [Denis Gervalle](http://www.xwikisas.com/xwiki/bin/view/XWiki/dgervalle) 
 * [Documentation & Download](http://store.xwiki.com/xwiki/bin/view/Extension/Licensing+Application)
-* [Issue Tracker](http://jira.xwikisas.com/browse/LICENSING)
+* [JIRA Issue Tracker (Deprecated)](http://jira.xwikisas.com/browse/LICENSING), [GitHub Issue Tracker](https://github.com/xwikisas/application-licensing/issues)
 * [Development Practices](http://dev.xwiki.org/xwiki/bin/view/Community/DevelopmentPractices) (as much as you can !)
 * Minimal XWiki version supported: XWiki 8.4
 * License: LGPL 2.1
