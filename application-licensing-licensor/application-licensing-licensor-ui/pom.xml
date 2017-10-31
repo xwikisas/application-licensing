@@ -25,7 +25,7 @@
   <parent>
     <artifactId>application-licensing-licensor</artifactId>
     <groupId>com.xwiki.licensing</groupId>
-    <version>1.6-SNAPSHOT</version>
+    <version>1.5.4-milestone-4</version>
   </parent>
   <artifactId>application-licensing-licensor-ui</artifactId>
   <name>Licensing Application - Licensor - UI</name>
