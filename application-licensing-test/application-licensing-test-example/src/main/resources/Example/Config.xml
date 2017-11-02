@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="Example.ApplicationsPanelEntry" locale="">
+<xwikidoc version="1.2" reference="Example.Config" locale="">
   <web>Example</web>
-  <name>ApplicationsPanelEntry</name>
+  <name>Config</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -39,5 +39,5 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>No license is needed to view this page.</content>
+  <content>No license is needed to edit this page.</content>
 </xwikidoc>

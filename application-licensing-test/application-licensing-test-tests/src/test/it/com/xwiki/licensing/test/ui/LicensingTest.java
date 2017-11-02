@@ -38,6 +38,7 @@ import org.xwiki.test.ui.AbstractTest;
 import org.xwiki.test.ui.SuperAdminAuthenticationRule;
 import org.xwiki.test.ui.po.LiveTableElement;
 import org.xwiki.test.ui.po.ViewPage;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 import org.xwiki.text.StringUtils;
 
 import com.xwiki.licensing.LicenseType;
@@ -120,9 +121,13 @@ public class LicensingTest extends AbstractTest
         assertEquals("You are not allowed to view this page or perform this action.",
             getDriver().findElementByCssSelector("p.xwikimessage").getText());
 
-        // Verify that the excluded page is accessible without a license.
+        // Verify that the public page is accessible without a license.
         getUtil().gotoPage("Example", "ApplicationsPanelEntry");
-        assertEquals("No license needed.", viewPage.getContent());
+        assertEquals("No license is needed to view this page.", viewPage.getContent());
+
+        // Verify that the excluded page is editable without a license.
+        getUtil().gotoPage("Example", "Config", "edit", "editor=wiki");
+        assertEquals("No license is needed to edit this page.", new WikiEditPage().getContent());
 
         // Verify the notification for the missing license.
         // The simple users should not see the notification.

@@ -119,10 +119,20 @@ public class DefaultEntityLicenseManagerTest
         assertNull(this.mocker.getComponentUnderTest().get(new DocumentReference("wiki", "Space", "Page")));
         assertSame(diagramLicense, this.mocker.getComponentUnderTest().get(attachmentReference));
 
-        when(this.blogApplication.getProperty("xwiki.extension.licensing.excludedDocuments", ""))
+        when(this.blogApplication.getProperty("xwiki.extension.licensing.publicDocuments", ""))
             .thenReturn("before, Path.To.Page  ,after");
         when(this.localEntityReferenceSerializer.serialize(documentReference)).thenReturn("Path.To.Page");
 
         assertSame(DefaultEntityLicenseManager.FREE, this.mocker.getComponentUnderTest().get(attachmentReference));
+
+        when(this.blogApplication.getProperty("xwiki.extension.licensing.excludedDocuments", ""))
+            .thenReturn("  Path.To.Page,\nafter");
+        // The document is still covered by the license of the Diagram extension.
+        assertSame(diagramLicense, this.mocker.getComponentUnderTest().get(attachmentReference));
+
+        when(this.diagramApplication.getProperty("xwiki.extension.licensing.excludedDocuments", ""))
+            .thenReturn("before,\nPath.To.Page ");
+        // Both extensions exclude the document.
+        assertNull(this.mocker.getComponentUnderTest().get(attachmentReference));
     }
 }

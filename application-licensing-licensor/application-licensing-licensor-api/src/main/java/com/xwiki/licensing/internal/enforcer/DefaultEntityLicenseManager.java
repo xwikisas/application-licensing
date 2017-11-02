@@ -101,20 +101,30 @@ public class DefaultEntityLicenseManager implements EntityLicenseManager
         List<License> licenses = new ArrayList<>();
         for (XarInstalledExtension extension : getMatchingExtensions(reference)) {
             License license = getLicenseManager().get(extension.getId());
-            if (license != null) {
-                licenses.add(isExcluded(reference, extension) ? FREE : license);
+            if (license != null && !isExcludedDocument(reference, extension)) {
+                licenses.add(isPublicDocument(reference, extension) ? FREE : license);
             }
         }
         return licenses;
     }
 
-    private boolean isExcluded(EntityReference reference, XarInstalledExtension extension)
+    private boolean isPublicDocument(EntityReference reference, XarInstalledExtension extension)
+    {
+        return isListedIn(reference, extension, "xwiki.extension.licensing.publicDocuments");
+    }
+
+    private boolean isExcludedDocument(EntityReference reference, XarInstalledExtension extension)
+    {
+        return isListedIn(reference, extension, "xwiki.extension.licensing.excludedDocuments");
+    }
+
+    private boolean isListedIn(EntityReference reference, XarInstalledExtension extension, String propertyName)
     {
         EntityReference documentReference = reference.extractReference(EntityType.DOCUMENT);
         if (documentReference != null) {
-            String excludedDocuments = extension.getProperty("xwiki.extension.licensing.excludedDocuments", "");
-            List<String> excludedDocumentsList = Arrays.asList(LIST_SEPARATOR.split(excludedDocuments.trim()));
-            return excludedDocumentsList.contains(this.localEntityReferenceSerializer.serialize(documentReference));
+            String joinedList = extension.getProperty(propertyName, "");
+            List<String> list = Arrays.asList(LIST_SEPARATOR.split(joinedList.trim()));
+            return list.contains(this.localEntityReferenceSerializer.serialize(documentReference));
         }
 
         return false;

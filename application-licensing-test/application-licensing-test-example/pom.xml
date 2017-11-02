@@ -36,9 +36,15 @@
     <xwiki.clirr.skip>true</xwiki.clirr.skip>
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>Paid Application Example</xwiki.extension.name>
-    <!-- The list of documents the user can access without a license. -->
-    <xwiki.extension.licensing.excludedDocuments>
+    <!-- The list of documents that have an implicit unlimited free license. The users can view these documents without
+      buying a license or getting a trial license, but they cannot edit or delete them. -->
+    <xwiki.extension.licensing.publicDocuments>
       Example.ApplicationsPanelEntry
+    </xwiki.extension.licensing.publicDocuments>
+    <!-- The list of documents that are not covered by the extension license. The user that installs the extension has
+      full access to these documents (view, edit, delete) without having a license, so use this property wisely. -->
+    <xwiki.extension.licensing.excludedDocuments>
+      Example.Config
     </xwiki.extension.licensing.excludedDocuments>
   </properties>
   <dependencies>
