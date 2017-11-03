@@ -114,7 +114,10 @@
     </class>
     <property>
       <content>{{velocity}}
-#if (!$xwiki.exists('XWiki.Notifications.Code.NotificationsMenuUIX'))
+## The bell icon from the top bar is provided by NotificationsMenuUIX in XWiki &lt;9.10RC1
+## and by AlertsMenuUIX in XWiki 9.10RC1+.
+#if (!$xwiki.exists('XWiki.Notifications.Code.NotificationsMenuUIX') &amp;&amp;
+    !$xwiki.exists('XWiki.Alerts.Code.AlertsMenuUIX'))
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
 #end
 {{/velocity}}</content>
