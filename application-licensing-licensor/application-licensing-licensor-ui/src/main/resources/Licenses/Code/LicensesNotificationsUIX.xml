@@ -47,7 +47,8 @@
   #set ($limit = 3)
   #foreach ($extensions in $backwardDependenciesByNamespace.values())
     #foreach ($extension in $extensions)
-      #if ($extension.type == 'xar' &amp;&amp; !$services.licensing.licensor.hasLicensureForExtension($extension.id))
+      ## Do not display paid extensions if they were installed as dependency of other paid extensions
+      #if ($extension.type == 'xar' &amp;&amp; !$services.licensing.licensor.hasLicensureForExtension($extension.id) &amp;&amp; !$extension.isDependency("wiki:$xcontext.database"))
         #if ($extensionNames.size() &lt; $limit)
           #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
         #else

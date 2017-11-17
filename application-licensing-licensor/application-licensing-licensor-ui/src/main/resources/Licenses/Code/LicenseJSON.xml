@@ -67,7 +67,8 @@
     #set ($wikiPrettyName = $services.localization.render('licensor.wiki.installedOnFarm'))
   #end
   #foreach ($extension in $set.value)
-    #if ($extension.type == 'xar')
+    ## Do not display paid extensions if they were installed as dependency of other paid extensions
+    #if ($extension.type == 'xar' &amp;&amp; !$extension.isDependency("wiki:$xcontext.database"))
       #set ($resultsCount = $resultsCount + 1)
       #set ($featureId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
       #set ($dependentFeatureIds = [])
