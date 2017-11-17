@@ -45,10 +45,11 @@
   #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
   #set ($extensionNames = [])
   #set ($limit = 3)
-  #foreach ($extensions in $backwardDependenciesByNamespace.values())
-    #foreach ($extension in $extensions)
+  #foreach ($namespaceDependencies in $backwardDependenciesByNamespace.entrySet())
+    #set ($namespace = $namespaceDependencies.key)
+    #foreach ($extension in $namespaceDependencies.value)
       ## Do not display paid extensions if they were installed as dependency of other paid extensions
-      #if ($extension.type == 'xar' &amp;&amp; !$services.licensing.licensor.hasLicensureForExtension($extension.id) &amp;&amp; !$extension.isDependency("wiki:$xcontext.database"))
+      #if ($extension.type == 'xar' &amp;&amp; !$services.licensing.licensor.hasLicensureForExtension($extension.id) &amp;&amp; !$extension.isDependency($namespace))
         #if ($extensionNames.size() &lt; $limit)
           #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
         #else

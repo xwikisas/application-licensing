@@ -59,16 +59,17 @@
 #set ($discard = $jsonMap.put('rows', []))
 #set ($resultsCount = 0)
 #set ($userCount = $services.licensing.licensor.userCount)
-#foreach ($set in $dependencies.entrySet())
-  #if ($set.key)
-    #set ($wikiPrettyName = $services.wiki.getById($set.key.split(':')[1]).prettyName)
+#foreach ($namespaceDependencies in $dependencies.entrySet())
+  #set ($namespace = $namespaceDependencies.key)
+  #if ($namespace)
+    #set ($wikiPrettyName = $services.wiki.getById($namespace.split(':')[1]).prettyName)
   #else
     ## create a pretty name for the applications installed at root level (Installed on Farm)
     #set ($wikiPrettyName = $services.localization.render('licensor.wiki.installedOnFarm'))
   #end
-  #foreach ($extension in $set.value)
+  #foreach ($extension in $namespaceDependencies.value)
     ## Do not display paid extensions if they were installed as dependency of other paid extensions
-    #if ($extension.type == 'xar' &amp;&amp; !$extension.isDependency("wiki:$xcontext.database"))
+    #if ($extension.type == 'xar' &amp;&amp; !$extension.isDependency($namespace))
       #set ($resultsCount = $resultsCount + 1)
       #set ($featureId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
       #set ($dependentFeatureIds = [])
