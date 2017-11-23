@@ -433,9 +433,15 @@
       // check the input fields to be filled with data
       var doSubmit = true;
       var ownerDetailsForm = $('#ownerDetails');
+      var focus = true
       ownerDetailsForm.find('input:visible').each(function() {
         $(this).removeClass('required');
         if (!$(this).val()) {
+          // Focus on first element that needs to be filled with data
+          if (focus) {
+            $(this).focus();
+            focus = false
+          }
           doSubmit = false;
           $(this).addClass('required');
           $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}");
