@@ -39,7 +39,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="Licenses.Code.VelocityMacros" /}}
+
+{{velocity}}
 #if ($hasAdmin &amp;&amp; $hasProgramming)
   #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
   #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
@@ -64,19 +66,13 @@
   #end
   #if ($extensionNames.size() &gt; 0)
     #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
-    #if ($xwiki.exists('XWiki.ConfigurableClass'))
-      #set ($licensesSectionURL = $xwiki.getURL('XWiki.XWikiPreferences', 'admin',
-        'editor=globaladmin&amp;section=Licenses'))
-    #else
-      ## Fall-back in case the Administration Application is not installed.
-      #set ($licensesSectionURL = $xwiki.getURL('Licenses.WebHome'))
-    #end
     #if (!$missingLicensesWrapperTagName)
       #set ($missingLicensesWrapperTagName = 'div')
     #end
     {{html clean=false}}
     &lt;$missingLicensesWrapperTagName class="notifications-missingLicenses errormessage"&gt;
-      &lt;p&gt;$services.localization.render('licensor.missingLicenses', ["&lt;a href='$licensesSectionURL'&gt;", '&lt;/a&gt;'])&lt;/p&gt;
+      &lt;p&gt;$services.localization.render('licensor.missingLicenses', ["&lt;a href='#getLicensesAdminSectionURL'&gt;",
+        '&lt;/a&gt;'])&lt;/p&gt;
       &lt;ul&gt;&lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;&lt;/ul&gt;
     &lt;/$missingLicensesWrapperTagName&gt;
     {{/html}}

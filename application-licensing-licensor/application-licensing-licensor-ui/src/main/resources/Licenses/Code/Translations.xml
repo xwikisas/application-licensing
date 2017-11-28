@@ -73,8 +73,10 @@ licensor.ownerDetails.heading=License Ownership
 licensor.ownerDetails.hint=Fill in the following fields in order to buy a license or to get a trial one.
 licensor.licenseManager.heading=Licensed Extensions
 licensor.licenseManager.hint=Here's a list of extensions installed in your wiki that require a license to be activated. You can buy a license or get a 10-day trial license that can be extended only once with 10 days.
-licensor.missingLicenses=The following extensions do not have a license. Please visit the {0}Licenses section{1}.
-</content>
+licensor.missingLicenses=The following extensions do not have a valid license. Please visit the {0}Licenses section{1}.
+licensor.missingLicense=There is no valid license for {0}. Please visit the {1}Licenses section{2}.
+licensor.accessDenied=Only the administrators with programming rights are allowed to manage the licenses.
+licensor.unavailableOnSubWiki=The licenses are managed from {0}the main wiki{1}.</content>
   <object>
     <name>Licenses.Code.Translations</name>
     <number>0</number>
