@@ -52,12 +52,13 @@
 #end
 
 #macro (getMissingLicenseMessage $extensionName)
-  $services.localization.render('licensor.missingLicense', [$extensionName, '[[', "&gt;&gt;path:#getLicensesAdminSectionURL]]"])
+  $services.localization.render('licensor.missingLicense', [$services.localization.render($extensionName), '[[',
+    "&gt;&gt;path:#getLicensesAdminSectionURL]]"])
 #end
 
 #macro (getMissingLicenseMessageHTML $extensionName)
-  $services.localization.render('licensor.missingLicense', [$extensionName, "&lt;a href='#getLicensesAdminSectionURL'&gt;",
-    '&lt;/a&gt;'])
+  $services.localization.render('licensor.missingLicense', [$services.localization.render($extensionName),
+    "&lt;a href='#getLicensesAdminSectionURL'&gt;", '&lt;/a&gt;'])
 #end
 {{/velocity}}</content>
 </xwikidoc>
