@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.Extension;
+import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.ResolveException;
@@ -107,28 +109,27 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             licenseValidator = LicenseValidator.INVALIDATOR;
         }
 
-        this.licensorExtensionId =
-            installedExtensionRepository.getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api",
-                null).getId();
+        this.licensorExtensionId = installedExtensionRepository
+            .getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api", null).getId();
 
-        logger.debug("About to load registered licences");
+        logger.debug("About to load registered licenses");
         this.storeReference = new FileLicenseStoreReference(configuration.getLocalStorePath(), true);
         for (License license : store.getIterable(storeReference)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Registering licence [{}]", license.getId());
+                logger.debug("Registering license [{}]", license.getId());
             }
             try {
                 linkLicenseToLicensedFeature(license);
             } catch (RuntimeException e) {
-                logger.warn("Error retrieving licence, license has been skipped.", e.getCause());
+                logger.warn("Error retrieving license, license has been skipped.", e.getCause());
             }
         }
 
         for (Map.Entry<LicensedFeatureId, License> entry : featureToLicense.entrySet()) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Associating licence [{}] for feature [{}]", entry.getValue().getId(), entry.getKey());
+                logger.debug("Associating license [{}] for feature [{}]", entry.getValue().getId(), entry.getKey());
             }
-            linkLicenceToInstalledExtension(entry.getKey(), entry.getValue());
+            linkLicenseToInstalledExtensions(entry.getKey(), entry.getValue());
         }
 
         Collection<ExtensionId> licensed = getLicensedExtensions();
@@ -147,49 +148,42 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         // See LICENSING-57
     }
 
-    private Collection<ExtensionId> linkLicenceToInstalledExtension(Collection<LicensedFeatureId> licIds,
+    private Collection<ExtensionId> linkLicenseToInstalledExtensions(Collection<LicensedFeatureId> licIds,
         License licenseTolink)
     {
         Set<ExtensionId> extensionIds = new HashSet<>();
         for (LicensedFeatureId licId : licIds) {
-            ExtensionId extensionId = linkLicenceToInstalledExtension(licId, licenseTolink);
-            if (extensionId != null) {
-                extensionIds.add(extensionId);
-            }
+            extensionIds.addAll(linkLicenseToInstalledExtensions(licId, licenseTolink));
         }
         return extensionIds;
     }
 
-    private ExtensionId linkLicenceToInstalledExtension(LicensedFeatureId licId, License licenseTolink)
+    private Collection<ExtensionId> linkLicenseToInstalledExtensions(LicensedFeatureId licId, License licenseTolink)
     {
-        try {
-            License license = licenseTolink;
-            Extension extension = installedExtensionRepository.resolve(licId.getExtensionDependency());
-            if (extension != null) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Analyze licence [{}] for extension [{}]", license.getId(), extension.getId());
-                }
-                License existingLicense = extensionToLicense.get(extension.getId());
-
-                // If already licensed using another license, get the best of both license
-                if (existingLicense != null && license != existingLicense) {
-                    license = License.getOptimumLicense(existingLicense, license);
-                }
-
-                // If the new license is better
-                if (license != existingLicense) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Register licence [{}] for extension [{}]", license.getId(), extension.getId());
-                    }
-                    // Register the new license for this extension
-                    registerLicense(extension.getId(), license);
-                    return extension.getId();
-                }
+        Set<ExtensionId> extensionIds = new HashSet<>();
+        License license = licenseTolink;
+        for (Extension extension : getInstalledExtensions(licId)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Analyze license [{}] for extension [{}]", license.getId(), extension.getId());
             }
-        } catch (ResolveException e) {
-            // ignored
+            License existingLicense = extensionToLicense.get(extension.getId());
+
+            // If already licensed using another license, get the best of both license
+            if (existingLicense != null && license != existingLicense) {
+                license = License.getOptimumLicense(existingLicense, license);
+            }
+
+            // If the new license is better
+            if (license != existingLicense) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Register license [{}] for extension [{}]", license.getId(), extension.getId());
+                }
+                // Register the new license for this extension
+                registerLicense(extension.getId(), license);
+                extensionIds.add(extension.getId());
+            }
         }
-        return null;
+        return extensionIds;
     }
 
     private synchronized Collection<LicensedFeatureId> linkLicenseToLicensedFeature(License license)
@@ -201,7 +195,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
             for (LicensedFeatureId extId : license.getFeatureIds()) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Analyze licence [{}] for feature [{}]", license.getId(), extId);
+                    logger.debug("Analyze license [{}] for feature [{}]", license.getId(), extId);
                 }
                 License existingLicense = featureToLicense.get(extId);
                 License newLicense = license;
@@ -214,7 +208,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 // If the new license is the best
                 if (newLicense != existingLicense) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Linking licence [{}] to feature [{}]", newLicense.getId(), extId);
+                        logger.debug("Linking license [{}] to feature [{}]", newLicense.getId(), extId);
                     }
                     replaceLicense(extId, existingLicense, newLicense);
                     licensedFeatureIds.add(extId);
@@ -224,6 +218,18 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             logger.debug("License [{}] is NOT applicable to this wiki instance", license.getId());
         }
         return licensedFeatureIds;
+    }
+
+    private List<Extension> getInstalledExtensions(LicensedFeatureId licensedFeatureId)
+    {
+        List<Extension> coveredExtensions = new ArrayList<>();
+        ExtensionDependency extensionDependency = licensedFeatureId.getExtensionDependency();
+        for (Extension extension : this.installedExtensionRepository.getInstalledExtensions()) {
+            if (extensionDependency.isCompatible(extension)) {
+                coveredExtensions.add(extension);
+            }
+        }
+        return coveredExtensions;
     }
 
     private void registerLicense(ExtensionId extId, License license)
@@ -275,37 +281,37 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         ExtensionId extensionId = extension.getId();
         Collection<InstalledExtension> backwardDeps = getLicensorBackwardDependencies().get(namespace);
 
-        if (backwardDeps != null && backwardDeps.contains(extension)
-            && extensionToLicense.get(extensionId) == null) {
+        if (backwardDeps != null && backwardDeps.contains(extension) && extensionToLicense.get(extensionId) == null) {
             registerLicense(extensionId, resolveLicenseForExtension(extension));
         }
     }
 
-    private License resolveLicenseForExtension(Extension extension) {
-        Set<License> candidateLicences = new HashSet<>();
+    private License resolveLicenseForExtension(Extension extension)
+    {
+        Set<License> candidateLicenses = new HashSet<>();
         ExtensionId extId = extension.getId();
         Collection<ExtensionId> features = extension.getExtensionFeatures();
 
         for (Map.Entry<LicensedFeatureId, License> entry : featureToLicense.entrySet()) {
             License license = entry.getValue();
-            if (candidateLicences.contains(license)) {
+            if (candidateLicenses.contains(license)) {
                 continue;
             }
 
             LicensedFeatureId licId = entry.getKey();
             if (licId.isCompatible(extId)) {
-                candidateLicences.add(license);
+                candidateLicenses.add(license);
                 continue;
             }
             for (ExtensionId feature : features) {
                 if (licId.isCompatible(feature)) {
-                    candidateLicences.add(license);
+                    candidateLicenses.add(license);
                     break;
                 }
             }
         }
 
-        return (candidateLicences.size() > 0) ? License.getOptimumLicense(candidateLicences) : License.UNLICENSED;
+        return (candidateLicenses.size() > 0) ? License.getOptimumLicense(candidateLicenses) : License.UNLICENSED;
     }
 
     void uninstallExtensionLicense(InstalledExtension extension)
@@ -339,12 +345,14 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Override
     public License get(ExtensionId extensionId)
     {
+        // Check if there is a license available that covers a specific version of the extension.
         License license = extensionToLicense.get(extensionId);
 
         if (license != null) {
             return license;
         }
 
+        // Check if there is a license available that covers any version of the extension.
         ExtensionId extId = new ExtensionId(extensionId.getId());
         return extensionToLicense.get(extId);
     }
@@ -360,7 +368,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.warn("Licensor was unable to persist license [{}].", license.getId());
             }
 
-            clearSecurityCacheForXarExtensions(linkLicenceToInstalledExtension(licIds, license));
+            clearSecurityCacheForXarExtensions(linkLicenseToInstalledExtensions(licIds, license));
             return true;
         }
         return false;
@@ -416,13 +424,13 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Override
     public Collection<License> getUsedLicenses()
     {
-        Collection<License> usedLicences = new HashSet<>();
+        Collection<License> usedLicenses = new HashSet<>();
         for (License license : extensionToLicense.values()) {
             if (license == License.UNLICENSED) {
                 continue;
             }
-            usedLicences.add(license);
+            usedLicenses.add(license);
         }
-        return usedLicences;
+        return usedLicenses;
     }
 }
