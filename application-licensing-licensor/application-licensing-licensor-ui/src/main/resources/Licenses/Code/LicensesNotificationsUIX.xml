@@ -45,7 +45,8 @@
 #if ($hasAdmin &amp;&amp; $hasProgramming)
   #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
   #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  #set ($extensionNames = [])
+  ## The same extension could be installed on multiple namespaces (wikis).
+  #set ($extensionNames = $collectionstool.sortedSet)
   #set ($limit = 3)
   #foreach ($namespaceDependencies in $backwardDependenciesByNamespace.entrySet())
     #set ($namespace = $namespaceDependencies.key)

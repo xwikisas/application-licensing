@@ -424,7 +424,7 @@
     <property>
       <code>require(['jquery', 'xwiki-events-bridge'], function ($) {
   $(document).ready(function() {
-    $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons());
+    $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
     var addLicense = $("#addLicense");
     var addLicenseSubmit = addLicense.find("input[type='submit']");
     addLicense.submit(function(event) {

@@ -39,118 +39,153 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{velocity output="false"}}
+#set ($LONG_MAX_VALUE = $mathtool.pow(2,63))
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+#set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+#set ($paidExtensions = {})
+#foreach ($entry in $paidExtensionsByNamespace.entrySet())
+  #foreach ($paidExtension in $entry.value)
+    #set ($previousPaidExtension = $paidExtensions.get($paidExtension.id))
+    #if (!$previousPaidExtension)
+      #set ($discard = $paidExtensions.put($paidExtension.id, {
+        'extension': $paidExtension,
+        'namespaces': [$entry.key]
+      }))
+    #else
+      #set ($discard = $previousPaidExtension.namespaces.add($entry.key))
+    #end
+  #end
+#end
+
+#macro (getDependentFeatureIds $extension $dependentFeatureIds)
+  #foreach ($dependency in $extension.getDependencies())
+    #foreach ($paidExtension in $paidExtensions.values())
+      #if ($dependency.isCompatible($paidExtension.extension))
+        #set ($discard = $dependentFeatureIds.add($dependency.id))
+        #break
+      #end
+    #end
+  #end
+#end
+
+#macro (licenseButton $licenseType $cssClass $label $jsonData)
+  #set ($jsonData.licenseType = $licenseType)
+  #set ($label = $services.localization.render("licensor.${label}License.label"))
+  &lt;button class="btn btn-$cssClass licenseButton" data-button="$escapetool.xml($jsontool.serialize($jsonData))"
+    &gt;$label&lt;/button&gt;
+#end
+
+#macro (licenseActions $license $extension $userCount)
+  #set ($dependentFeatureIds = [])
+  #getDependentFeatureIds($extension $dependentFeatureIds)
+  ## Use the JSON format in order to be parsable in JavaScript.
+  #set ($jsonData = {
+    'extensionName': $extension.name,
+    'extensionVersion': $extension.id.version,
+    'featureId': $extension.id.id,
+    'dependentFeatureIds': $stringtool.join($dependentFeatureIds, ','),
+    'userCount': $userCount
+  })
+  &lt;div class="licenseActions"&gt;
+  #if (!$license || $license.expirationDate == 0)
+    ## No license available.
+    #licenseButton('PAID' 'success' 'paid' $jsonData)
+    #licenseButton('TRIAL' 'primary' 'trial' $jsonData)
+  #elseif ($license.type == 'FREE')
+    #licenseButton('PAID' 'success' 'paid' $jsonData)
+  #elseif ($license.type == 'TRIAL')
+    #licenseButton('PAID' 'success' 'paid' $jsonData)
+    #licenseButton('TRIAL' 'primary' 'extendTrial' $jsonData)
+  #elseif ($license.type == 'PAID')
+    #licenseButton('PAID' 'success' 'extendPaid' $jsonData)
+  #end
+  &lt;/div&gt;
+#end
+
+#macro (addPaidExtensionRow $paidExtension $userCount $rows)
+  #set ($extension = $paidExtension.extension)
+  #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
+  ##
+  ## Expiration Date
+  ##
+  #if (!$license || $license.expirationDate == 0)
+    #set ($expDateStatus = 'danger')
+    #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
+  #elseif ($license.expirationDate == $LONG_MAX_VALUE)
+    #set ($expDateStatus = 'success')
+    #set ($expDate = $services.localization.render('licensor.status.infinite'))
+  #else
+    #set ($expDateStatus = "#if ($license.expirationDate &gt; $datetool.date.time)success#{else}danger#end")
+    #set ($expDate = $datetool.format('dd/MM/yyyy', $license.expirationDate))
+  #end
+  #set ($expDate = "&lt;span class=""text-$!expDateStatus""&gt;$!escapetool.xml($expDate)&lt;/span&gt;")
+  ##
+  ## User Limit
+  ##
+  #if (!$license || !$license.maxUserCount || $license.maxUserCount == $LONG_MAX_VALUE
+      || ($license.maxUserCount == 0 &amp;&amp; $license.expirationDate == 0))
+    ## The default value for the maxUserCount field of a license is Long.MAX_VALUE so when we encounter this value
+    ## we consider that the max user count was not specified.
+    #set ($userLimitStatus = 'muted')
+    #set ($userLimit = $services.localization.render('licensor.userLimit.unspecified'))
+  #elseif ($license.maxUserCount &lt; 0)
+    #set ($userLimitStatus = 'success')
+    #set ($userLimit = $services.localization.render('licensor.userLimit.unlimited'))
+  #else
+    #set ($userLimitStatus = "#if ($userCount &lt;= $license.maxUserCount)success#{else}danger#end")
+    #set ($userLimit = "$!userCount / $!license.maxUserCount")
+  #end
+  #set ($userLimit = "&lt;span class=""text-$!userLimitStatus""&gt;$!escapetool.xml($userLimit)&lt;/span&gt;")
+  ##
+  ## Namespaces and Version
+  ##
+  #set ($namespaces = [])
+  #foreach ($namespace in $paidExtension.namespaces)
+    #if ($namespace)
+      #set ($wikiPrettyName = $services.wiki.getById($namespace.split(':')[1]).prettyName)
+    #else
+      ## Create a pretty name for the extensions installed at root level (Installed on Farm).
+      #set ($wikiPrettyName = $services.localization.render('licensor.wiki.installedOnFarm'))
+    #end
+    #set ($discard = $namespaces.add($wikiPrettyName))
+  #end
+  #set ($namespaces = $sorttool.sort($namespaces))
+  ##
+  ## Other
+  ##
+  #set ($discard = $rows.add({
+    'doc_viewable': true,
+    'name': $extension.name,
+    'version': $extension.id.version.toString(),
+    'status': $expDate,
+    'userLimit': $userLimit,
+    'wiki': $stringtool.join($namespaces, ', '),
+    'actions': "#licenseActions($license $extension $userCount)"
+  }))
+#end
+{{/velocity}}
+
+{{velocity}}
 #if ("$!{request.xpage}" == 'plain')
   $response.setContentType('application/json')
 #end
-#set ($jsonMap = {})
-#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-#set ($dependencies = $services.extension.installed.getBackwardDependencies($licensorId))
-## The purpose of this set is to have all the backward dependencies (IDs as string) of the licensor and
-## to easily get dependentFeatureIds for an extension.
-#set ($dependenciesIDs = $collectionstool.set)
-#foreach ($values in $dependencies.values())
-  #foreach ($value in $values)
-    #set ($discard = $dependenciesIDs.add("${value.properties.get('maven.groupid')}:${value.properties.get('maven.artifactid')}"))
-  #end
-#end
-#set ($discard = $jsonMap.put('offset', $request.offset))
-#set ($discard = $jsonMap.put('reqNo', $request.reqNo))
-#set ($discard = $jsonMap.put('rows', []))
-#set ($resultsCount = 0)
+#set ($jsonMap = {
+  'offset': $request.offset,
+  'reqNo': $request.reqNo,
+  'rows': []
+})
 #set ($userCount = $services.licensing.licensor.userCount)
-#foreach ($namespaceDependencies in $dependencies.entrySet())
-  #set ($namespace = $namespaceDependencies.key)
-  #if ($namespace)
-    #set ($wikiPrettyName = $services.wiki.getById($namespace.split(':')[1]).prettyName)
-  #else
-    ## create a pretty name for the applications installed at root level (Installed on Farm)
-    #set ($wikiPrettyName = $services.localization.render('licensor.wiki.installedOnFarm'))
-  #end
-  #foreach ($extension in $namespaceDependencies.value)
-    ## Do not display paid extensions if they were installed as dependency of other paid extensions
-    #if ($extension.type == 'xar' &amp;&amp; !$extension.isDependency($namespace))
-      #set ($resultsCount = $resultsCount + 1)
-      #set ($featureId = "${extension.properties.get('maven.groupid')}:${extension.properties.get('maven.artifactid')}")
-      #set ($dependentFeatureIds = [])
-      #getDependentFeatureIds($extension $dependentFeatureIds)
-      #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
-      #set ($actions = "&lt;div class='licenseActions'&gt;")
-      ## use the JSON format in order to be parsable in javascript
-      #set ($JSONData = {
-        'extensionName'       : "$!{extension.name}",
-        'featureId'           : "$!{featureId}",
-        'dependentFeatureIds' : "$!{stringtool.join($dependentFeatureIds, ',')}",
-        'userCount'           : $userCount
-      })
-      #setActions ($license $actions)
-      #if ($license.expirationDate == 0)
-        #set ($expDateStatus = 'danger')
-        #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
-      #elseif ($license.expirationDate == $mathtool.pow(2,63))
-        ## Check if the expirationDate equals Long.MAX_VALUE. $mathtool.pow(2,63) return this maximum value and we use
-        ## it since there is no other way to do it in velocity.
-        #set ($expDateStatus = 'success')
-        #set ($expDate = $services.localization.render('licensor.status.infinite'))
-      #else
-        #set ($expDateStatus = "#if ($license.expirationDate &gt; $datetool.date.time)success#{else}danger#end")
-        #set ($expDate = $datetool.format('dd/MM/yyyy', $license.expirationDate))
-      #end
-      #set ($expDate = "&lt;span class='text-$!expDateStatus'&gt;$!escapetool.xml($expDate)&lt;/span&gt;")
-      #if (!$license.maxUserCount || $license.maxUserCount == $mathtool.pow(2,63))
-        ## The default value for the maxUserCount field of a license is Long.MAX_VALUE so when we encounter this value
-        ## we consider that the max user count was not specified. Note that $mathtool.pow(2,63) return this maximum
-        ## value and we use it since there is no other way to do it in Velocity.
-        #set ($userLimitStatus = 'muted')
-        #set ($userLimit = $services.localization.render('licensor.userLimit.unspecified'))
-      #elseif ($license.maxUserCount &lt; 0)
-        #set ($userLimitStatus = 'success')
-        #set ($userLimit = $services.localization.render('licensor.userLimit.unlimited'))
-      #else
-        #set ($userLimitStatus = "#if ($userCount &lt;= $license.maxUserCount)success#{else}danger#end")
-        #set ($userLimit = "$!userCount / $!license.maxUserCount")
-      #end
-      #set ($userLimit = "&lt;span class='text-$!userLimitStatus'&gt;$!escapetool.xml($userLimit)&lt;/span&gt;")
-      #set ($actions = "${actions}&lt;/div&gt;")
-      #set ($discard = $jsonMap.get('rows').add({
-        'doc_viewable' : true,
-        'name'   : $extension.name,
-        'version': $extension.version.value,
-        'status' : $expDate,
-        'userLimit': $userLimit,
-        'wiki'   : $wikiPrettyName,
-        'actions': $actions
-      }))
-    #end
+#foreach ($paidExtension in $paidExtensions.values())
+  ## Take into account only the XAR extensions that have been installed explicitly by the user.
+  #if ($paidExtension.extension.type == 'xar' &amp;&amp; !$paidExtension.extension.isDependency($entry.key))
+    #addPaidExtensionRow($paidExtension $userCount $jsonMap.rows)
   #end
 #end
-#set ($discard = $jsonMap.put('totalrows', $resultsCount))
-#set ($discard = $jsonMap.put('returnedrows', $resultsCount))
+#set ($discard = $sorttool.sort($jsonMap.rows, 'name'))
+#set ($jsonMap.totalrows = $jsonMap.rows.size())
+#set ($jsonMap.returnedrows = $jsonMap.rows.size())
 $jsontool.serialize($jsonMap)
-#macro (setActions $license $actions)
-  #if (!$license || $license.type == 'FREE')
-    #addAction ('PAID' 'success' 'paid')
-    #addAction ('TRIAL' 'primary' 'trial')
-  #elseif ($license.type == 'TRIAL')
-    #addAction ('PAID' 'success' 'paid')
-    #addAction ('TRIAL' 'primary' 'extendTrial')
-  #elseif ($license.type == 'PAID')
-    #addAction ('PAID' 'success' 'extendPaid')
-  #end
-#end
-#macro (addAction $newType $cssClass $label)
-  #set ($discard = $JSONData.put('licenseType', $newType))
-  #set ($label = $services.localization.render("licensor.${label}License.label"))
-  #set ($actions = "${actions} &lt;button class='btn btn-${cssClass} licenseButton'" +
-    " data-button='$escapetool.xml($jsontool.serialize($JSONData))'&gt;${label}&lt;/button&gt;")
-#end
-#macro (getDependentFeatureIds $extension $dependentFeatureIds)
-  #foreach ($dependency in $extension.getDependencies())
-    #if ($dependenciesIDs.contains($dependency.id))
-      #set ($discard = $dependentFeatureIds.add($dependency.id))
-    #end
-  #end
-#end
 {{/velocity}}</content>
   <object>
     <name>Licenses.Code.LicenseJSON</name>
