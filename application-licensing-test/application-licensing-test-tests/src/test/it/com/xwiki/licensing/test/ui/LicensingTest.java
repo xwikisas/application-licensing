@@ -147,7 +147,7 @@ public class LicensingTest extends AbstractTest
         assertEquals(1, liveTable.getRowCount());
         WebElement firstRow = liveTable.getRow(1);
         assertEquals("No license available", liveTable.getCell(firstRow, 3).getText());
-        assertEquals("1 / 0", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("-", liveTable.getCell(firstRow, 4).getText());
 
         // Import an invalid license.
         licensesAdminSection.addLicense("foo");
