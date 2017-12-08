@@ -423,48 +423,23 @@
     </property>
     <property>
       <code>require(['jquery', 'xwiki-events-bridge'], function ($) {
+  // We use a counter to be sure that all the requests get a response, before reloading the page.
+  var countTrialRequests = 0;
   $(document).ready(function() {
     $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
-    var addLicense = $("#addLicense");
-    var addLicenseSubmit = addLicense.find("input[type='submit']");
-    addLicense.submit(function(event) {
+    $("#addLicense").submit(function(event) {
       event.preventDefault();
-      $.ajax({
-        type: $(this).attr('method'),
-        url : $(this).attr('action'),
-        data: $(this).serialize(),
-        beforeSend: function() {
-          this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
-          addLicenseSubmit.prop('disabled', true);
-          // Remove the previous error message.
-          addLicense.next('.errormessage').remove();
-        },
-        complete:function() {
-          this.progressNotification.hide();
-          addLicenseSubmit.prop('disabled', false);
-        },
-        success: function(result) {
-          new XWiki.widgets.Notification(result['notification'], result['status']);
-          // Reload the page to update the live table and the notification message.
-          location.reload(true);
-        },
-        error: function(result) {
-          var errorMessage = result.responseJSON ? result.responseJSON['notification'] :
-            $jsontool.serialize($services.localization.render('licensor.addLicense.nonJSON'));
-          $('&lt;div class="box errormessage"/&gt;').text(errorMessage).insertAfter(addLicense);
-        }
-      });
+      addLicense($(this).serialize());
     });
-
     /** Manages the license buttons from the licenses livetable.
-        If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
+    If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
     **/
     $('#licenseManager').on('click', '.licenseButton', function() {
       var currentButton = $(this);
       // check the input fields to be filled with data
       var doSubmit = true;
       var ownerDetailsForm = $('#ownerDetails');
-      var focus = true
+      var focus = true;
       ownerDetailsForm.find('input:visible').each(function() {
         $(this).removeClass('required');
         if (!$(this).val()) {
@@ -480,71 +455,96 @@
       });
       if (doSubmit) {
         // Make licenseActions buttons inactive when any of them is clicked
-        currentButton.siblings().prop('disabled', true)
-        currentButton.prop('disabled', true )
+        currentButton.siblings().prop('disabled', true);
+        currentButton.prop('disabled', true );
         // update the licensing owner details
         $.post({
-          url : "${xwiki.getURL('Licenses.Code.UpdateOwnerDetails')}",
+          url : new XWiki.Document('UpdateOwnerDetails', 'Licenses.Code').getURL(),
           data: $(ownerDetailsForm).serialize()
         });
-        // add the data from the button to the form
+        // get the data from the button
         var json = $.parseJSON(currentButton.attr('data-button'));
 
-        $.each(json, function(index, value) {
-          var detailInput = $('input[name=' + index + ']');
+        var formData = ownerDetailsForm.serializeArray();
+
+        $.each(json, function(indexName, indexValue) {
+          var detailInput = $('input[name=' + indexName + ']');
           // check if the input exists
           if (detailInput.val()) {
-            detailInput.val(value);
+            detailInput.val(indexValue);
           } else {
-            ownerDetailsForm.append("&lt;input type='hidden' name='" + index + "' value='" + value + "'&gt;")
+            // add the extension related data to the queryString used in the Ajax request
+            formData.push({name: indexName, value: indexValue});
           }
         });
         // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and return a license if needed.
         if (json.licenseType === 'TRIAL') {
-          ownerDetailsForm.submit(function(event) {
-            event.preventDefault();
-            var url = "${xwiki.getURL('Licenses.Code.GetTrialLicenseService', 'get', 'outputSyntax=plain')}";
-            $.ajax({
-              type: $(this).attr('method'),
-              url : url,
-              data: $(this).serialize(),
-              beforeSend: function() {
-                this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
-              },
-              complete: function(result) {
-                this.progressNotification.hide();
-              },
-              success: function(result) {
-                // use the existing addLicense form, add the license and submit.
-                $(addLicense).find('textarea').val(result['data']);
-                // cache the "hasTrials" value in local storage
-                var urlParams = new URLSearchParams(this.data);
-                var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
-                var hasTrialValue = result['hasTrials'];
-                localStorage.setItem(hasTrialsKey, hasTrialValue);
-                // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
-                if (hasTrialValue === 'false') {
-                  var buyButton = currentButton.siblings();
-                  buyButton.prop('disabled', false);
-                  currentButton.remove();
-                }
-                addLicense.submit();
-              },
-              error: function(result) {
-                if(result.responseJSON) {
-                  new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']);
-                } else {
-                  new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error');
-                }
+          $.post({
+            url : new XWiki.Document('GetTrialLicenseService', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
+            data: $.param(formData),
+            beforeSend: function() {
+              countTrialRequests ++;
+              this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
+            },
+            complete: function() {
+              this.progressNotification.hide();
+              countTrialRequests --;
+            },
+            success: function(result) {
+              // cache the "hasTrials" value in local storage
+              var licenseData = $.param({'license': result['data']});
+              var urlParams = new URLSearchParams(this.data);
+              var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
+              var hasTrialValue = result['hasTrials'];
+              localStorage.setItem(hasTrialsKey, hasTrialValue);
+              // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
+              if (hasTrialValue === 'false') {
+                var buyButton = currentButton.siblings();
+                buyButton.prop('disabled', false);
+                currentButton.remove();
               }
-            });
+              addLicense(licenseData);
+            },
+            error: function(result) {
+              if(result.responseJSON) {
+                this.progressNotification.replace(new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']));
+              } else {
+                this.progressNotification.replace(new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error'));
+              }
+              timeoutReload();
+            }
           });
         }
-        ownerDetailsForm.submit();
       }
     });
   });
-
+  var addLicense = function(licenseData) {
+    var addLicense = $('#addLicense');
+    var addLicenseSubmit = addLicense.find("input[type='submit']");
+    $.post({
+      url : addLicense.attr('action'),
+      data: licenseData,
+      beforeSend: function() {
+        this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
+        addLicenseSubmit.prop('disabled', true);
+        // Remove the previous error message.
+        addLicense.next('.errormessage').remove();
+      },
+      complete:function() {
+        this.progressNotification.hide();
+        addLicenseSubmit.prop('disabled', false);
+        timeoutReload();
+      },
+      success: function(result) {
+        this.progressNotification.replace(new XWiki.widgets.Notification(result['notification'], result['status']));
+      },
+      error: function(result) {
+        var errorMessage = result.responseJSON ? result.responseJSON['notification'] :
+        $jsontool.serialize($services.localization.render('licensor.addLicense.nonJSON'));
+        $('&lt;div class="box errormessage"/&gt;').text(errorMessage).insertAfter(addLicense);
+      }
+    });
+  };
   // Remove "Extend Trial" buttons from livetable, if the trial licenses limits were reached   
   var updateLivetableButtons = function() {
     var instanceId = $('#instanceId').val();
@@ -560,10 +560,18 @@
       }
     });
   };
-
   var computeHasTrialKey = function(instanceId, featureId) {
     return instanceId + '_' + featureId;
-  }
+  };
+  // Reload the page if all the trial license requests get a response 
+  var timeoutReload = function() {
+    setTimeout(function() {
+      if (countTrialRequests == 0) {
+        // Reload the page to update the live table and the notification message.
+        location.reload(true);
+      }
+    }, 3000);
+  };
 });</code>
     </property>
     <property>
