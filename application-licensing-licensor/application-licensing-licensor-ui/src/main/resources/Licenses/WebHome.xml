@@ -426,7 +426,14 @@
   // We use a counter to be sure that all the requests get a response, before reloading the page.
   var countTrialRequests = 0;
   $(document).ready(function() {
-    $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
+    // xwiki:livetable:loadingComplete might be triggered before the code from this jsx is executed. In this case, the livetable is also loaded before, because
+    // it is using Prototype.js which is loading before the page loads.
+    // Make sure that the livetable is loaded by checking for a row with some date. Might not be the best way, but it should do it's job.
+    if ($('#licenseManager-display').find('td.type').size() &gt; 0) {
+      updateLivetableButtons();
+    } else {
+      $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
+    }
     $("#addLicense").submit(function(event) {
       event.preventDefault();
       addLicense($(this).serialize());
@@ -570,7 +577,7 @@
         // Reload the page to update the live table and the notification message.
         location.reload(true);
       }
-    }, 3000);
+    }, 1000);
   };
 });</code>
     </property>
