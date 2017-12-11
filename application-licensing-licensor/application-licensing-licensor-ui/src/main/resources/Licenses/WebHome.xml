@@ -428,7 +428,7 @@
   $(document).ready(function() {
     // xwiki:livetable:loadingComplete might be triggered before the code from this jsx is executed. In this case, the livetable is also loaded before, because
     // it is using Prototype.js which is loading before the page loads.
-    // Make sure that the livetable is loaded by checking for a row with some date. Might not be the best way, but it should do it's job.
+    // Make sure that the livetable is loaded by checking for a row with some data. Might not be the best way, but it should do it's job.
     if ($('#licenseManager-display').find('td.type').size() &gt; 0) {
       updateLivetableButtons();
     } else {
