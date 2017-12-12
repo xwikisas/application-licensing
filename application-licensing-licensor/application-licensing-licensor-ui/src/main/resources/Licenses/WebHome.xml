@@ -42,28 +42,6 @@
   <content>{{include reference="Licenses.Code.VelocityMacros" /}}
 
 {{velocity output="false"}}
-#macro (displayOwnerDetailsForm)
-  #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-  #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
-  {{html clean=false}}
-  &lt;form id="ownerDetails" target="_blank" class="xform half" action="${licensingConfigDoc.storeBuyURL}" method="post"&gt;
-    &lt;fieldset class="header"&gt;
-      &lt;legend&gt;$services.localization.render('licensor.ownerDetails.heading')&lt;/legend&gt;
-      &lt;p&gt;$services.localization.render('licensor.ownerDetails.hint')&lt;/p&gt;
-      &lt;dl&gt;
-        #foreach ($prop in $ownerObj.properties)
-          &lt;dt&gt;&lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;&lt;/dt&gt;
-          &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
-        #end
-        &lt;dt&gt;&lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;&lt;/dt&gt;
-        &lt;span class="xHint"&gt;$services.localization.render('licensor.ownerDetails.instanceId.hint')&lt;/span&gt;
-        &lt;dd&gt;&lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;&lt;/dd&gt;
-      &lt;/dl&gt;
-    &lt;/fieldset&gt;
-  &lt;/form&gt;
-  {{/html}}
-#end
-
 #macro (displayLicensesLiveTable)
   {{html clean="false"}}
   &lt;fieldset class="header"&gt;
@@ -372,6 +350,7 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </cache>
       <code>
+        <contenttype>PureText</contenttype>
         <disabled>0</disabled>
         <editor>PureText</editor>
         <name>code</name>
@@ -633,6 +612,7 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </cache>
       <code>
+        <contenttype>PureText</contenttype>
         <disabled>0</disabled>
         <editor>PureText</editor>
         <name>code</name>
