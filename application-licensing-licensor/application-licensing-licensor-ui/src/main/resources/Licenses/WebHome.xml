@@ -426,10 +426,12 @@
   // We use a counter to be sure that all the requests get a response, before reloading the page.
   var countTrialRequests = 0;
   $(document).ready(function() {
-    // xwiki:livetable:loadingComplete might be triggered before the code from this jsx is executed. In this case, the livetable is also loaded before, because
-    // it is using Prototype.js which is loading before the page loads.
-    // Make sure that the livetable is loaded by checking for a row with some data. Might not be the best way, but it should do it's job.
-    if ($('#licenseManager-display').find('td.type').size() &gt; 0) {
+    /* 
+    xwiki:livetable:loadingComplete might be triggered before the code from this jsx is executed. In this case, the
+    livetable is also loaded before, because it is using Prototype.js which is loading before the page loads.
+    Make sure that the livetable is loaded by checking for a row with some date.
+    */
+    if ($('#licenseManager-display td.type').size() &gt; 0) {
       updateLivetableButtons();
     } else {
       $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
@@ -438,9 +440,10 @@
       event.preventDefault();
       addLicense($(this).serialize());
     });
-    /** Manages the license buttons from the licenses livetable.
-    If a trial is requested, it is automatically generated and installed, else the user is sent to a page to buy a license. 
-    **/
+    /*
+    Manages the license buttons from the licenses livetable. If a trial is requested, it is automatically generated
+    and installed, else the user is redirected to a page to buy a license. 
+    */
     $('#licenseManager').on('click', '.licenseButton', function() {
       var currentButton = $(this);
       // check the input fields to be filled with data
@@ -484,14 +487,18 @@
             formData.push({name: indexName, value: indexValue});
           }
         });
-        // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and return a license if needed.
+        /* 
+        for the trial version, we use an ajax request to check if the number of trials hasn't been reached and
+        return a license if needed.
+        */
         if (json.licenseType === 'TRIAL') {
           $.post({
             url : new XWiki.Document('GetTrialLicenseService', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
             data: $.param(formData),
             beforeSend: function() {
               countTrialRequests ++;
-              this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
+              this.progressNotification = new XWiki.widgets.Notification(
+                "$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
             },
             complete: function() {
               this.progressNotification.hide();
@@ -514,9 +521,12 @@
             },
             error: function(result) {
               if(result.responseJSON) {
-                this.progressNotification.replace(new XWiki.widgets.Notification(result.responseJSON['data'], result.responseJSON['status']));
+                this.progressNotification.replace(
+                  new XWiki.widgets.Notification(result.responseJSON['data'],result.responseJSON['status']));
               } else {
-                this.progressNotification.replace(new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')", 'error'));
+                this.progressNotification.replace(
+                  new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')",
+                    'error'));
               }
               timeoutReload();
             }
@@ -532,7 +542,8 @@
       url : addLicense.attr('action'),
       data: licenseData,
       beforeSend: function() {
-        this.progressNotification = new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
+        this.progressNotification =
+          new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.adding')", 'inprogress');
         addLicenseSubmit.prop('disabled', true);
         // Remove the previous error message.
         addLicense.next('.errormessage').remove();
