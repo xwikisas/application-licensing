@@ -69,12 +69,16 @@
     &lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;
     &lt;span class="xHint"&gt;$services.localization.render('licensor.ownerDetails.instanceId.hint')&lt;/span&gt;
   &lt;/dt&gt;
-  &lt;dd&gt;&lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;&lt;/dd&gt;
+  &lt;dd&gt;
+    &lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;
+  &lt;/dd&gt;
 #end
 
 #macro (getOwnerFormFields)
   #foreach ($prop in $ownerObj.properties)
-    &lt;dt&gt;&lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;&lt;/dt&gt;
+    &lt;dt&gt;
+      &lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;
+    &lt;/dt&gt;
     &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
   #end
 #end
