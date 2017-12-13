@@ -40,6 +40,9 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
+#set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+#set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
+
 #macro (getLicensesAdminSectionURL)
   ## We target the main wiki explicitly because licenses are managed globally.
   #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
@@ -62,24 +65,28 @@
 #end
 
 #macro (getInstanceIdFormField)
-  &lt;dt&gt;&lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;&lt;/dt&gt;
-  &lt;span class="xHint"&gt;$services.localization.render('licensor.ownerDetails.instanceId.hint')&lt;/span&gt;
+  &lt;dt&gt;
+    &lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;
+    &lt;span class="xHint"&gt;$services.localization.render('licensor.ownerDetails.instanceId.hint')&lt;/span&gt;
+  &lt;/dt&gt;
   &lt;dd&gt;&lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;&lt;/dd&gt;
 #end
 
-#macro (displayOwnerDetailsForm $showInstanceID)
-  #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-  #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
+#macro (getOwnerFormFields)
+  #foreach ($prop in $ownerObj.properties)
+    &lt;dt&gt;&lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;&lt;/dt&gt;
+    &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
+  #end
+#end
+
+#macro (displayOwnerDetailsForm)
   {{html clean=false}}
   &lt;form id="ownerDetails" target="_blank" class="xform half" action="${licensingConfigDoc.storeBuyURL}" method="post"&gt;
     &lt;fieldset class="header"&gt;
       &lt;legend&gt;$services.localization.render('licensor.ownerDetails.heading')&lt;/legend&gt;
       &lt;p&gt;$services.localization.render('licensor.ownerDetails.hint')&lt;/p&gt;
       &lt;dl&gt;
-        #foreach ($prop in $ownerObj.properties)
-          &lt;dt&gt;&lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;&lt;/dt&gt;
-          &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
-        #end
+        #getOwnerFormFields
         #getInstanceIdFormField
       &lt;/dl&gt;
     &lt;/fieldset&gt;
