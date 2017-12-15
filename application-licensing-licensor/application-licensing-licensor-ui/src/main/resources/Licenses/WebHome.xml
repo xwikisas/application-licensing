@@ -504,6 +504,9 @@
               timeoutReload();
             }
           });
+        } else {
+          // Buy a license
+          ownerDetailsForm.submit();
         }
       }
     });
