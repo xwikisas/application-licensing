@@ -129,7 +129,7 @@
     'dependentFeatureIds': $stringtool.join($dependentFeatureIds, ','),
     'userCount': $userCount
   })
-    &lt;div class="licenseActions"&gt;
+  &lt;div class="licenseActions"&gt;
   #set ($displayedButtons = [])
   #if (!$license || $license.expirationDate == 0)
     ## No license available.
