@@ -39,8 +39,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output="false"}}
-#set ($LONG_MAX_VALUE = $mathtool.pow(2,63))
+  <content>{{include reference="Licenses.Code.VelocityMacros"/}}
+
+{{velocity output="false"}}
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
 #set ($paidExtensions = {})
@@ -56,51 +57,6 @@
       #set ($discard = $previousPaidExtension.namespaces.add($entry.key))
     #end
   #end
-#end
-
-#macro (getDependentFeatureIds $extension $dependentFeatureIds)
-  #foreach ($dependency in $extension.getDependencies())
-    #foreach ($paidExtension in $paidExtensions.values())
-      #if ($dependency.isCompatible($paidExtension.extension))
-        #set ($discard = $dependentFeatureIds.add($dependency.id))
-        #break
-      #end
-    #end
-  #end
-#end
-
-#macro (licenseButton $licenseType $cssClass $label $jsonData)
-  #set ($jsonData.licenseType = $licenseType)
-  #set ($label = $services.localization.render("licensor.${label}License.label"))
-  &lt;button class="btn btn-$cssClass licenseButton" data-button="$escapetool.xml($jsontool.serialize($jsonData))"
-    &gt;$label&lt;/button&gt;
-#end
-
-#macro (licenseActions $license $extension $userCount)
-  #set ($dependentFeatureIds = [])
-  #getDependentFeatureIds($extension $dependentFeatureIds)
-  ## Use the JSON format in order to be parsable in JavaScript.
-  #set ($jsonData = {
-    'extensionName': $extension.name,
-    'extensionVersion': $extension.id.version,
-    'featureId': $extension.id.id,
-    'dependentFeatureIds': $stringtool.join($dependentFeatureIds, ','),
-    'userCount': $userCount
-  })
-  &lt;div class="licenseActions"&gt;
-  #if (!$license || $license.expirationDate == 0)
-    ## No license available.
-    #licenseButton('PAID' 'success' 'paid' $jsonData)
-    #licenseButton('TRIAL' 'primary' 'trial' $jsonData)
-  #elseif ($license.type == 'FREE')
-    #licenseButton('PAID' 'success' 'paid' $jsonData)
-  #elseif ($license.type == 'TRIAL')
-    #licenseButton('PAID' 'success' 'paid' $jsonData)
-    #licenseButton('TRIAL' 'primary' 'extendTrial' $jsonData)
-  #elseif ($license.type == 'PAID')
-    #licenseButton('PAID' 'success' 'extendPaid' $jsonData)
-  #end
-  &lt;/div&gt;
 #end
 
 #macro (addPaidExtensionRow $paidExtension $userCount $rows)
@@ -218,6 +174,7 @@ $jsontool.serialize($jsonMap)
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </cache>
       <code>
+        <contenttype>PureText</contenttype>
         <disabled>0</disabled>
         <editor>PureText</editor>
         <name>code</name>
