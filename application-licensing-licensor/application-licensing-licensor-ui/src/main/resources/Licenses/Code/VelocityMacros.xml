@@ -44,6 +44,7 @@
 #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
 #set ($storeBuyURL = $licensingConfigDoc.storeBuyURL)
 #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
+#set ($userCount = $services.licensing.licensor.userCount)
 
 #macro (getLicensesAdminSectionURL)
   ## We target the main wiki explicitly because licenses are managed globally.
@@ -118,7 +119,7 @@
     &gt;$label&lt;/button&gt;
 #end
 
-#macro (licenseActions $license $extension $userCount)
+#macro (licenseActions $license $extension)
   #set ($dependentFeatureIds = [])
   #getDependentFeatureIds($extension $dependentFeatureIds)
   ## Use the JSON format in order to be parsable in JavaScript.

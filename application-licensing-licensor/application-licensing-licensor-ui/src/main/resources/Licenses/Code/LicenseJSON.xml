@@ -59,7 +59,7 @@
   #end
 #end
 
-#macro (addPaidExtensionRow $paidExtension $userCount $rows)
+#macro (addPaidExtensionRow $paidExtension $rows)
   #set ($extension = $paidExtension.extension)
   #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
   ##
@@ -117,7 +117,7 @@
     'status': $expDate,
     'userLimit': $userLimit,
     'wiki': $stringtool.join($namespaces, ', '),
-    'actions': "#licenseActions($license $extension $userCount)"
+    'actions': "#licenseActions($license $extension)"
   }))
 #end
 {{/velocity}}
@@ -131,11 +131,10 @@
   'reqNo': $request.reqNo,
   'rows': []
 })
-#set ($userCount = $services.licensing.licensor.userCount)
 #foreach ($paidExtension in $paidExtensions.values())
   ## Take into account only the XAR extensions that have been installed explicitly by the user.
   #if ($paidExtension.extension.type == 'xar' &amp;&amp; !$paidExtension.extension.isDependency($entry.key))
-    #addPaidExtensionRow($paidExtension $userCount $jsonMap.rows)
+    #addPaidExtensionRow($paidExtension $jsonMap.rows)
   #end
 #end
 #set ($discard = $sorttool.sort($jsonMap.rows, 'name'))
