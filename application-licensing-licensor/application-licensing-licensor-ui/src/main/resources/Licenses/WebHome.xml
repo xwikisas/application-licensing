@@ -515,7 +515,7 @@
     var addLicense = $('#addLicense');
     var addLicenseSubmit = addLicense.find("input[type='submit']");
     $.post({
-      url : addLicense.attr('action'),
+      url : new XWiki.Document('AddLicense', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
       data: licenseData,
       beforeSend: function() {
         this.progressNotification =
