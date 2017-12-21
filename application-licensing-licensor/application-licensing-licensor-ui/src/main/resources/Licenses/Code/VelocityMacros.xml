@@ -73,8 +73,16 @@
     &lt;span class="xHint"&gt;$services.localization.render('licensor.ownerDetails.instanceId.hint')&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;
-    &lt;input type="text" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;
+    #getInstanceIdInput(false)
   &lt;/dd&gt;
+#end
+
+#macro (getInstanceIdInput $hidden)
+  #set ($type = 'text')
+  #if ($hidden)
+    #set ($type = 'hidden')
+  #end
+  &lt;input type="$type" name="instanceId" id="instanceId" value="${services.instance.getInstanceId()}" readonly /&gt;
 #end
 
 #macro (getOwnerFormFields)
