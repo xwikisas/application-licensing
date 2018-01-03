@@ -409,7 +409,11 @@
     // livetable is also loaded before, because it is using Prototype.js which is loading before the page loads.
     // Make sure that the livetable is loaded by checking for a row with some date.
     if ($('#licenseManager-display td.type').size() &gt; 0) {
-      updateLivetableButtons();
+      // depending on the load speed of the script, the updateLivetableButtons may not be visible at call time
+      // which will cause a "TypeError: c is not a function" error which will brake js.
+      if (typeof updateLivetableButtons == 'function') {
+        updateLivetableButtons();
+      }
     } else {
       $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
     }
@@ -431,7 +435,7 @@
           // Focus on first element that needs to be filled with data
           if (focus) {
             $(this).focus();
-            focus = false
+            focus = false;
           }
           doSubmit = false;
           $(this).addClass('required');
@@ -448,11 +452,11 @@
           data: $(ownerDetailsForm).serialize()
         });
         // get the data from the button
-        var json = $.parseJSON(currentButton.attr('data-button'));
-        var isTrial = json.licenseType === 'TRIAL';
+        var dataButton = JSON.parse(currentButton.attr('data-button'));
+        var isTrial = dataButton.licenseType === 'TRIAL';
         var formData = ownerDetailsForm.serializeArray();
 
-        $.each(json, function(indexName, indexValue) {
+        $.each(dataButton, function(indexName, indexValue) {
           var detailInput = $('input[name=' + indexName + ']');
           // check if the input exists
           if (detailInput.val()) {
@@ -484,10 +488,10 @@
             },
             success: function(result) {
               // cache the "hasTrials" value in local storage
-              var licenseData = $.param({'license': result['data']});
+              var licenseData = $.param({'license': result.data});
               var urlParams = new URLSearchParams(this.data);
               var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
-              var hasTrialValue = result['hasTrials'];
+              var hasTrialValue = result.hasTrials;
               localStorage.setItem(hasTrialsKey, hasTrialValue);
               // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
               if (hasTrialValue === 'false') {
@@ -500,7 +504,7 @@
             error: function(result) {
               if(result.responseJSON) {
                 this.progressNotification.replace(
-                  new XWiki.widgets.Notification(result.responseJSON['data'],result.responseJSON['status']));
+                  new XWiki.widgets.Notification(result.responseJSON.data,result.responseJSON.status));
               } else {
                 this.progressNotification.replace(
                   new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')",
@@ -535,10 +539,10 @@
         timeoutReload();
       },
       success: function(result) {
-        this.progressNotification.replace(new XWiki.widgets.Notification(result['notification'], result['status']));
+        this.progressNotification.replace(new XWiki.widgets.Notification(result.notification, result.status));
       },
       error: function(result) {
-        var errorMessage = result.responseJSON ? result.responseJSON['notification'] :
+        var errorMessage = result.responseJSON ? result.responseJSON.notification :
         $jsontool.serialize($services.localization.render('licensor.addLicense.nonJSON'));
         $('&lt;div class="box errormessage"/&gt;').text(errorMessage).insertAfter(addLicense);
       }
@@ -549,9 +553,8 @@
     var instanceId = $('#instanceId').val();
     $('.licenseActions .btn-primary').each(function() {
       // compute the key to check in the localStorage
-      var dataButton = $(this).attr('data-button');
-      var jsonData = jQuery.parseJSON(dataButton)
-      var featureId = jsonData['featureId'];
+      var dataButton = JSON.parse($(this).attr('data-button'));
+      var featureId = dataButton.featureId;
       var hasTrialsKey = computeHasTrialKey(instanceId, featureId);
       if (localStorage.getItem(hasTrialsKey) === 'false') {
         // remove the "Extend Trial" button
@@ -565,7 +568,7 @@
   // Reload the page if all the trial license requests get a response 
   var timeoutReload = function() {
     setTimeout(function() {
-      if (countTrialRequests == 0) {
+      if (countTrialRequests === 0) {
         // Reload the page to update the live table and the notification message.
         location.reload(true);
       }
