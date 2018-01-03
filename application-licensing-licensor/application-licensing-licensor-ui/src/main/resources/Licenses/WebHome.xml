@@ -449,7 +449,7 @@
         });
         // get the data from the button
         var json = $.parseJSON(currentButton.attr('data-button'));
-
+        var isTrial = json.licenseType === 'TRIAL';
         var formData = ownerDetailsForm.serializeArray();
 
         $.each(json, function(indexName, indexValue) {
@@ -458,13 +458,18 @@
           if (detailInput.val()) {
             detailInput.val(indexValue);
           } else {
-            // add the extension related data to the queryString used in the Ajax request
-            formData.push({name: indexName, value: indexValue});
+            if (isTrial) {
+              // add the extension related data to the queryString used in the Ajax request
+              formData.push({name: indexName, value: indexValue});
+            } else {
+              // append the data to the buy form
+              ownerDetailsForm.append("&lt;input type='hidden' name='" + indexName + "' value='" + indexValue + "'&gt;");
+            }
           }
         });
         // for the trial version, we use an ajax request to check if the number of trials hasn't been reached and
         // return a license if needed.
-        if (json.licenseType === 'TRIAL') {
+        if (isTrial) {
           $.post({
             url : new XWiki.Document('GetTrialLicenseService', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
             data: $.param(formData),
