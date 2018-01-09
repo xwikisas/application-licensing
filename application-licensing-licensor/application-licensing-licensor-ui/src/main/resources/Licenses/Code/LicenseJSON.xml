@@ -42,25 +42,7 @@
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
 
 {{velocity output="false"}}
-#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-#set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-#set ($paidExtensions = {})
-#foreach ($entry in $paidExtensionsByNamespace.entrySet())
-  #foreach ($paidExtension in $entry.value)
-    #set ($previousPaidExtension = $paidExtensions.get($paidExtension.id))
-    #if (!$previousPaidExtension)
-      #set ($discard = $paidExtensions.put($paidExtension.id, {
-        'extension': $paidExtension,
-        'namespaces': [$entry.key]
-      }))
-    #else
-      #set ($discard = $previousPaidExtension.namespaces.add($entry.key))
-    #end
-  #end
-#end
-
-#macro (addPaidExtensionRow $paidExtension $rows)
-  #set ($extension = $paidExtension.extension)
+#macro (addPaidExtensionRow $extension $rows)
   #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
   ##
   ## Expiration Date
@@ -97,7 +79,7 @@
   ## Namespaces and Version
   ##
   #set ($namespaces = [])
-  #foreach ($namespace in $paidExtension.namespaces)
+  #foreach ($namespace in $extension.namespaces)
     #if ($namespace)
       #set ($wikiPrettyName = $services.wiki.getById($namespace.split(':')[1]).prettyName)
     #else
@@ -131,13 +113,11 @@
   'reqNo': $request.reqNo,
   'rows': []
 })
-#foreach ($paidExtension in $paidExtensions.values())
-  ## Take into account only the XAR extensions that have been installed explicitly by the user.
-  #if ($paidExtension.extension.type == 'xar' &amp;&amp; !$paidExtension.extension.isDependency($entry.key))
-    #addPaidExtensionRow($paidExtension $jsonMap.rows)
-  #end
+#getVisiblePaidExtensions
+#foreach ($extension in $visiblePaidExtensions)
+  #addPaidExtensionRow($extension $jsonMap.rows)
 #end
-#set ($discard = $sorttool.sort($jsonMap.rows, 'name'))
+#set ($jsonMap.rows = $sorttool.sort($jsonMap.rows, 'name'))
 #set ($jsonMap.totalrows = $jsonMap.rows.size())
 #set ($jsonMap.returnedrows = $jsonMap.rows.size())
 $jsontool.serialize($jsonMap)

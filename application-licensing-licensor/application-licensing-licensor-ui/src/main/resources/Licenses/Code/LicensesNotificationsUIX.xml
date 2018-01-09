@@ -43,25 +43,15 @@
 
 {{velocity}}
 #if ($hasAdmin &amp;&amp; $hasProgramming)
-  #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-  #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  ## The same extension could be installed on multiple namespaces (wikis).
+  #getVisiblePaidExtensions
+  ## The same extension could be installed on multiple namespaces (wikis) with different versions.
   #set ($extensionNames = $collectionstool.sortedSet)
   #set ($limit = 3)
-  #foreach ($namespaceDependencies in $backwardDependenciesByNamespace.entrySet())
-    #set ($namespace = $namespaceDependencies.key)
-    #foreach ($extension in $namespaceDependencies.value)
-      ## Do not display paid extensions if they were installed as dependency of other paid extensions
-      #if ($extension.type == 'xar' &amp;&amp; !$services.licensing.licensor.hasLicensureForExtension($extension.id) &amp;&amp; !$extension.isDependency($namespace))
-        #if ($extensionNames.size() &lt; $limit)
-          #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
-        #else
-          #set ($discard = $extensionNames.add('...'))
-          #break
-        #end
-      #end
-    #end
-    #if ($extensionNames.size() &gt; $limit)
+  #foreach ($extension in $visiblePaidExtensions)
+    #if ($extensionNames.size() &lt; $limit)
+      #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
+    #else
+      #set ($discard = $extensionNames.add('...'))
       #break
     #end
   #end

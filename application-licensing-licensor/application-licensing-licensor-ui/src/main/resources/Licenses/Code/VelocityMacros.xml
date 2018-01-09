@@ -41,10 +41,58 @@
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
 #set ($LONG_MAX_VALUE = $mathtool.pow(2,63))
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
 #set ($storeBuyURL = $licensingConfigDoc.storeBuyURL)
 #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
 #set ($userCount = $services.licensing.licensor.userCount)
+
+#macro (getPaidExtensions)
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectionstool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+#end
+
+#macro (getVisiblePaidExtensions)
+  #getPaidExtensions
+  #set ($visiblePaidExtensions = $collectionstool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    ## Take into account only the XAR extensions that are not dependencies of other paid extensions.
+    #if ($paidExtension.type == 'xar')
+      #isRequiredBy($paidExtension $paidExtensions)
+      #if (!$isRequiredBy)
+        #set ($discard = $visiblePaidExtensions.add($paidExtension))
+      #end
+    #end
+  #end
+#end
+
+#macro (isRequiredBy $installedExtension $extensions)
+  #set ($isRequiredBy = false)
+  #foreach ($namespace in $installedExtension.namespaces)
+    #set ($backwardDependencies = $collectionstool.queue)
+    #set ($discard = $backwardDependencies.addAll($services.extension.installed.getBackwardDependencies(
+      $installedExtension.id.id, $namespace)))
+    ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
+    ## rely on a range loop (limiting the number of backward dependencies that we analyze).
+    #foreach ($i in [0..1000])
+      #set ($backwardDependency = $backwardDependencies.poll())
+      #if ($backwardDependency)
+        #if ($extensions.contains($backwardDependency))
+          #set ($isRequiredBy = true)
+          #break
+        #else
+          #set ($discard = $backwardDependencies.addAll($services.extension.installed.getBackwardDependencies(
+            $backwardDependency.id.id, $namespace)))
+        #end
+      #else
+        #break
+      #end
+    #end
+  #end
+#end
 
 #macro (getLicensesAdminSectionURL)
   ## We target the main wiki explicitly because licenses are managed globally.
