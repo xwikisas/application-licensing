@@ -157,17 +157,6 @@
   {{/html}}
 #end
 
-#macro (getDependentFeatureIds $extension $dependentFeatureIds)
-  #foreach ($dependency in $extension.getDependencies())
-    #foreach ($paidExtension in $paidExtensions.values())
-      #if ($dependency.isCompatible($paidExtension.extension))
-        #set ($discard = $dependentFeatureIds.add($dependency.id))
-        #break
-      #end
-    #end
-  #end
-#end
-
 #macro (licenseButton $licenseType $cssClass $label $jsonData)
   #set ($jsonData.licenseType = $licenseType)
   #set ($label = $services.localization.render("licensor.${label}License.label"))
@@ -176,14 +165,10 @@
 #end
 
 #macro (licenseActions $license $extension)
-  #set ($dependentFeatureIds = [])
-  #getDependentFeatureIds($extension $dependentFeatureIds)
   ## Use the JSON format in order to be parsable in JavaScript.
   #set ($jsonData = {
-    'extensionName': $extension.name,
-    'extensionVersion': $extension.id.version,
     'featureId': $extension.id.id,
-    'dependentFeatureIds': $stringtool.join($dependentFeatureIds, ','),
+    'extensionVersion': $extension.id.version.toString(),
     'userCount': $userCount
   })
   &lt;div class="licenseActions"&gt;
