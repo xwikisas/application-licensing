@@ -48,11 +48,13 @@
   #set ($extensionNames = $collectionstool.sortedSet)
   #set ($limit = 3)
   #foreach ($extension in $visiblePaidExtensions)
-    #if ($extensionNames.size() &lt; $limit)
-      #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
-    #else
-      #set ($discard = $extensionNames.add('...'))
-      #break
+    #if (!$services.licensing.licensor.hasLicensureForExtension($extension.id))
+      #if ($extensionNames.size() &lt; $limit)
+        #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
+      #else
+        #set ($discard = $extensionNames.add('...'))
+        #break
+      #end
     #end
   #end
   #if ($extensionNames.size() &gt; 0)
