@@ -59,12 +59,11 @@
   #getPaidExtensions
   #set ($visiblePaidExtensions = $collectionstool.set)
   #foreach ($paidExtension in $paidExtensions)
-    ## Take into account only the XAR extensions that are not dependencies of other paid extensions.
-    #if ($paidExtension.type == 'xar')
-      #isRequiredBy($paidExtension $paidExtensions)
-      #if (!$isRequiredBy)
-        #set ($discard = $visiblePaidExtensions.add($paidExtension))
-      #end
+    ## Filter out the paid extensions that are dependencies of other paid extensions (because the license of a paid
+    ## extension should cover its paid dependencies).
+    #isRequiredBy($paidExtension $paidExtensions)
+    #if (!$isRequiredBy)
+      #set ($discard = $visiblePaidExtensions.add($paidExtension))
     #end
   #end
 #end

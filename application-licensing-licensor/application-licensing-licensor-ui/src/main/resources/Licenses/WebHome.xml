@@ -60,7 +60,8 @@
   })
   #set ($options = {
     'resultPage':'Licenses.Code.LicenseJSON',
-    'translationPrefix' : 'licensor.'
+    'translationPrefix' : 'licensor.',
+    'extraParams': "&amp;showAllPaidExtensions=$!escapetool.url($request.showAllPaidExtensions)"
   })
   #livetable('licenseManager' $columns $columnsProperties $options)
 #end

@@ -113,8 +113,14 @@
   'reqNo': $request.reqNo,
   'rows': []
 })
-#getVisiblePaidExtensions
-#foreach ($extension in $visiblePaidExtensions)
+#if ($request.showAllPaidExtensions == 'true')
+  #getPaidExtensions
+  #set ($extensions = $paidExtensions)
+#else
+  #getVisiblePaidExtensions
+  #set ($extensions = $visiblePaidExtensions)
+#end
+#foreach ($extension in $extensions)
   #addPaidExtensionRow($extension $jsonMap.rows)
 #end
 #set ($jsonMap.rows = $sorttool.sort($jsonMap.rows, 'name'))
