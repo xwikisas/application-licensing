@@ -43,11 +43,13 @@
 
 {{velocity}}
 #if ("$!request.action" == 'generate')
-  #generateLicense($doc.getValue('firstName'), $doc.getValue('LastName'), $doc.getValue('email'),
-    $doc.getValue('instanceId'), $doc.getValue('featureId'), $doc.getValue('dependentFeatureIds'),
-    $doc.getValue('type'), $doc.getValue('issueDate'), $doc.getValue('expirationDate'),
-    $doc.getValue('maxUserCount'),true, $doc.documentReference)
-  ## Refresh page
+  #set ($licenseDetailsObject = $doc.getObject('License.Code.LicenseDetailsClass'))
+  #set ($licenseDetails = {})
+  #foreach ($key in $licenseDetailsObject.propertyNames)
+    #set ($discard = $licenseDetails.put($key, $licenseDetailsObject.getValue($key)))
+  #end
+  #generateLicense($licenseDetails true $doc.documentReference)
+  ## Refresh the page.
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
 #end
 ; License Id

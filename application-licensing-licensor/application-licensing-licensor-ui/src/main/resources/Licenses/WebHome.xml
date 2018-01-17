@@ -416,13 +416,17 @@
         // Remove the previous error message.
         addLicense.next('.errormessage').remove();
       },
-      complete:function() {
-        this.progressNotification.hide();
+      complete:function(result) {
+        if (result.responseJSON) {
+          this.progressNotification.replace(new XWiki.widgets.Notification(result.responseJSON.notification,
+            result.responseJSON.status));
+        } else {
+          this.progressNotification.hide();
+        }
         addLicenseSubmit.prop('disabled', false);
-        timeoutReload();
       },
-      success: function(result) {
-        this.progressNotification.replace(new XWiki.widgets.Notification(result.notification, result.status));
+      success: function() {
+        timeoutReload();
       },
       error: function(result) {
         var errorMessage = result.responseJSON ? result.responseJSON.notification :
@@ -442,13 +446,14 @@
       var dataButton = JSON.parse($(this).attr('data-button'));
       var featureId = dataButton.featureId;
       var hasTrialsKey = computeHasTrialKey(instanceId, featureId);
+      // The value is stored as a string in the local storage.
       if (localStorage.getItem(hasTrialsKey) === 'false') {
         // remove the "Extend Trial" button
         $(this).remove();
       }
     });
   };
-  // Reload the page if all the trial license requests get a response 
+  // Reload the page if all the trial license requests get a response
   var timeoutReload = function() {
     setTimeout(function() {
       if (countTrialRequests === 0) {
@@ -495,11 +500,10 @@
       });
       if (doSubmit) {
         // Make licenseActions buttons inactive when any of them is clicked
-        currentButton.siblings().prop('disabled', true);
-        currentButton.prop('disabled', true );
+        currentButton.parent().children().prop('disabled', true);
         // update the licensing owner details
         $.post({
-          url : new XWiki.Document('UpdateOwnerDetails', 'Licenses.Code').getURL(),
+          url : new XWiki.Document('UpdateOwnerDetails', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
           data: $(ownerDetailsForm).serialize()
         });
         // get the data from the button
@@ -534,22 +538,24 @@
                 "$services.localization.render('licensor.addLicense.gettingTrialLicense')", 'inprogress');
             },
             complete: function() {
-              this.progressNotification.hide();
               countTrialRequests --;
+              if (countTrialRequests &lt;= 0) {
+                // Re-enable the buttons if there's no pending license request.
+                currentButton.parent().children().prop('disabled', false);
+              }
             },
             success: function(result) {
-              // cache the "hasTrials" value in local storage
+              // Cache the "hasTrials" value in local storage.
               var licenseData = $.param({'license': result.data});
               var urlParams = new URLSearchParams(this.data);
               var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
               var hasTrialValue = result.hasTrials;
               localStorage.setItem(hasTrialsKey, hasTrialValue);
-              // remove the "Extend Trial" button if "hasTrials" is false and enable the "Buy" button
-              if (hasTrialValue === 'false') {
-                var buyButton = currentButton.siblings();
-                buyButton.prop('disabled', false);
-                currentButton.remove();
+              // Hide the "Extend Trial" button if "hasTrials" is false.
+              if (hasTrialValue === false) {
+                currentButton.hide();
               }
+              this.progressNotification.hide();
               addLicense(licenseData);
             },
             error: function(result) {
@@ -561,7 +567,6 @@
                   new XWiki.widgets.Notification("$services.localization.render('licensor.addLicense.nonJSON')",
                     'error'));
               }
-              timeoutReload();
             }
           });
         } else {
