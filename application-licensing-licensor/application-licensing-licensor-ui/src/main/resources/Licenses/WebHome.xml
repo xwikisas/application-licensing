@@ -435,6 +435,25 @@
       }
     });
   };
+  var checkSubmit = function(ownerDetailsForm) {
+    // check the input fields to be filled with data
+    var doSubmit = true;
+    var focus = true;
+    ownerDetailsForm.find('input:visible').each(function() {
+      $(this).removeClass('required');
+      if (!$(this).val()) {
+        // Focus on first element that needs to be filled with data
+        if (focus) {
+          $(this).focus();
+          focus = false;
+        }
+        doSubmit = false;
+        $(this).addClass('required');
+        $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}");
+      }
+    });
+    return doSubmit;
+  };
   var computeHasTrialKey = function(instanceId, featureId) {
     return instanceId + '_' + featureId;
   };
@@ -481,24 +500,8 @@
     // and installed, else the user is redirected to a page to buy a license. 
     $('#licenseManager').on('click', '.licenseButton', function() {
       var currentButton = $(this);
-      // check the input fields to be filled with data
-      var doSubmit = true;
       var ownerDetailsForm = $('#ownerDetails');
-      var focus = true;
-      ownerDetailsForm.find('input:visible').each(function() {
-        $(this).removeClass('required');
-        if (!$(this).val()) {
-          // Focus on first element that needs to be filled with data
-          if (focus) {
-            $(this).focus();
-            focus = false;
-          }
-          doSubmit = false;
-          $(this).addClass('required');
-          $(this).attr('placeholder', "${services.localization.render('licensor.ownerDetails.missingData')}");
-        }
-      });
-      if (doSubmit) {
+      if (checkSubmit(ownerDetailsForm)) {
         // Make licenseActions buttons inactive when any of them is clicked
         currentButton.parent().children().prop('disabled', true);
         // update the licensing owner details
@@ -569,7 +572,7 @@
               }
             }
           });
-        } else {
+        } else if(dataButton.licenseType === 'PAID') {
           // Buy a license
           ownerDetailsForm.submit();
         }
