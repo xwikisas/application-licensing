@@ -78,7 +78,7 @@
       #end
       #set ($discard = $dateTime.addDays(11))
     #end
-    #set ($licenseDetails.expirationDate = $dateTime)
+    #set ($licenseDetails.expirationDate = $dateTime.toDate())
   #end
 #end
 
@@ -90,7 +90,7 @@
   #set ($discard = $license.setId($licenseDetailsReference.name))
   #set ($discard = $license.setType($licenseDetails.type))
   #set ($discard = $license.addInstanceId($licenseDetails.instanceId))
-  #set ($discard = $license.setExpirationDate($licenseDetails.expirationDate.millis))
+  #set ($discard = $license.setExpirationDate($licenseDetails.expirationDate.time))
   #set ($discard = $license.setMaxUserCount($licenseDetails.maxUserCount))
   #set ($discard = $license.addLicenseeInfo('firstName', $licenseDetails.firstName))
   #set ($discard = $license.addLicenseeInfo('lastName', $licenseDetails.lastName))
@@ -128,10 +128,9 @@
         #set ($discard = $detailsObject.set('licenseId', $signedLicense.id.id))
         ## If the issue date is not set, compute it.
         #if ("$!issueDate" == '')
-          #set ($discard = $detailsObject.set('issueDate', $datetool.get('dd/MM/yyyy')))
+          #set ($discard = $detailsObject.set('issueDate', $datetool.date))
         #end
-        #set ($dtf = $xwiki.jodatime.getDateTimeFormatterForPattern('dd/MM/yyyy'))
-        #set ($discard = $detailsObject.set('expirationDate', $dtf.print($licenseDetails.expirationDate)))
+        #set ($discard = $detailsObject.set('expirationDate', $licenseDetails.expirationDate))
         #set ($discard = $detailsDocument.save('License ID added', true))
         #set ($licenseAsString = $NULL)
         #setVariable ("$licenseAsString", $services.licensing.license.encode($signedLicense))
