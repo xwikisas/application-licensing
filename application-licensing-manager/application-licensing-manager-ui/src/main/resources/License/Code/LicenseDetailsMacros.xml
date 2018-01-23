@@ -96,7 +96,7 @@
   #set ($discard = $license.addLicenseeInfo('lastName', $licenseDetails.lastName))
   #set ($discard = $license.addLicenseeInfo('email', $licenseDetails.email))
   #set ($discard = $license.addFeatureId($licenseDetails.featureId))
-  #foreach ($dependentFeatureId in $stringtool.split($licenseDetails.dependentFeatureIds, ', '))
+  #foreach ($dependentFeatureId in $licenseDetails.dependentFeatureIds.split('\s*[\s,]\s*'))
     #set ($discard = $license.addFeatureId($dependentFeatureId))
   #end
   ## Keys are stored in the permanent directory, in a subdirectory named 'license-keystore'
@@ -177,20 +177,33 @@
       #end
     #end
     #set ($extension = $services.extension.resolve($licenseDetails.featureId, $licenseDetails.extensionVersion))
-    #if ("$!licenseDetails.extensionName" == '')
-      #set ($licenseDetails.extensionName = $extension.name)
-    #end
-    #if ("$!licenseDetails.dependentFeatureIds" == '')
-      #getDependentFeatureIds($extension)
-      #set ($licenseDetails.dependentFeatureIds = $stringtool.join($dependentFeatureIds, ','))
+    #if ($extension)
+      #if ("$!licenseDetails.extensionName" == '')
+        #set ($licenseDetails.extensionName = $extension.name)
+      #end
+      #if ("$!licenseDetails.dependentFeatureIds" == '')
+        #set ($dependentFeatureIds = $collectionstool.set)
+        #set ($packageId = $extension.getProperty('xwiki.extension.licensing.packageId'))
+        #if ("$!packageId" != '')
+          #set ($packageVersion = $extension.getProperty('xwiki.extension.licensing.packageVersion',
+            $extension.id.version.toString()))
+          #set ($package = $services.extension.resolve($packageId, $packageVersion))
+          #if ($package)
+            ## Add the paid modules from the specified package.
+            #getDependentFeatureIds($package $dependentFeatureIds)
+          #end
+        #end
+        ## Add the paid modules that are transitive dependencies.
+        #getDependentFeatureIds($extension $dependentFeatureIds)
+        #set ($licenseDetails.dependentFeatureIds = $stringtool.join($dependentFeatureIds, $util.newline))
+      #end
     #end
   #end
 #end
 
-#macro (getDependentFeatureIds $extension)
+#macro (getDependentFeatureIds $extension $dependentFeatureIds)
   #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
   #set ($namespace = "wiki:$xcontext.database")
-  #set ($dependentFeatureIds = [])
   #set ($dependencies = $collectionstool.queue)
   #set ($discard = $dependencies.add($services.extension.createExtensionDependency($extension.id.id,
     $extension.id.version)))
@@ -212,9 +225,7 @@
       #break
     #end
   #end
-  #if ($dependentFeatureIds.size() &gt; 0 &amp;&amp; $dependentFeatureIds.get(0) == $extension.id.id)
-    #set ($dependentFeatureIds = $dependentFeatureIds.subList(1, $dependentFeatureIds.size()))
-  #end
+  #set ($discard = $dependentFeatureIds.remove($extension.id.id))
 #end
 
 #macro (getExpiringLicensesForType $daysBeforeExpiration $type $expiringLicenses)

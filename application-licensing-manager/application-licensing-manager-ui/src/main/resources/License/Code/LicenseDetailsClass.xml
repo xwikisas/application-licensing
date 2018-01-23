@@ -50,17 +50,20 @@
     <nameField/>
     <validationScript/>
     <dependentFeatureIds>
+      <contenttype>PureText</contenttype>
       <customDisplay/>
       <disabled>0</disabled>
+      <editor>PureText</editor>
       <name>dependentFeatureIds</name>
       <number>9</number>
       <picker>0</picker>
       <prettyName>Dependent Feature Ids</prettyName>
-      <size>120</size>
+      <rows>5</rows>
+      <size>40</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
     </dependentFeatureIds>
     <email>
       <customDisplay/>
@@ -277,6 +280,38 @@
     </class>
     <property>
       <sheet>License.Code.LicenseDetailsSheet</sheet>
+    </property>
+  </object>
+  <object>
+    <name>License.Code.LicenseDetailsClass</name>
+    <number>0</number>
+    <className>XWiki.DocumentSheetBinding</className>
+    <guid>d05370c7-ce88-4857-be9b-239c05b10e7e</guid>
+    <class>
+      <name>XWiki.DocumentSheetBinding</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <sheet>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>sheet</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>Sheet</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </sheet>
+    </class>
+    <property>
+      <sheet>XWiki.ClassSheet</sheet>
     </property>
   </object>
 </xwikidoc>
