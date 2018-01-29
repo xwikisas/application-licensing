@@ -70,24 +70,33 @@
 
 #macro (isRequiredBy $installedExtension $extensions)
   #set ($isRequiredBy = false)
-  #foreach ($namespace in $installedExtension.namespaces)
-    #set ($backwardDependencies = $collectionstool.queue)
-    #set ($discard = $backwardDependencies.addAll($services.extension.installed.getBackwardDependencies(
-      $installedExtension.id.id, $namespace)))
-    ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
-    ## rely on a range loop (limiting the number of backward dependencies that we analyze).
-    #foreach ($i in [0..1000])
-      #set ($backwardDependency = $backwardDependencies.poll())
-      #if ($backwardDependency)
-        #if ($extensions.contains($backwardDependency))
-          #set ($isRequiredBy = true)
-          #break
-        #else
-          #set ($discard = $backwardDependencies.addAll($services.extension.installed.getBackwardDependencies(
-            $backwardDependency.id.id, $namespace)))
-        #end
-      #else
+  #set ($backwardDependencies = $collectionstool.queue)
+  #addBackwardDependencies($installedExtension $backwardDependencies)
+  ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
+  ## rely on a range loop (limiting the number of backward dependencies that we analyze).
+  #foreach ($i in [0..1000])
+    #set ($backwardDependency = $backwardDependencies.poll())
+    #if ($backwardDependency)
+      #if ($extensions.contains($backwardDependency))
+        #set ($isRequiredBy = true)
         #break
+      #else
+        #addBackwardDependencies($backwardDependency $backwardDependencies)
+      #end
+    #else
+      #break
+    #end
+  #end
+#end
+
+#macro (addBackwardDependencies $installedExtension $backwardDependencies)
+  #set ($backwardDependenciesSet = $collectionstool.set)
+  #set ($discard = $backwardDependenciesSet.addAll($backwardDependencies))
+  #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($installedExtension.id))
+  #foreach ($backwardDependenciesOnNamespace in $backwardDependenciesByNamespace.values())
+    #foreach ($backwardDependency in $backwardDependenciesOnNamespace)
+      #if ($backwardDependenciesSet.add($backwardDependency))
+        #set ($discard = $backwardDependencies.add($backwardDependency))
       #end
     #end
   #end

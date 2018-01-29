@@ -47,17 +47,18 @@
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
   #set ($extensionNames = $collectionstool.sortedSet)
   #set ($limit = 3)
+  #set ($showMore = false)
   #foreach ($extension in $visiblePaidExtensions)
     #if (!$services.licensing.licensor.hasLicensureForExtension($extension.id))
       #if ($extensionNames.size() &lt; $limit)
         #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
       #else
-        #set ($discard = $extensionNames.add('...'))
+        #set ($showMore = true)
         #break
       #end
     #end
   #end
-  #if ($extensionNames.size() &gt; 0)
+  #if ($showMore || $extensionNames.size() &gt; 0)
     #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
     #if (!$missingLicensesWrapperTagName)
       #set ($missingLicensesWrapperTagName = 'div')
@@ -66,7 +67,12 @@
     &lt;$missingLicensesWrapperTagName class="notifications-missingLicenses errormessage"&gt;
       &lt;p&gt;$services.localization.render('licensor.missingLicenses', ["&lt;a href='#getLicensesAdminSectionURL'&gt;",
         '&lt;/a&gt;'])&lt;/p&gt;
-      &lt;ul&gt;&lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;&lt;/ul&gt;
+      &lt;ul&gt;
+        &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
+        #if ($showMore)
+          &lt;li&gt;...&lt;/li&gt;
+        #end
+      &lt;/ul&gt;
     &lt;/$missingLicensesWrapperTagName&gt;
     {{/html}}
   #end
