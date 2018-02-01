@@ -53,18 +53,6 @@
       <name>Vincent Massol</name>
     </developer>
   </developers>
-  <distributionManagement>
-    <repository>
-      <id>nexus.xwikisas.com-public-store-releases</id>
-      <name>XWiki SAS Public Store Repository for Releases</name>
-      <url>https://nexus.xwikisas.com/nexus/content/repositories/public-store-releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>nexus.xwikisas.com-public-store-snapshots</id>
-      <name>XWiki SAS Public Store Repository for Snapshots</name>
-      <url>https://nexus.xwikisas.com/nexus/content/repositories/public-store-snapshots/</url>
-    </snapshotRepository>
-  </distributionManagement>
   <build>
     <!-- Needed to add support for the XAR packaging -->
     <extensions>
