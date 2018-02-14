@@ -476,8 +476,17 @@
   var timeoutReload = function() {
     setTimeout(function() {
       if (countTrialRequests === 0) {
-        // Reload the page to update the live table and the notification message.
-        location.reload(true);
+        // Reload the livetable
+        if ($.type(livetable_licenseManager.refresh) === 'function')
+        {
+          // Available for XWiki version &gt;= 9.5RC1
+          livetable_licenseManager.refresh();
+        } else {
+          var end = livetable_licenseManager.limit;
+          var start = Math.max(livetable_licenseManager.lastOffset, 1);
+          livetable_licenseManager.clearCache();
+          livetable_licenseManager.getRows(start, end, start, end);
+        }
       }
     }, 1000);
   };
@@ -486,12 +495,11 @@
   $(document).ready(function() {
     // xwiki:livetable:loadingComplete might be triggered before the code from this jsx is executed. In this case, the
     // livetable is also loaded before, because it is using Prototype.js which is loading before the page loads.
-    // Make sure that the livetable is loaded by checking for a row with some date.
+    // Make sure that the livetable is loaded by checking for a row with some data.
     if ($('#licenseManager-display td.type').size() &gt; 0) {
       updateLivetableButtons();
-    } else {
-      $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
     }
+    $(document).on('xwiki:livetable:loadingComplete', updateLivetableButtons);
     $("#addLicense").submit(function(event) {
       event.preventDefault();
       addLicense($(this).serialize());
