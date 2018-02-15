@@ -475,19 +475,17 @@
   // Reload the paid apps table if all the trial license requests get a response.
   var timeoutReload = function() {
     setTimeout(function() {
-      if (countTrialRequests === 0) {
-        if ($.type(livetable_licenseManager) !== 'undefined') {
-          // Reload the livetable.
-          if ($.type(livetable_licenseManager.refresh) === 'function') {
-            // Available only for XWiki version &gt;= 9.5RC1.
-            livetable_licenseManager.refresh();
-          } else {
-            // This branch should be removed when the licensing app will use XWiki &gt;= 9.5RC1.
-            var end = livetable_licenseManager.limit;
-            var start = Math.max(livetable_licenseManager.lastOffset, 1);
-            livetable_licenseManager.clearCache();
-            livetable_licenseManager.getRows(start, end, start, end);
-          }
+      if (countTrialRequests === 0 &amp;&amp; $.type(livetable_licenseManager) !== 'undefined') {
+        // Reload the livetable.
+        if ($.type(livetable_licenseManager.refresh) === 'function') {
+          // Available only for XWiki version &gt;= 9.5RC1.
+          livetable_licenseManager.refresh();
+        } else {
+          // This branch should be removed when the licensing app will use XWiki &gt;= 9.5RC1.
+          var end = livetable_licenseManager.limit;
+          var start = Math.max(livetable_licenseManager.lastOffset, 1);
+          livetable_licenseManager.clearCache();
+          livetable_licenseManager.getRows(start, end, start, end);
         }
       }
     }, 1000);
