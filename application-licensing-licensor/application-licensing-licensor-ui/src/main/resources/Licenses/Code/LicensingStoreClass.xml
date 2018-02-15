@@ -81,6 +81,20 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </storeTrialURL>
+    <storeUpdateURL>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>storeUpdateURL</name>
+      <number>3</number>
+      <picker>0</picker>
+      <prettyName>storeUpdateURL</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </storeUpdateURL>
   </class>
   <object>
     <name>Licenses.Code.LicensingStoreClass</name>

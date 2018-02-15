@@ -144,12 +144,29 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </storeTrialURL>
+      <storeUpdateURL>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>storeUpdateURL</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>storeUpdateURL</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </storeUpdateURL>
     </class>
     <property>
       <storeBuyURL>https://store.xwiki.com/xwiki/bin/view/Store/BuyLicense</storeBuyURL>
     </property>
     <property>
       <storeTrialURL>https://store.xwiki.com/xwiki/bin/get/Store/GetTrialLicense</storeTrialURL>
+    </property>
+    <property>
+      <storeUpdateURL>https://store.xwiki.com/xwiki/bin/get/Store/GetLicenses</storeUpdateURL>
     </property>
   </object>
 </xwikidoc>

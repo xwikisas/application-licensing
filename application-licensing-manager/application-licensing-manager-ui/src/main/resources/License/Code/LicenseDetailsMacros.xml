@@ -303,7 +303,7 @@
   #set ($statement =
     'from doc.object(License.Code.LicenseDetailsClass) license ' +
     'where license.instanceId = :instanceId and license.featureId = :featureId ' +
-    'order by license.expirationDate desc'
+    'order by license.expirationDate desc, doc.creationDate desc'
   )
   #set ($computedQuery = $services.query.xwql($statement))
   #set ($computedQuery = $computedQuery.bindValue('instanceId', $instanceId))

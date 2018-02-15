@@ -76,7 +76,10 @@ licensor.licenseManager.hint=Here's a list of extensions installed in your wiki 
 licensor.missingLicenses=The following extensions do not have a valid license. Please visit the {0}Licenses section{1}.
 licensor.missingLicense=There is no valid license for {0}. Please visit the {1}Licenses section{2}.
 licensor.accessDenied=Only the administrators with programming rights are allowed to manage the licenses.
-licensor.unavailableOnSubWiki=The licenses are managed from {0}the main wiki{1}.</content>
+licensor.unavailableOnSubWiki=The licenses are managed from {0}the main wiki{1}.
+licensor.updateLicenses.failedToRetrieve=Failed to retrieve the license updates.
+licensor.updateLicenses.noUpdates=Licenses are up-to-date.
+licensor.updateLicenses.applied=Applied {0} out of {1} license updates.</content>
   <object>
     <name>Licenses.Code.Translations</name>
     <number>0</number>
