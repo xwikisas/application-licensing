@@ -68,7 +68,7 @@
 ##
 #if ($data.featureId.size() &gt; 0)
   #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-  #set ($storeUpdateURL = $licensingConfigDoc.getValue("storeUpdateURL"))
+  #set ($storeUpdateURL = $licensingConfigDoc.getValue('storeUpdateURL'))
   #set ($licensesJSON = $xwiki.getURLContent("$storeUpdateURL?$escapetool.url($data)"))
   #set ($licenses = $jsontool.fromString($licensesJSON))
   #if (!$licenses)

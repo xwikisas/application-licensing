@@ -84,7 +84,6 @@
     <storeUpdateURL>
       <customDisplay/>
       <disabled>0</disabled>
-      <hint/>
       <name>storeUpdateURL</name>
       <number>3</number>
       <picker>0</picker>
