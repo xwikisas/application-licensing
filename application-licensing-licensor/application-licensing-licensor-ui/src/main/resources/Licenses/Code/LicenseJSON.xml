@@ -108,11 +108,6 @@
 #if ("$!{request.xpage}" == 'plain')
   $response.setContentType('application/json')
 #end
-#set ($jsonMap = {
-  'offset': $request.offset,
-  'reqNo': $request.reqNo,
-  'rows': []
-})
 #if ($request.showAllPaidExtensions == 'true')
   #getPaidExtensions
   #set ($extensions = $paidExtensions)
@@ -120,13 +115,30 @@
   #getVisiblePaidExtensions
   #set ($extensions = $visiblePaidExtensions)
 #end
+#set ($rows = [])
 #foreach ($extension in $extensions)
-  #addPaidExtensionRow($extension $jsonMap.rows)
+  #addPaidExtensionRow($extension $rows)
 #end
-#set ($jsonMap.rows = $sorttool.sort($jsonMap.rows, 'name'))
-#set ($jsonMap.totalrows = $jsonMap.rows.size())
-#set ($jsonMap.returnedrows = $jsonMap.rows.size())
-$jsontool.serialize($jsonMap)
+#set ($rows = $sorttool.sort($rows, 'name'))
+#set ($offset = $mathtool.sub($mathtool.toInteger($request.offset), 1))
+#if ("$!offset" == '')
+  #set ($offset = 0)
+#end
+#set ($offset = $mathtool.max($mathtool.min($offset, $mathtool.sub($rows.size(), 1)), 0))
+#set ($limit = $mathtool.toInteger($request.limit))
+#if ("$!limit" == '')
+  #set ($limit = 10)
+#elseif ($limit &lt;= 0)
+  #set ($limit = $rows.size())
+#end
+#set ($limit = $mathtool.min($limit, $mathtool.sub($rows.size(), $offset)))
+$jsontool.serialize({
+  'reqNo': $request.reqNo,
+  'totalrows': $rows.size(),
+  'returnedrows': $limit,
+  'offset': $mathtool.add($offset, 1),
+  'rows': $rows.subList($offset, $mathtool.add($offset, $limit))
+})
 {{/velocity}}</content>
   <object>
     <name>Licenses.Code.LicenseJSON</name>
