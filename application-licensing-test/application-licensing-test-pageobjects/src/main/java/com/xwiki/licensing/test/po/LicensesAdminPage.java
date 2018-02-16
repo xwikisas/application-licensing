@@ -19,13 +19,10 @@
  */
 package com.xwiki.licensing.test.po;
 
-import java.util.Date;
-
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.xwiki.administration.test.po.AdministrationSectionPage;
 import org.xwiki.test.ui.po.LiveTableElement;
 
@@ -104,40 +101,21 @@ public class LicensesAdminPage extends AdministrationSectionPage
 
     public void addLicense(String license)
     {
-        String markerId = "pageNotYetReloadedMarker" + new Date().getTime();
-        addPageNotYetReloadedMarker(markerId);
-
         // The license is pretty long and it kills the browser if we generate keyboard events for each character.
         getDriver().executeScript("arguments[0].value = arguments[1]", this.licenseTextArea, license);
         this.addLicenseButton.click();
 
-        getDriver().waitUntilCondition(new ExpectedCondition<Boolean>()
-        {
-            @Override
-            public Boolean apply(WebDriver input)
-            {
-                // Wait until either the page is reloaded (license added successfully) or an error message appears.
-                return !getDriver().hasElementWithoutWaiting(By.id(markerId))
-                    || getDriver().hasElementWithoutWaiting(By.cssSelector(".codeToExecute .box.errormessage"));
-            }
-        });
+        // Wait for the Add License button to be re-enabled.
+        getDriver().waitUntilCondition(ExpectedConditions.elementToBeClickable(this.addLicenseButton));
+
+        if (!getDriver().hasElementWithoutWaiting(By.cssSelector(".codeToExecute .box.errormessage"))) {
+            // Wait for the live table to be reloaded.
+            getLiveTable();
+        }
     }
 
     public String getErrorMessage()
     {
         return getDriver().findElementWithoutWaiting(By.cssSelector(".codeToExecute .box.errormessage")).getText();
-    }
-
-    private void addPageNotYetReloadedMarker(String id)
-    {
-        StringBuilder markerScript = new StringBuilder();
-        markerScript.append("new function (markerId) {");
-        markerScript.append("  var marker = document.createElement('div');");
-        markerScript.append("  marker.style.display = 'none';");
-        markerScript.append("  marker.id = markerId;");
-        markerScript.append("  document.body.appendChild(marker);");
-        markerScript.append("}(arguments[0])");
-
-        getDriver().executeScript(markerScript.toString(), id);
     }
 }

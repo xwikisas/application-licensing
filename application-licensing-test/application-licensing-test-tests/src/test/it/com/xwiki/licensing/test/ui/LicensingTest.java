@@ -48,7 +48,8 @@ import com.xwiki.licensing.test.po.LicenseNotificationPane;
 import com.xwiki.licensing.test.po.LicensesAdminPage;
 import com.xwiki.licensing.test.po.LicensesHomePage;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Functional tests for the Licensing application.
@@ -173,6 +174,8 @@ public class LicensingTest extends AbstractTest
         assertEquals("-", liveTable.getCell(firstRow, 4).getText());
 
         // Check the license notification message.
+        // We need to refresh the page in order for the notification menu to be updated.
+        getDriver().navigate().refresh();
         licensesAdminSection.toggleNotificationsMenu();
         notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
@@ -188,6 +191,7 @@ public class LicensingTest extends AbstractTest
         assertEquals("1 / 0", liveTable.getCell(firstRow, 4).getText());
 
         // Check the license notification message.
+        // We need to refresh the page in order for the notification menu to be updated.
         licensesAdminSection.toggleNotificationsMenu();
         notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
@@ -202,12 +206,12 @@ public class LicensingTest extends AbstractTest
             liveTable.getCell(firstRow, 3).getText());
         assertEquals("Unlimited", liveTable.getCell(firstRow, 4).getText());
 
-        // Check the license notification message.
-        assertFalse(licensesAdminSection.hasNotificationsMenu());
-
         // Verify that the Example page now has a license.
         viewPage = getUtil().gotoPage("Example", "WebHome");
         assertEquals("Hello", viewPage.getContent());
+
+        // Check the license notification message.
+        assertFalse(licensesAdminSection.hasNotificationsMenu());
 
         // Try also with a simple user.
         getUtil().loginAndGotoPage("alice", "test", getUtil().getURL("Example", "WebHome"));
