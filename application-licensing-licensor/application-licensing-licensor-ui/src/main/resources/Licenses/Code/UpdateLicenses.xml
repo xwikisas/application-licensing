@@ -44,6 +44,9 @@
 {{velocity wiki="false"}}
 #if ($request.confirm != 'true')
   #stop
+#elseif (!$services.csrf.isTokenValid($request.form_token))
+  #set ($discard = $response.sendError(401, $services.localization.render('licensor.badCSRFToken')))
+  #stop
 #end
 #set ($data = {
   'outputSyntax': 'plain',
@@ -88,14 +91,14 @@
   })
 #elseif ($licenses.isEmpty())
   #set ($jsonResponse = {
-    'status': 'done',
+    'status': 'info',
     'notification': $services.localization.render('licensor.updateLicenses.noUpdates')
   })
 #else
   #set ($successCount = 0)
   #foreach ($license in $licenses)
     #set ($result = $NULL)
-    #try()
+    #try('addLicenseException')
       #set ($result = $services.licensing.licensor.addLicense($license))
     #end
     #if ($result)
@@ -104,7 +107,8 @@
   #end
   #set ($jsonResponse = {
     'status': 'done',
-    'notification': $services.localization.render('licensor.updateLicenses.applied', [$successCount, $licenses.size()])
+    'notification': $services.localization.render('licensor.updateLicenses.applied', [$successCount, $licenses.size()]),
+    'updateCount': $successCount
   })
   #if ($successCount == 0)
     #set ($jsonResponse.status = 'error')

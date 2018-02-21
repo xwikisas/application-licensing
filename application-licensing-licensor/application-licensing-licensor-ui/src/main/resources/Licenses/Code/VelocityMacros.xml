@@ -156,6 +156,7 @@
     &lt;fieldset class="header"&gt;
       &lt;legend&gt;$services.localization.render('licensor.ownerDetails.heading')&lt;/legend&gt;
       &lt;p&gt;$services.localization.render('licensor.ownerDetails.hint')&lt;/p&gt;
+      &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
       &lt;dl&gt;
         #getOwnerFormFields
         #getInstanceIdFormField
@@ -165,38 +166,39 @@
   {{/html}}
 #end
 
-#macro (licenseButton $licenseType $cssClass $label $jsonData)
+#macro (licenseButton $licenseType $cssClass $key $jsonData)
   #set ($jsonData.licenseType = $licenseType)
-  #set ($label = $services.localization.render("licensor.${label}License.label"))
-  &lt;button class="btn btn-$cssClass licenseButton" data-button="$escapetool.xml($jsontool.serialize($jsonData))"
-    &gt;$label&lt;/button&gt;
+  #set ($label = $services.localization.render("licensor.${key}License.label"))
+  &lt;button class="btn btn-$cssClass licenseButton licenseButton-$escapetool.xml($key)"
+    data-button="$escapetool.xml($jsontool.serialize($jsonData))"&gt;$label&lt;/button&gt;
 #end
 
-#macro (licenseActions $license $extension)
+#macro (getLicenseActions $license $extension $actions)
   ## Use the JSON format in order to be parsable in JavaScript.
   #set ($jsonData = {
     'featureId': $extension.id.id,
     'extensionVersion': $extension.id.version.toString(),
     'userCount': $userCount
   })
-  &lt;div class="licenseActions"&gt;
-  #set ($displayedButtons = [])
   #if (!$license || $license.expirationDate == 0)
     ## No license available.
-    #licenseButton('PAID' 'success' 'paid' $jsonData)
-    #licenseButton('TRIAL' 'primary' 'trial' $jsonData)
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'paid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'trial' $jsonData)"))
   #elseif ($license.type == 'FREE')
-    #licenseButton('PAID' 'success' 'paid' $jsonData)
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'paid' $jsonData)"))
   #elseif ($license.type == 'TRIAL')
-    #licenseButton('PAID' 'success' 'paid' $jsonData)
-    #licenseButton('TRIAL' 'primary' 'extendTrial' $jsonData)
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'paid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'extendTrial' $jsonData)"))
   #elseif ($license.type == 'PAID')
-    #licenseButton('PAID' 'success' 'extendPaid' $jsonData)
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'extendPaid' $jsonData)"))
   #end
-  ## Make the buttons list extensible for custom cases, by using $customButtons variable
-  #foreach($button in $customButtons)
-    #licenseButton($button[0] $button[1] $button[2] $jsonData)
-  #end
+#end
+
+#macro (licenseActions $license $extension)
+  #set ($actions = [])
+  #getLicenseActions($license $extension $actions)
+  &lt;div class="licenseActions"&gt;
+    $stringtool.join($actions, '')
   &lt;/div&gt;
 #end
 {{/velocity}}</content>

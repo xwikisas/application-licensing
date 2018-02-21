@@ -39,19 +39,23 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{velocity output="false"}}
 #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
 #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
 #set ($needsUpdate = false)
 #foreach ($prop in $ownerObj.properties)
-  #if ($prop.value != $request.get($prop.name))
+  #set ($newValue = $request.getParameter($prop.name))
+  #if ($prop.value != $newValue &amp;&amp; $request.getParameterMap().containsKey($prop.name))
     #set ($needsUpdate = true)
-    #set ($discard = $ownerObj.set($prop.name, $request.get($prop.name)))
+    #set ($discard = $ownerObj.set($prop.name, $newValue))
   #end
 #end
 #if ($needsUpdate)
-  #set ($discard = $licensingConfigDoc.save())
+  #if ($services.csrf.isTokenValid($request.form_token))
+    #set ($discard = $licensingConfigDoc.save())
+  #else
+    #set ($discard = $response.sendError(401, $services.localization.render('licensor.badCSRFToken')))
+  #end
 #end
-{{/velocity}}
- </content>
+{{/velocity}}</content>
 </xwikidoc>
