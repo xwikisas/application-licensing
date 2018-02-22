@@ -151,16 +151,14 @@ public class LicensingTest extends AbstractTest
         assertEquals("-", liveTable.getCell(firstRow, 4).getText());
 
         // Import an invalid license.
-        licensesAdminSection.addLicense("foo");
         assertEquals("Failed! The provided license could not be decoded. Please contact sales@xwiki.com.",
-            licensesAdminSection.getErrorMessage());
+            licensesAdminSection.addLicense("foo"));
 
         // Import a license that is not meant for the current XWiki instance.
         try (InputStream incompatibleLicense = getClass().getResourceAsStream("/incompatible.license")) {
-            licensesAdminSection.addLicense(IOUtils.toString(incompatibleLicense, StandardCharsets.UTF_8));
+            assertEquals("Failed! License is not compatible or useful for your server. Please contact sales@xwiki.com",
+                licensesAdminSection.addLicense(IOUtils.toString(incompatibleLicense, StandardCharsets.UTF_8)));
         }
-        assertEquals("Failed! License is not compatible or useful for your server. Please contact sales@xwiki.com",
-            licensesAdminSection.getErrorMessage());
 
         this.instanceId = licensesAdminSection.getInstanceId();
 
@@ -232,6 +230,6 @@ public class LicensingTest extends AbstractTest
                 "expirationDate", expirationDate);
         }
         String license = licenseDetailsView.generateLicense();
-        LicensesAdminPage.gotoPage().addLicense(license);
+        assertEquals("License successfully added!", LicensesAdminPage.gotoPage().addLicense(license));
     }
 }

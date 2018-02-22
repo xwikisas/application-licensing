@@ -20,6 +20,7 @@
 package com.xwiki.licensing.test.po;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -90,16 +91,13 @@ public class LicensesAdminPage extends AdministrationSectionPage
         return liveTable;
     }
 
-    /**
-     * Note: Need to wait till the page is refreshed.
-     */
     public LicensesAdminPage clickGetTrialButton()
     {
         this.getTrialButton.click();
-        return new LicensesAdminPage();
+        return this;
     }
 
-    public void addLicense(String license)
+    public String addLicense(String license)
     {
         // The license is pretty long and it kills the browser if we generate keyboard events for each character.
         getDriver().executeScript("arguments[0].value = arguments[1]", this.licenseTextArea, license);
@@ -108,14 +106,25 @@ public class LicensesAdminPage extends AdministrationSectionPage
         // Wait for the Add License button to be re-enabled.
         getDriver().waitUntilCondition(ExpectedConditions.elementToBeClickable(this.addLicenseButton));
 
-        if (!getDriver().hasElementWithoutWaiting(By.cssSelector(".codeToExecute .box.errormessage"))) {
+        // Get the notification message before it disappears.
+        WebElement notificationElement = getDriver().findElementWithoutWaiting(By.cssSelector(".xnotification"));
+        boolean successful = notificationElement.getAttribute("class").contains("xnotification-success");
+        String notificationMessage = notificationElement.getText();
+
+        // In order to improve test speed, clicking on the notification will make it disappear. This also ensures that
+        // this method always waits for the last notification message of the specified level.
+        try {
+            // The notification message may disappear before we get to click on it.
+            notificationElement.click();
+        } catch (WebDriverException e) {
+            // Ignore.
+        }
+
+        if (successful) {
             // Wait for the live table to be reloaded.
             getLiveTable();
         }
-    }
 
-    public String getErrorMessage()
-    {
-        return getDriver().findElementWithoutWaiting(By.cssSelector(".codeToExecute .box.errormessage")).getText();
+        return notificationMessage;
     }
 }
