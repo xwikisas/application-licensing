@@ -108,6 +108,8 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
                     }
                 }
             } else {
+                // As the extension is installed at farm level, we have to invalidate every cache entry for this
+                // extension in every wiki.
                 for (String wikiId : wikiDescriptorManager.getAllIds()) {
                     invalidateForWiki(extension, new WikiReference(wikiId));
                 }
@@ -121,6 +123,12 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
         }
     }
 
+    /**
+     * Invalidate every entity contained in the security cache coming from a specific XAR extension for a given wiki.
+     *
+     * @param extension the extension to invalidate
+     * @param wikiReference the wiki to invalidate
+     */
     private void invalidateForWiki(XarInstalledExtension extension, WikiReference wikiReference)
     {
         for (XarEntry entry : extension.getXarPackage().getEntries()) {
