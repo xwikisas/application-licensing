@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.internal.enforcer;
 
+import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
@@ -34,6 +35,8 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.SecurityReferenceFactory;
 import org.xwiki.security.authorization.cache.internal.SecurityCache;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 import org.xwiki.xar.XarEntry;
 
 import com.xpn.xwiki.XWikiContext;
@@ -67,6 +70,9 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     private DocumentReferenceResolver<EntityReference> documentReferenceResolver;
 
     @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
+
+    @Inject
     private Logger logger;
 
     @Override
@@ -94,22 +100,35 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     {
         boolean locked = acquireLock();
         try {
-            for (String namespace : extension.getNamespaces()) {
-                if (namespace.startsWith("wiki:")) {
-                    WikiReference wikiRef = new WikiReference(namespace.substring(5));
-                    for (XarEntry entry : extension.getXarPackage().getEntries()) {
-                        securityCache.remove(
-                            securityReferenceFactory.newEntityReference(
-                                documentReferenceResolver.resolve(entry, wikiRef)
-                            )
-                        );
+            Collection<String> namespaces = extension.getNamespaces();
+            if (namespaces != null) {
+                for (String namespace : namespaces) {
+                    if (namespace.startsWith("wiki:")) {
+                        invalidateForWiki(extension, new WikiReference(namespace.substring(5)));
                     }
                 }
+            } else {
+                for (String wikiId : wikiDescriptorManager.getAllIds()) {
+                    invalidateForWiki(extension, new WikiReference(wikiId));
+                }
             }
+        } catch (WikiManagerException e) {
+            // Fail silently
         } finally {
             if (locked) {
                 readWriteLock.writeLock().unlock();
             }
+        }
+    }
+
+    private void invalidateForWiki(XarInstalledExtension extension, WikiReference wikiReference)
+    {
+        for (XarEntry entry : extension.getXarPackage().getEntries()) {
+            securityCache.remove(
+                    securityReferenceFactory.newEntityReference(
+                            documentReferenceResolver.resolve(entry, wikiReference)
+                    )
+            );
         }
     }
 
