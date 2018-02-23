@@ -139,6 +139,29 @@
   #end
 #end
 
+#macro (readLicenseDetailsFromRequest $licenseDetails)
+  #set ($discard = $licenseDetails.putAll({
+    'firstName': $request.firstName,
+    'lastName': $request.lastName,
+    'email': $request.email,
+    'instanceId': $request.instanceId,
+    'featureId': $request.featureId,
+    'extensionVersion': $request.extensionVersion,
+    'type': $request.licenseType.toLowerCase(),
+    'maxUserCount': $request.maxUserCount
+  }))
+#end
+
+#macro (hasAllMandatoryLicenseDetails $licenseDetails)
+  #set ($hasAllMandatoryLicenseDetails =
+    "$!licenseDetails.firstName" != '' &amp;&amp;
+    "$!licenseDetails.lastName" != '' &amp;&amp;
+    "$!licenseDetails.email" != '' &amp;&amp;
+    "$!licenseDetails.instanceId" != '' &amp;&amp;
+    "$!licenseDetails.featureId" != '' &amp;&amp;
+    "$!licenseDetails.type" != '')
+#end
+
 #macro (addLicenseDetails $licenseDetails $shouldGenerateLicense $licenseAsString)
   #findNextUniqueDetailsPageReference($nextPageReference)
   #set ($nextDocument = $xwiki.getDocument($nextPageReference))
