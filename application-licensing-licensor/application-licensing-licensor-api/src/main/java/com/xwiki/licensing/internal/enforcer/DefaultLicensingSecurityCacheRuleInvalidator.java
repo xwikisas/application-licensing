@@ -50,6 +50,8 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSecurityCacheRuleInvalidator
 {
+    private static final String WIKI_NAMESPACE = "wiki:";
+
     /**
      * Fair read-write lock to suspend the delivery of cache updates while there are loads in progress.
      */
@@ -103,19 +105,22 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
             Collection<String> namespaces = extension.getNamespaces();
             if (namespaces != null) {
                 for (String namespace : namespaces) {
-                    if (namespace.startsWith("wiki:")) {
-                        invalidateForWiki(extension, new WikiReference(namespace.substring(5)));
+                    if (namespace.startsWith(WIKI_NAMESPACE)) {
+                        invalidateForWiki(extension, new WikiReference(namespace.substring(WIKI_NAMESPACE.length())));
                     }
                 }
             } else {
                 // As the extension is installed at farm level, we have to invalidate every cache entry for this
                 // extension in every wiki.
-                for (String wikiId : wikiDescriptorManager.getAllIds()) {
-                    invalidateForWiki(extension, new WikiReference(wikiId));
+                try {
+                    for (String wikiId : wikiDescriptorManager.getAllIds()) {
+                        invalidateForWiki(extension, new WikiReference(wikiId));
+                    }
+                } catch (WikiManagerException e) {
+                    logger.error("Failed to invalidate the cache for the extension [{}] on the farm",
+                        extension.getId(), e);
                 }
             }
-        } catch (WikiManagerException e) {
-            // Fail silently
         } finally {
             if (locked) {
                 readWriteLock.writeLock().unlock();
@@ -133,9 +138,9 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     {
         for (XarEntry entry : extension.getXarPackage().getEntries()) {
             securityCache.remove(
-                    securityReferenceFactory.newEntityReference(
-                            documentReferenceResolver.resolve(entry, wikiReference)
-                    )
+                securityReferenceFactory.newEntityReference(
+                    documentReferenceResolver.resolve(entry, wikiReference)
+                )
             );
         }
     }
