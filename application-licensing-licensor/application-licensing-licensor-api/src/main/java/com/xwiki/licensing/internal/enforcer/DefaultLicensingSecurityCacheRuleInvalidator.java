@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.internal.enforcer;
 
+import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
@@ -34,6 +35,8 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.SecurityReferenceFactory;
 import org.xwiki.security.authorization.cache.internal.SecurityCache;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 import org.xwiki.xar.XarEntry;
 
 import com.xpn.xwiki.XWikiContext;
@@ -47,6 +50,8 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSecurityCacheRuleInvalidator
 {
+    private static final String WIKI_NAMESPACE = "wiki:";
+
     /**
      * Fair read-write lock to suspend the delivery of cache updates while there are loads in progress.
      */
@@ -65,6 +70,9 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
 
     @Inject
     private DocumentReferenceResolver<EntityReference> documentReferenceResolver;
+
+    @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
 
     @Inject
     private Logger logger;
@@ -94,22 +102,46 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     {
         boolean locked = acquireLock();
         try {
-            for (String namespace : extension.getNamespaces()) {
-                if (namespace.startsWith("wiki:")) {
-                    WikiReference wikiRef = new WikiReference(namespace.substring(5));
-                    for (XarEntry entry : extension.getXarPackage().getEntries()) {
-                        securityCache.remove(
-                            securityReferenceFactory.newEntityReference(
-                                documentReferenceResolver.resolve(entry, wikiRef)
-                            )
-                        );
+            Collection<String> namespaces = extension.getNamespaces();
+            if (namespaces != null) {
+                for (String namespace : namespaces) {
+                    if (namespace.startsWith(WIKI_NAMESPACE)) {
+                        invalidateForWiki(extension, new WikiReference(namespace.substring(WIKI_NAMESPACE.length())));
                     }
+                }
+            } else {
+                // As the extension is installed at farm level, we have to invalidate every cache entry for this
+                // extension in every wiki.
+                try {
+                    for (String wikiId : wikiDescriptorManager.getAllIds()) {
+                        invalidateForWiki(extension, new WikiReference(wikiId));
+                    }
+                } catch (WikiManagerException e) {
+                    logger.error("Failed to invalidate the cache for the extension [{}] on the farm",
+                        extension.getId(), e);
                 }
             }
         } finally {
             if (locked) {
                 readWriteLock.writeLock().unlock();
             }
+        }
+    }
+
+    /**
+     * Invalidate every entity contained in the security cache coming from a specific XAR extension for a given wiki.
+     *
+     * @param extension the extension to invalidate
+     * @param wikiReference the wiki to invalidate
+     */
+    private void invalidateForWiki(XarInstalledExtension extension, WikiReference wikiReference)
+    {
+        for (XarEntry entry : extension.getXarPackage().getEntries()) {
+            securityCache.remove(
+                securityReferenceFactory.newEntityReference(
+                    documentReferenceResolver.resolve(entry, wikiReference)
+                )
+            );
         }
     }
 
