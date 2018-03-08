@@ -38,7 +38,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>licensor.name=Nom de l'extension
 licensor.version=Version
 licensor.status=Date d'expiration
