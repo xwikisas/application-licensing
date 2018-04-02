@@ -196,7 +196,9 @@
       ## The versions are returned in ascending order and we want the latest.
       ## Note that we can't access the last item directly. We're forced to iterate.
       #foreach ($version in $versions)
-        #set ($licenseDetails.extensionVersion = $version)
+        #if ($version.type == 'STABLE')
+          #set ($licenseDetails.extensionVersion = $version.value)
+        #end
       #end
     #end
     #set ($extension = $services.extension.resolve($licenseDetails.featureId, $licenseDetails.extensionVersion))
