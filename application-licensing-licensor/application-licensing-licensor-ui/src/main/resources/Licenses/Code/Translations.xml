@@ -66,6 +66,7 @@ licensor.addLicense.hint=Once you receive a license, copy it here to activate th
 licensor.ownerDetails.firstName.label=First name
 licensor.ownerDetails.lastName.label=Last name
 licensor.ownerDetails.email.label=Email
+licensor.ownerDetails.email.hint=You will use this email address to contact the support, so make sure it is valid.
 licensor.ownerDetails.instanceId.label=Instance id
 licensor.ownerDetails.instanceId.hint=Unique identifier for your XWiki instance. Used to associate your licenses with your XWiki instance.
 licensor.ownerDetails.missingData=This field is required!

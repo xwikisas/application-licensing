@@ -145,6 +145,11 @@
   #foreach ($prop in $ownerObj.properties)
     &lt;dt&gt;
       &lt;label for="${prop.name}"&gt;$services.localization.render("licensor.ownerDetails.${prop.name}.label")&lt;/label&gt;
+      #set ($hintTranslationKey = "licensor.ownerDetails.${prop.name}.hint")
+      #set ($hint = $services.localization.render($hintTranslationKey))
+      #if ($hint != $hintTranslationKey)
+        &lt;span class="xHint"&gt;$!escapetool.xml($hint)&lt;/span&gt;
+      #end
     &lt;/dt&gt;
     &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
   #end
