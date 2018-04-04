@@ -178,7 +178,7 @@
     <property>
       <code>#template('colorThemeInit.vm')
 
-#tmNotifications .glyphicon-bell::before {
+#tmNotifications &gt; .dropdown-toggle span:empty::before {
   color: $theme.notificationErrorColor;
 }
 
