@@ -66,8 +66,10 @@
   #livetable('licenseManager' $columns $columnsProperties $options)
   {{html clean="false"}}
   &lt;p&gt;
-    &lt;button id="updateLicenses" class="btn btn-default"
-        title="$escapetool.xml($services.localization.render('licensor.updateLicenses.hint'))"&gt;
+    &lt;button id="updateLicenses" class="btn btn-default" data-toggle="popover"
+        title="$escapetool.xml($services.localization.render('licensor.updateLicenses.hint'))"
+        data-title="$escapetool.xml($services.localization.render('licensor.updateLicenses.hint.title'))"
+        data-content="$escapetool.xml($services.localization.render('licensor.updateLicenses.hint.content'))"&gt;
       $escapetool.xml($services.localization.render('licensor.updateLicenses.label'))
     &lt;/button&gt;
   &lt;/p&gt;
@@ -465,7 +467,7 @@
   };
 });
 
-require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge'], function ($, licensor, xwikiMeta) {
+require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap'], function ($, licensor, xwikiMeta) {
   //
   // Owner Details Form
   //
@@ -622,6 +624,24 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge'], function ($
       ownerDetailsForm.append(extraFields).submit();
       extraFields.remove();
     };
+  });
+
+  // Show a popover on the "Check for Updates" button to let the user know what to do after he pays for the license.
+  $('#updateLicenses').each(function() {
+    // Initialize the popover with a different title.
+    var originalTitle = $(this).attr('title');
+    // We trigger the popover manually after the user clicks on the Buy/Extend license button.
+    $(this).attr('title', $(this).attr('data-title')).popover({trigger: 'manual'}).attr('title', originalTitle);
+  });
+
+  $('#ownerDetails').submit(function () {
+    var updateLicensesButton = $('#updateLicenses');
+    updateLicensesButton.one('click', function() {
+      // Hide the popover on the first click.
+      $(this).popover('hide');
+    });
+    updateLicensesButton[0].scrollIntoView();
+    updateLicensesButton.focus().popover('show');
   });
 
   $('#updateLicenses').click(function() {
