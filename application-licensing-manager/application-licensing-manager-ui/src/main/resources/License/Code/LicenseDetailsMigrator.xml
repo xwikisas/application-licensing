@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="License.Code.LicenseDetailsMigrator" locale="">
+  <web>License.Code</web>
+  <name>LicenseDetailsMigrator</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1522937021000</creationDate>
+  <parent>License.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1522942068000</date>
+  <contentUpdateDate>1522941963000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+#if ("$!request.migration" == '')
+  {{html clean="false"}}
+  &lt;form class="xform" method="post"&gt;
+    &lt;div class="hidden"&gt;
+      &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)"/&gt;
+    &lt;/div&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;
+        &lt;label&gt;Migration&lt;/label&gt;
+        &lt;span class="xHint"&gt;Select the migration to execute.&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;select name="migration"&gt;
+          &lt;option value="dependentFeatureIdsAsList"&gt;Convert dependentFeatureIds to StaticList)&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+    &lt;p&gt;
+      &lt;input type="submit" class="btn btn-primary" value="Execute" /&gt;
+    &lt;/p&gt;
+  &lt;/form&gt;
+  {{/html}}
+#elseif ($services.csrf.isTokenValid($request.form_token))
+  #if ($request.migration == 'dependentFeatureIdsAsList')
+    #if ($request.confirm == 'true')
+      #set ($migratedPages = [])
+      #foreach ($pageName in $request.getParameterValues('page'))
+        #set ($licenseDetailsDoc = $xwiki.getDocument($pageName))
+        #set ($dependentFeatureIds = $licenseDetailsDoc.getValue('dependentFeatureIds'))
+        #if ($dependentFeatureIds.size() == 1)
+          #set ($dependentFeatureIds = $dependentFeatureIds.get(0).split('\s*[\s,]\s*'))
+          #if ($dependentFeatureIds.size() &gt; 1)
+            #set ($dependentFeatureIds = $dependentFeatureIds.subList(0, $dependentFeatureIds.size()))
+            #set ($discard = $licenseDetailsDoc.set('dependentFeatureIds', $dependentFeatureIds))
+            #set ($discard = $licenseDetailsDoc.save('Migrate dependentFeatureIds values to StaticList'))
+            #set ($discard = $migratedPages.add($pageName))
+          #end
+        #end
+      #end
+      The following pages have been migrated: $migratedPages
+    #else
+      #set ($results = [])
+      ## Pages that have been migrated to the new property type (but the value has not been split).
+      #set ($statement = ", BaseObject as obj, DBStringListProperty as prop join prop.list as dependentFeatureId " +
+        "where doc.fullName = obj.name and obj.className = 'License.Code.LicenseDetailsClass'" +
+        " and obj.id = prop.id.id and prop.id.name = 'dependentFeatureIds' and doc.name &lt;&gt; 'LicenseDetailsTemplate'" +
+        " and (dependentFeatureId like '%,%' or dependentFeatureId like '% %' or dependentFeatureId like '%$util.newLine%')")
+      #set ($discard = $results.addAll($services.query.hql($statement).addFilter('unique').execute()))
+      ## Pages that have not been migrated to the new property type.
+      #set ($statement = ", BaseObject as obj, LargeStringProperty as dependentFeatureIds " +
+        "where doc.fullName = obj.name and obj.className = 'License.Code.LicenseDetailsClass'" +
+        " and obj.id = dependentFeatureIds.id.id and dependentFeatureIds.id.name = 'dependentFeatureIds'" +
+        " and doc.name &lt;&gt; 'LicenseDetailsTemplate'")
+      #set ($discard = $results.addAll($services.query.hql($statement).addFilter('unique').execute()))
+      #if ($results.size() &gt; 0)
+        {{html}}
+        &lt;form class="xform" method="post"&gt;
+          &lt;div class="hidden"&gt;
+            &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)"/&gt;
+            &lt;input type="hidden" name="migration" value="$!escapetool.xml($request.migration)"/&gt;
+          &lt;/div&gt;
+          &lt;dl&gt;
+            &lt;dt&gt;
+              &lt;label&gt;$!results.size() pages to migrate&lt;/label&gt;
+              &lt;span class="xHint"&gt;Select the pages to migrate.&lt;/span&gt;
+            &lt;/dt&gt;
+            &lt;dd&gt;
+              #foreach ($result in $results)
+                &lt;div&gt;
+                  &lt;input type="checkbox" name="page" value="$!escapetool.xml($result)" checked="checked" /&gt;
+                  &lt;a href="$xwiki.getURL($result)"&gt;$!escapetool.xml($result)&lt;/a&gt;
+                &lt;/div&gt;
+              #end
+            &lt;/dd&gt;
+          &lt;/dl&gt;
+          &lt;p&gt;
+            &lt;button type="submit" name="confirm" value="true" class="btn btn-primary"&gt;Confirm&lt;/button&gt;
+          &lt;/p&gt;
+        &lt;/form&gt;
+        {{/html}}
+      #else
+        This migration is not needed.
+      #end
+    #end
+  #end
+#else
+  #set ($discard = $response.sendRedirect($services.csrf.resubmissionURL))
+#end
+{{/velocity}}</content>
+</xwikidoc>

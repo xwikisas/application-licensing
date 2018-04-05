@@ -96,7 +96,7 @@
   #set ($discard = $license.addLicenseeInfo('lastName', $licenseDetails.lastName))
   #set ($discard = $license.addLicenseeInfo('email', $licenseDetails.email))
   #set ($discard = $license.addFeatureId($licenseDetails.featureId))
-  #foreach ($dependentFeatureId in $licenseDetails.dependentFeatureIds.split('\s*[\s,]\s*'))
+  #foreach ($dependentFeatureId in $licenseDetails.dependentFeatureIds)
     #set ($discard = $license.addFeatureId($dependentFeatureId))
   #end
   ## Keys are stored in the permanent directory, in a subdirectory named 'license-keystore'
@@ -223,7 +223,7 @@
         #end
         ## Add the paid modules that are transitive dependencies.
         #getDependentFeatureIds($extension $dependentFeatureIds)
-        #set ($licenseDetails.dependentFeatureIds = $stringtool.join($dependentFeatureIds, $util.newline))
+        #set ($licenseDetails.dependentFeatureIds = $dependentFeatureIds)
       #end
     #end
   #end

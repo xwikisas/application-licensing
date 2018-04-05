@@ -55,20 +55,25 @@
       <nameField/>
       <validationScript/>
       <dependentFeatureIds>
-        <contenttype>PureText</contenttype>
+        <cache>0</cache>
         <customDisplay/>
         <disabled>0</disabled>
-        <editor>PureText</editor>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
         <name>dependentFeatureIds</name>
         <number>9</number>
         <picker>0</picker>
         <prettyName>Dependent Feature Ids</prettyName>
-        <rows>5</rows>
-        <size>40</size>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>60</size>
+        <sort>none</sort>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
         <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+        <values/>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </dependentFeatureIds>
       <email>
         <customDisplay/>
