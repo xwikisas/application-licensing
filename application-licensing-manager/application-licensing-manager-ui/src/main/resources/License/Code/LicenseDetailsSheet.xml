@@ -43,11 +43,7 @@
 
 {{velocity}}
 #if ("$!request.action" == 'generate')
-  #set ($licenseDetailsObject = $doc.getObject('License.Code.LicenseDetailsClass'))
-  #set ($licenseDetails = {})
-  #foreach ($key in $licenseDetailsObject.propertyNames)
-    #set ($discard = $licenseDetails.put($key, $licenseDetailsObject.getValue($key)))
-  #end
+  #readLicenseDetailsFromDocument($doc)
   #generateLicense($licenseDetails true $doc.documentReference)
   ## Refresh the page.
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
