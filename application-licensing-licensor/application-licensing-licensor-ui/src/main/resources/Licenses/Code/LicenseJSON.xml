@@ -59,6 +59,20 @@
   #end
   #set ($expDate = "&lt;span class=""text-$!expDateStatus""&gt;$!escapetool.xml($expDate)&lt;/span&gt;")
   ##
+  ## Support
+  ##
+  #set ($support = $license.licensee.support)
+  #if ("$!support" != '')
+    #set ($translationKey = 'licensor.support.' + $support.toLowerCase())
+    #if ($services.localization.get($translationKey))
+      #set ($support = $services.localization.render($translationKey))
+    #else
+      #set ($support = $stringtool.capitalize($support))
+    #end
+  #else
+    #set ($support = $services.localization.render('licensor.support.unspecified'))
+  #end
+  ##
   ## User Limit
   ##
   #if (!$license || !$license.maxUserCount || $license.maxUserCount == $LONG_MAX_VALUE
@@ -97,6 +111,7 @@
     'name': $extension.name,
     'version': $extension.id.version.toString(),
     'status': $expDate,
+    'support': $support,
     'userLimit': $userLimit,
     'wiki': $stringtool.join($namespaces, ', '),
     'actions': "#licenseActions($license $extension)"

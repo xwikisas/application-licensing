@@ -40,20 +40,21 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>license.licenseId=Id
+license.type=Type
 license.firstName=First Name
 license.lastName=Last Name
 license.email=Email
-license.instanceId=Instance ID
-license.type=Type
-license.requestDate=Request Date
-license.issueDate=Issue Date
-license.expirationDate=Expiration Date
-license.maxUserCount=User Limit
+license.instanceId=Instance Id
 license.featureId=Extension Id
 license.dependentFeatureIds=Dependent Extension Ids
+license.issueDate=Issue Date
+license.expirationDate=Expiration Date
+license.support=Support
+license.maxUserCount=User Limit
 license.hasLicense=License?
 license._actions=Actions
 license.emptyvalue=
+
 certificates.doc.name=Page Name
 certificates.subject=Subject
 certificates.keyid=Key Id

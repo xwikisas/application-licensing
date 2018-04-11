@@ -62,25 +62,26 @@
 {{/html}}
 #end
 
-#set($columns = ['licenseId', 'firstName', 'lastName', 'email', 'instanceId', 'featureId', 'dependentFeatureIds',
-  'issueDate', 'expirationDate', 'maxUserCount', 'type', 'hasLicense'])
+#set($columns = ['licenseId', 'type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId',
+  'dependentFeatureIds', 'issueDate', 'expirationDate', 'support', 'maxUserCount', 'hasLicense'])
 #set($columnsProperties = {
-  'licenseId' : { 'link' : 'view', 'type' : 'text' },
-  'firstName' : { 'link' : 'view', 'type' : 'text' },
-  'lastName' : { 'link' : 'view', 'type' : 'text' },
-  'email' : { 'html' : 'true', 'type' : 'text' },
-  'instanceId' : { 'type' : 'text' },
-  'featureId' : { 'type' : 'text' },
-  'dependentFeatureIds' : { 'type' : 'text' },
-  'issueDate' : { 'type' : 'text' },
-  'expirationDate' : { 'type' : 'text' },
-  'maxUserCount' : { 'type' : 'number' },
-  'type' : { 'type' : 'text' },
-  'hasLicense' : { 'type' : 'text' }
+  'licenseId': {'link': 'view', 'type': 'text'},
+  'type': {'type': 'text'},
+  'firstName': {'type': 'text'},
+  'lastName': {'type': 'text'},
+  'email': {'html': 'true', 'type': 'text'},
+  'instanceId': {'type': 'text'},
+  'featureId': {'type': 'text'},
+  'dependentFeatureIds': {'type': 'text'},
+  'issueDate': {'type': 'text'},
+  'expirationDate': {'type': 'text'},
+  'support': {'type': 'text'},
+  'maxUserCount': {'type': 'number'},
+  'hasLicense': {'type': 'boolean'}
 })
 #set($options = {
-   'className' : 'License.Code.LicenseDetailsClass',
-   'translationPrefix' : 'license.'
+   'className': 'License.Code.LicenseDetailsClass',
+   'translationPrefix': 'license.'
 })
 #livetable('licenses' $columns $columnsProperties $options)
 {{/velocity}}</content>

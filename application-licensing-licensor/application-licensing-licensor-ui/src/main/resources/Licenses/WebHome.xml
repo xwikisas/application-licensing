@@ -49,11 +49,12 @@
     $services.localization.render('licensor.licenseManager.hint')
   &lt;/fieldset&gt;
   {{/html}}
-  #set ($columns = ['name', 'version', 'status', 'userLimit', 'wiki', 'actions'])
+  #set ($columns = ['name', 'version', 'status', 'support', 'userLimit', 'wiki', 'actions'])
   #set ($columnsProperties = {
     'name': {'filterable': false, 'sortable': false},
     'version': {'filterable': false, 'sortable': false},
     'status': {'filterable': false, 'sortable': false, 'html': true},
+    'support': {'filterable': false, 'sortable': false},
     'userLimit': {'filterable': false, 'sortable': false, 'html': true},
     'wiki': {'filterable': false, 'sortable': false},
     'actions': {'filterable': false, 'sortable': false, 'html': true}

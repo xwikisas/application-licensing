@@ -48,30 +48,14 @@
   ## Refresh the page.
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
 #end
-; License Id
-: $doc.display('licenseId')
-; Licensee First Name
-: $doc.display('firstName')
-; Licensee Last Name
-: $doc.display('lastName')
-; Licensee Email
-: $doc.display('email')
-; Instance ID
-: $doc.display('instanceId')
-; Extension Name
-: $doc.display('extensionName')
-; Extension ID
-: $doc.display('featureId')
-; Dependent Extension IDs
-: $doc.display('dependentFeatureIds')
-; User Limit
-: $doc.display('maxUserCount')
-; Request Date
-: $doc.display('requestDate')
-; License Type
-: $doc.display('type')
+(% class="xform"%)(((
+#foreach ($propertyName in ['licenseId', 'type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId',
+    'dependentFeatureIds', 'support', 'maxUserCount'])
+  ; $doc.displayPrettyName($propertyName)
+  : $doc.display($propertyName)
+#end
 #if ($xcontext.action == 'view')
-  #macro(displayGenerateButton)
+  #macro (displayGenerateButton)
     {{html clean='false'}}
       &lt;form&gt;
         &lt;input type='hidden' name='action' value='generate'/&gt;
@@ -81,19 +65,16 @@
       &lt;/form&gt;
     {{/html}}
   #end
-  ##------------- Display Issue Date
   #set ($issueDate = $doc.getValue('issueDate'))
   #if ("$!issueDate" != '')
-    ; Issue Date
+    ; $doc.displayPrettyName('issueDate')
     : $doc.display('issueDate')
   #end
-  ##------------- Display Expiration Date
   #set ($expirationDate = $doc.getValue('expirationDate'))
   #if ("$!expirationDate" != '')
-    ; Expiration Date
+    ; $doc.displayPrettyName('expirationDate')
     : $doc.display('expirationDate')
   #end
-  ##------------- Display License
   #set ($hasLicense = $doc.getValue('hasLicense'))
   #if ("$!hasLicense" == '1')
     #set ($licenseId = $doc.getValue('licenseId'))
@@ -112,5 +93,6 @@
     #displayGenerateButton
   #end
 #end
+)))
 {{/velocity}}</content>
 </xwikidoc>
