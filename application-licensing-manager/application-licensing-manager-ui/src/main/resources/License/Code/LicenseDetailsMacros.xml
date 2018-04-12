@@ -190,19 +190,23 @@
   #end
 #end
 
-#macro (setExtraLicenseDetails $licenseDetails)
-  #if ("$!licenseDetails.dependentFeatureIds" == '')
-    #if ("$!licenseDetails.extensionVersion" == '')
-      #set ($versions = $services.extension.resolveVersions($licenseDetails.featureId, 0, -1))
-      ## The versions are returned in ascending order and we want the latest.
-      ## Note that we can't access the last item directly. We're forced to iterate.
-      #foreach ($version in $versions)
-        #if ($version.type == 'STABLE')
-          #set ($licenseDetails.extensionVersion = $version.value)
-        #end
+#macro (getLicensedExtension $licenseDetails)
+  #if ("$!licenseDetails.extensionVersion" == '')
+    #set ($versions = $services.extension.resolveVersions($licenseDetails.featureId, 0, -1))
+    ## The versions are returned in ascending order and we want the latest.
+    ## Note that we can't access the last item directly. We're forced to iterate.
+    #foreach ($version in $versions)
+      #if ($version.type == 'STABLE')
+        #set ($licenseDetails.extensionVersion = $version.value)
       #end
     #end
-    #set ($extension = $services.extension.resolve($licenseDetails.featureId, $licenseDetails.extensionVersion))
+  #end
+  #set ($extension = $services.extension.resolve($licenseDetails.featureId, $licenseDetails.extensionVersion))
+#end
+
+#macro (setExtraLicenseDetails $licenseDetails)
+  #if ("$!licenseDetails.dependentFeatureIds" == '')
+    #getLicensedExtension($licenseDetails)
     #if ($extension)
       #set ($dependentFeatureIds = $collectionstool.set)
       #set ($packageId = $extension.getProperty('xwiki.extension.licensing.packageId'))
