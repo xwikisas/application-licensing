@@ -60,12 +60,6 @@ public class LicenseDetailsEditPage extends InlinePage
         return this;
     }
 
-    public LicenseDetailsEditPage setExtensionName(String extensionName)
-    {
-        setValue("extensionName", extensionName);
-        return this;
-    }
-
     public LicenseDetailsEditPage setExtensionId(String extensionId)
     {
         setValue("featureId", extensionId);
@@ -78,15 +72,15 @@ public class LicenseDetailsEditPage extends InlinePage
         return this;
     }
 
-    public LicenseDetailsEditPage setUserLimit(String userLimit)
+    public LicenseDetailsEditPage setSupportLevel(String support)
     {
-        setValue("maxUserCount", userLimit);
+        setValue("support", support);
         return this;
     }
 
-    public LicenseDetailsEditPage setRequestDate(String requestDate)
+    public LicenseDetailsEditPage setUserLimit(String userLimit)
     {
-        setValue("requestDate", requestDate);
+        setValue("maxUserCount", userLimit);
         return this;
     }
 

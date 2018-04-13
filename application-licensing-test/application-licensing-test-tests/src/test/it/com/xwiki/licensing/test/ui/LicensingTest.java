@@ -148,7 +148,8 @@ public class LicensingTest extends AbstractTest
         assertEquals(1, liveTable.getRowCount());
         WebElement firstRow = liveTable.getRow(1);
         assertEquals("No license available", liveTable.getCell(firstRow, 3).getText());
-        assertEquals("-", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("Support level should not be specified.", "-", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("User limit should not be specified.", "-", liveTable.getCell(firstRow, 5).getText());
 
         // Import an invalid license.
         assertEquals("Failed! The provided license could not be decoded. Please contact sales@xwiki.com.",
@@ -162,14 +163,15 @@ public class LicensingTest extends AbstractTest
 
         this.instanceId = licensesAdminSection.getInstanceId();
 
-        // Generate and import an expired license with unspecified number of users.
-        addLicense(LicenseType.FREE, "21/06/2017", "");
+        // Generate and import an expired license with gold support and unspecified number of users.
+        addLicense(LicenseType.FREE, "21/06/2017", "gold", "");
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
         firstRow = liveTable.getRow(1);
         assertEquals("21/06/2017", liveTable.getCell(firstRow, 3).getText());
-        assertEquals("-", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("Gold", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("-", liveTable.getCell(firstRow, 5).getText());
 
         // Check the license notification message.
         // We need to refresh the page in order for the notification menu to be updated.
@@ -178,15 +180,16 @@ public class LicensingTest extends AbstractTest
         notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
-        // Generate and import a license for 0 users
-        addLicense(LicenseType.TRIAL, null, "0");
+        // Generate and import a license for 0 users and unspecified support level.
+        addLicense(LicenseType.TRIAL, null, "", "0");
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
         firstRow = liveTable.getRow(1);
         assertEquals(DATE_FORMAT.format(new DateTime().plusDays(11).toDate()),
             liveTable.getCell(firstRow, 3).getText());
-        assertEquals("1 / 0", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("-", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("1 / 0", liveTable.getCell(firstRow, 5).getText());
 
         // Check the license notification message.
         // We need to refresh the page in order for the notification menu to be updated.
@@ -195,14 +198,15 @@ public class LicensingTest extends AbstractTest
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
         // Generate and import a license for unlimited users
-        addLicense(LicenseType.PAID, null, "-1");
+        addLicense(LicenseType.PAID, null, "silver", "-1");
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
         firstRow = liveTable.getRow(1);
         assertEquals(DATE_FORMAT.format(new DateTime().plusDays(365).toDate()),
             liveTable.getCell(firstRow, 3).getText());
-        assertEquals("Unlimited", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("Silver", liveTable.getCell(firstRow, 4).getText());
+        assertEquals("Unlimited", liveTable.getCell(firstRow, 5).getText());
 
         // Verify that the Example page now has a license.
         viewPage = getUtil().gotoPage("Example", "WebHome");
@@ -216,13 +220,12 @@ public class LicensingTest extends AbstractTest
         assertEquals("Hello", viewPage.getContent());
     }
 
-    private void addLicense(LicenseType type, String expirationDate, String userLimit)
+    private void addLicense(LicenseType type, String expirationDate, String support, String userLimit)
     {
         LicenseDetailsEditPage licenseDetails = LicensesHomePage.gotoPage().clickAddLicenseDetails();
         licenseDetails.setLicenseeFirstName("John").setLicenseeLastName("Doe").setLicenseeEmail("john@acme.com")
-            .setInstanceId(this.instanceId).setExtensionName("Paid Application Example")
-            .setExtensionId("com.xwiki.licensing:application-licensing-test-example").setUserLimit(userLimit)
-            .setLicenseType(type.name().toLowerCase());
+            .setInstanceId(this.instanceId).setExtensionId("com.xwiki.licensing:application-licensing-test-example")
+            .setSupportLevel(support).setUserLimit(userLimit).setLicenseType(type.name().toLowerCase());
         LicenseDetailsViewPage licenseDetailsView = licenseDetails.clickSaveAndView();
         if (!StringUtils.isEmpty(expirationDate)) {
             String licenseId = licenseDetailsView.getHTMLMetaDataValue("page");
