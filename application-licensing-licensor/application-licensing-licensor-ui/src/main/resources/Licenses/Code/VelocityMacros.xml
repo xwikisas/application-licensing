@@ -44,6 +44,7 @@
 #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
 #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
 #set ($storeBuyURL = $licensingConfigDoc.storeBuyURL)
+#set ($storeAccessURL = $licensingConfigDoc.storeAccessURL)
 #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
 #set ($userCount = $services.licensing.licensor.userCount)
 

@@ -55,6 +55,19 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <storeAccessURL>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <name>storeAccessURL</name>
+      <number>4</number>
+      <picker>0</picker>
+      <prettyName>storeAccessURL</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </storeAccessURL>
     <storeBuyURL>
       <customDisplay/>
       <disabled>0</disabled>

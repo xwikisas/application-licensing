@@ -51,7 +51,7 @@
   {{/html}}
   #set ($columns = ['name', 'version', 'status', 'support', 'userLimit', 'wiki', 'actions'])
   #set ($columnsProperties = {
-    'name': {'filterable': false, 'sortable': false},
+    'name': {'filterable': false, 'sortable': false, 'link': 'auto'},
     'version': {'filterable': false, 'sortable': false},
     'status': {'filterable': false, 'sortable': false, 'html': true},
     'support': {'filterable': false, 'sortable': false},
@@ -656,6 +656,11 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
       // Update the notification message.
       progressNotification.replace(new XWiki.widgets.Notification(result.notification, result.status));
     });
+  });
+
+  // Set the documentation links to open in new tab.
+  $('#licenseManager-display td.name a').each(function() {
+    $(this).attr('target', '_blank')
   });
 });</code>
     </property>
