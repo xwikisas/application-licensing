@@ -110,8 +110,8 @@
     'instanceId': $services.instance.instanceId,
     'featureId': $extension.id.id,
     'extensionVersion': $extension.id.version,
-    'firstName':$ownerObj.firstName,
-    'lastName': $ownerObj.lastName,
+    'firstName':$ownerObj.getValue('firstName'),
+    'lastName': $ownerObj.getValue('lastName'),
     'email': $ownerObj.getValue('email')
   }))
   #set ($documentationURL = "${storeAccessURL}?${queryString}")
