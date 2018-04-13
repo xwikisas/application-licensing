@@ -75,7 +75,7 @@ public class LicenseConverterTest
     {
         License license = converter.convert(License.class, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>FREE</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -85,7 +85,12 @@ public class LicenseConverterTest
                 + "        </features>\n"
                 + "    </licensed>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
+                + "        <email>john.doe@example.com</email>\n"
+                + "        <meta key=\"support\">gold</meta>\n"
+                + "        <meta key=\"orderId\">3628</meta>\n"
+                + "        <meta key=\"firstName\">Johnny</meta>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             );
@@ -94,8 +99,12 @@ public class LicenseConverterTest
         assertThat(license.getType(), equalTo(LicenseType.FREE));
         assertThat(license.getFeatureIds(), containsInAnyOrder(new LicensedFeatureId("test")));
         assertThat(license.getLicensee(), not(nullValue()));
-        assertThat(license.getLicensee().size(), equalTo(1));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
+        assertThat(license.getLicensee().size(), equalTo(5));
+        assertThat(license.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
+        assertThat(license.getLicensee().get("email"), equalTo("john.doe@example.com"));
+        assertThat(license.getLicensee().get("support"), equalTo("gold"));
+        assertThat(license.getLicensee().get("orderId"), equalTo("3628"));
     }
 
     @Test
@@ -125,7 +134,7 @@ public class LicenseConverterTest
         assertThat(license.getFeatureIds(), containsInAnyOrder(new LicensedFeatureId("test-ui", "1.0")));
         assertThat(license.getLicensee(), not(nullValue()));
         assertThat(license.getLicensee().size(), equalTo(2));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
+        assertThat(license.getLicensee().get("firstName"), equalTo("user"));
         assertThat(license.getLicensee().get("email"), equalTo("user@example.com"));
     }
 
@@ -134,7 +143,7 @@ public class LicenseConverterTest
     {
         License license = converter.convert(License.class, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>TRIAL</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -155,7 +164,8 @@ public class LicenseConverterTest
                 + "        </instances>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             );
@@ -169,8 +179,9 @@ public class LicenseConverterTest
             assertThat(getInstanceIdsAsString(license.getInstanceIds()), containsInAnyOrder("11111111-2222-3333-4444-555555555555","66666666-7777-8888-9999-000000000000"));
         }
         assertThat(license.getLicensee(), not(nullValue()));
-        assertThat(license.getLicensee().size(), equalTo(1));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
+        assertThat(license.getLicensee().size(), equalTo(2));
+        assertThat(license.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
     }
 
     private ArrayList<String> getInstanceIdsAsString(Collection<InstanceId> instanceIds)
@@ -205,7 +216,7 @@ public class LicenseConverterTest
                 + "        <expire>" + dateFormatter.format(calendar.getTimeInMillis()) + "</expire>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <name>John Doe</name>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             );
@@ -215,8 +226,9 @@ public class LicenseConverterTest
         assertThat(license.getFeatureIds(), containsInAnyOrder(new LicensedFeatureId("test", "1.0")));
         assertThat(license.getExpirationDate(), equalTo(calendar.getTimeInMillis()));
         assertThat(license.getLicensee(), not(nullValue()));
-        assertThat(license.getLicensee().size(), equalTo(1));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
+        assertThat(license.getLicensee().size(), equalTo(2));
+        assertThat(license.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
     }
 
     @Test
@@ -224,7 +236,7 @@ public class LicenseConverterTest
     {
         License license = converter.convert(License.class, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>TRIAL</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -238,7 +250,8 @@ public class LicenseConverterTest
                 + "        <users>1000</users>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             );
@@ -248,8 +261,9 @@ public class LicenseConverterTest
         assertThat(license.getFeatureIds(), containsInAnyOrder(new LicensedFeatureId("test", "1.0")));
         assertThat(license.getMaxUserCount(), equalTo(1000L));
         assertThat(license.getLicensee(), not(nullValue()));
-        assertThat(license.getLicensee().size(), equalTo(1));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
+        assertThat(license.getLicensee().size(), equalTo(2));
+        assertThat(license.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
     }
 
     @Test
@@ -262,7 +276,7 @@ public class LicenseConverterTest
 
         License license = converter.convert(License.class, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>TRIAL</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -285,8 +299,9 @@ public class LicenseConverterTest
                 + "        <users>100</users>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
-                + "        <email>user@example.com</email>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
+                + "        <email>john.doe@example.com</email>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             );
@@ -302,8 +317,9 @@ public class LicenseConverterTest
         assertThat(license.getExpirationDate(), equalTo(calendar.getTimeInMillis()));
         assertThat(license.getMaxUserCount(), equalTo(100L));
         assertThat(license.getLicensee(), not(nullValue()));
-        assertThat(license.getLicensee().size(), equalTo(2));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
-        assertThat(license.getLicensee().get("email"), equalTo("user@example.com"));
+        assertThat(license.getLicensee().size(), equalTo(3));
+        assertThat(license.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
+        assertThat(license.getLicensee().get("email"), equalTo("john.doe@example.com"));
     }
 }

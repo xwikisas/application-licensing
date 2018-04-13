@@ -74,7 +74,7 @@ public class FileSystemLicenseStoreTest
     private static final License testLicense = new License();
     private static final String xmlLicense = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-        + "    <modelVersion>1.0.0</modelVersion>\n"
+        + "    <modelVersion>2.0.0</modelVersion>\n"
         + "    <type>FREE</type>\n"
         + "    <licensed>\n"
         + "        <features>\n"
@@ -85,7 +85,10 @@ public class FileSystemLicenseStoreTest
         + "        </features>\n"
         + "    </licensed>\n"
         + "    <licencee>\n"
-        + "        <name>user</name>\n"
+        + "        <firstName>John</firstName>\n"
+        + "        <lastName>Doe</lastName>\n"
+        + "        <email>john.doe@example.com</email>\n"
+        + "        <meta key=\"support\">silver</meta>\n"
         + "    </licencee>\n"
         + "</license>\n";
 
@@ -97,8 +100,11 @@ public class FileSystemLicenseStoreTest
         assertThat(license.getType(), equalTo(LicenseType.FREE));
         assertThat(license.getFeatureIds(), containsInAnyOrder(new LicensedFeatureId("test", "1.0")));
         assertThat(license.getLicensee(), not(nullValue()));
-        assertThat(license.getLicensee().size(), equalTo(1));
-        assertThat(license.getLicensee().get("name"), equalTo("user"));
+        assertThat(license.getLicensee().size(), equalTo(4));
+        assertThat(license.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
+        assertThat(license.getLicensee().get("email"), equalTo("john.doe@example.com"));
+        assertThat(license.getLicensee().get("support"), equalTo("silver"));
     }
 
     @Before

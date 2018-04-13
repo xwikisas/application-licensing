@@ -45,8 +45,10 @@
         <users>...</users>
     </restrictions>
     <licensee>
-        <name>...</name>
+        <firstName>...</firstName>
+        <lastName>...</lastName>
         <email>...</email>
+        <meta key="...">...</meta>
     </licensee>
 </license>
 -->
@@ -117,11 +119,29 @@
     </all>
   </complexType>
 
+  <complexType name="LicenseeMeta">
+    <simpleContent>
+      <extension base="string">
+        <attribute name="key" type="string" />
+      </extension>
+    </simpleContent>
+  </complexType>
+
   <complexType name="Licensee">
-    <all>
-      <element name="name" type="string" />
+    <sequence>
+      <choice>
+        <!-- Model version 1.0.0 -->
+        <element name="name" type="string" />
+        <!-- Model version 2.0.0 -->
+        <sequence>
+          <element name="firstName" type="string" />
+          <element name="lastName" type="string" />
+        </sequence>
+      </choice>
       <element name="email" type="license:Email" />
-    </all>
+      <!-- Additional meta data -->
+      <element name="meta" type="license:LicenseeMeta" minOccurs="0" maxOccurs="unbounded" />
+    </sequence>
   </complexType>
 
   <complexType name="License">

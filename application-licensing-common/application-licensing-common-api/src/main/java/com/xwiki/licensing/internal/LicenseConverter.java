@@ -45,6 +45,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.SignedLicense;
 import com.xwiki.licensing.model.jaxb.FeatureId;
 import com.xwiki.licensing.model.jaxb.License;
+import com.xwiki.licensing.model.jaxb.Licensee;
 
 /**
  * Create an {@link License} from a string.
@@ -135,12 +136,26 @@ public class LicenseConverter extends AbstractConverter<com.xwiki.licensing.Lice
     {
         Map<String, String> map = new HashMap<>();
 
-        if (xmlLicense.getLicencee() != null) {
-            if (xmlLicense.getLicencee().getName() != null) {
-                map.put("name", xmlLicense.getLicencee().getName());
+        Licensee licensee = xmlLicense.getLicencee();
+        if (licensee != null) {
+            // Put the custom meta data first so that known meta data can overwrite it.
+            licensee.getMetas().forEach(meta -> map.put(meta.getKey(), meta.getValue()));
+            // The name is deprecated, in favor of firstName and lastName, but we read it for backward compatibility.
+            if (licensee.getName() != null) {
+                String[] parts = licensee.getName().split("\\s+", 2);
+                map.put(com.xwiki.licensing.License.LICENSEE_FIRST_NAME, parts[0]);
+                if (parts.length > 1) {
+                    map.put(com.xwiki.licensing.License.LICENSEE_LAST_NAME, parts[1]);
+                }
             }
-            if (xmlLicense.getLicencee().getEmail() != null) {
-                map.put("email", xmlLicense.getLicencee().getEmail());
+            if (licensee.getFirstName() != null) {
+                map.put(com.xwiki.licensing.License.LICENSEE_FIRST_NAME, licensee.getFirstName());
+            }
+            if (licensee.getLastName() != null) {
+                map.put(com.xwiki.licensing.License.LICENSEE_LAST_NAME, licensee.getLastName());
+            }
+            if (licensee.getEmail() != null) {
+                map.put(com.xwiki.licensing.License.LICENSEE_EMAIL, licensee.getEmail());
             }
         }
 

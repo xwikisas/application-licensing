@@ -21,8 +21,8 @@ package com.xwiki.licensing;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -36,6 +36,21 @@ import org.xwiki.instance.InstanceId;
  */
 public class License implements Comparable<License>
 {
+    /**
+     * The key used to store the licensee first name.
+     */
+    public static final String LICENSEE_FIRST_NAME = "firstName";
+
+    /**
+     * The key used to store the licensee last name.
+     */
+    public static final String LICENSEE_LAST_NAME = "lastName";
+
+    /**
+     * The key used to store the licensee email.
+     */
+    public static final String LICENSEE_EMAIL = "email";
+
     /**
      * An empty constant object used when you need to explicitly assign no license.
      */
@@ -242,7 +257,7 @@ public class License implements Comparable<License>
     public void setLicensee(Map<String, String> licensee)
     {
         if (licensee != null) {
-            this.licensee = new HashMap<>();
+            this.licensee = new LinkedHashMap<>();
             this.licensee.putAll(licensee);
         } else {
             this.licensee = null;
@@ -257,7 +272,7 @@ public class License implements Comparable<License>
     public void addLicenseeInfo(String key, String value)
     {
         if (licensee == null) {
-            licensee = new HashMap<>();
+            licensee = new LinkedHashMap<>();
         }
         this.licensee.put(key, value);
     }

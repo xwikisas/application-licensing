@@ -85,7 +85,7 @@ public class XmlStringLicenseSerializerTest
     public void testNoLicensedItemLicenseSerialization() throws Exception
     {
         License license = new License();
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("firstName","John");
         serializer.serialize(license);
     }
 
@@ -94,12 +94,18 @@ public class XmlStringLicenseSerializerTest
     {
         License license = new License();
         license.addFeatureId(new LicensedFeatureId("test"));
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("firstName","John");
+        license.addLicenseeInfo("lastName","Doe");
+        license.addLicenseeInfo("email","john.doe@example.com");
+        license.addLicenseeInfo("support","platinum");
+        license.addLicenseeInfo("orderId","4701");
+        // Deprecated field.
+        license.addLicenseeInfo("name","foo");
 
         assertThat(serializer.serialize(license),
             equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"" + license.getId().toString() + "\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>FREE</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -109,7 +115,12 @@ public class XmlStringLicenseSerializerTest
                 + "        </features>\n"
                 + "    </licensed>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
+                + "        <email>john.doe@example.com</email>\n"
+                + "        <meta key=\"support\">platinum</meta>\n"
+                + "        <meta key=\"orderId\">4701</meta>\n"
+                + "        <meta key=\"name\">foo</meta>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             )
@@ -123,13 +134,14 @@ public class XmlStringLicenseSerializerTest
         license.setId(new LicenseId("00000000-0000-0000-0000-000000000000"));
         license.setType(LicenseType.TRIAL);
         license.addFeatureId(new LicensedFeatureId("test-ui","1.0"));
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("firstName","John");
+        license.addLicenseeInfo("lastName","Doe");
         license.addLicenseeInfo("email","user@example.com");
 
         assertThat(serializer.serialize(license),
             equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>TRIAL</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -140,7 +152,8 @@ public class XmlStringLicenseSerializerTest
                 + "        </features>\n"
                 + "    </licensed>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
                 + "        <email>user@example.com</email>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
@@ -154,12 +167,12 @@ public class XmlStringLicenseSerializerTest
         License license = new License();
         license.addFeatureId(new LicensedFeatureId("test","1.0"));
         license.addInstanceId(new InstanceId("11111111-2222-3333-4444-555555555555"));
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("email","user@example.com");
 
         assertThat(serializer.serialize(license),
             equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"" + license.getId().toString() + "\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>FREE</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -175,7 +188,7 @@ public class XmlStringLicenseSerializerTest
                 + "        </instances>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <email>user@example.com</email>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             )
@@ -191,12 +204,13 @@ public class XmlStringLicenseSerializerTest
         calendar.clear();
         calendar.set(2017,Calendar.JUNE,2);
         license.setExpirationDate(calendar.getTimeInMillis());
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("firstName","John");
+        license.addLicenseeInfo("lastName","Doe");
 
         assertThat(serializer.serialize(license),
             equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"" + license.getId().toString() + "\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>FREE</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -210,7 +224,8 @@ public class XmlStringLicenseSerializerTest
                 + "        <expire>" + dateFormatter.format(calendar.getTimeInMillis()) + "</expire>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             )
@@ -223,12 +238,13 @@ public class XmlStringLicenseSerializerTest
         License license = new License();
         license.addFeatureId(new LicensedFeatureId("test","1.0"));
         license.setMaxUserCount(1000L);
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("firstName","John");
+        license.addLicenseeInfo("lastName","Doe");
 
         assertThat(serializer.serialize(license),
             equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"" + license.getId().toString() + "\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>FREE</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -242,7 +258,8 @@ public class XmlStringLicenseSerializerTest
                 + "        <users>1000</users>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
                 + "    </licencee>\n"
                 + "</license>\n"
             )
@@ -263,13 +280,14 @@ public class XmlStringLicenseSerializerTest
         calendar.set(2017,Calendar.JUNE,2);
         license.setExpirationDate(calendar.getTimeInMillis());
         license.setMaxUserCount(100L);
-        license.addLicenseeInfo("name","user");
+        license.addLicenseeInfo("firstName","John");
+        license.addLicenseeInfo("lastName","Doe");
         license.addLicenseeInfo("email","user@example.com");
 
         assertThat(serializer.serialize(license),
             equalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
                 + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
-                + "    <modelVersion>1.0.0</modelVersion>\n"
+                + "    <modelVersion>2.0.0</modelVersion>\n"
                 + "    <type>TRIAL</type>\n"
                 + "    <licensed>\n"
                 + "        <features>\n"
@@ -287,7 +305,8 @@ public class XmlStringLicenseSerializerTest
                 + "        <users>100</users>\n"
                 + "    </restrictions>\n"
                 + "    <licencee>\n"
-                + "        <name>user</name>\n"
+                + "        <firstName>John</firstName>\n"
+                + "        <lastName>Doe</lastName>\n"
                 + "        <email>user@example.com</email>\n"
                 + "    </licencee>\n"
                 + "</license>\n"

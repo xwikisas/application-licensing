@@ -105,8 +105,10 @@ public class DefaultSignedLicenseGeneratorTest
         calendar.add(Calendar.YEAR, 1);
         license.setExpirationDate(calendar.getTimeInMillis());
         license.setMaxUserCount(100L);
-        license.addLicenseeInfo("name", "user");
+        license.addLicenseeInfo("firstName", "John");
+        license.addLicenseeInfo("lastName", "Doe");
         license.addLicenseeInfo("email", "user@example.com");
+        license.addLicenseeInfo("support", "bronze");
 
         SignedLicense signedLicence =
             generator.generate(license, utils.getSigningKeyPair(), utils.getSignerFactory(), utils.getCertificateProvider());
@@ -126,11 +128,10 @@ public class DefaultSignedLicenseGeneratorTest
         assertThat(signedLicence.getExpirationDate(), equalTo(calendar.getTimeInMillis()));
         assertThat(signedLicence.getMaxUserCount(), equalTo(100L));
         assertThat(signedLicence.getLicensee(), not(nullValue()));
-        assertThat(signedLicence.getLicensee().size(), equalTo(2));
-        assertThat(signedLicence.getLicensee().get("name"), equalTo("user"));
+        assertThat(signedLicence.getLicensee().size(), equalTo(4));
+        assertThat(signedLicence.getLicensee().get("firstName"), equalTo("John"));
+        assertThat(signedLicence.getLicensee().get("lastName"), equalTo("Doe"));
         assertThat(signedLicence.getLicensee().get("email"), equalTo("user@example.com"));
-
-        //BinaryStringEncoder encoder = mocker.getInstance(BinaryStringEncoder.class, "Base64");
-        //assertThat(encoder.encode(signedLicence.getEncoded()), equalTo(""));
+        assertThat(signedLicence.getLicensee().get("support"), equalTo("bronze"));
     }
 }

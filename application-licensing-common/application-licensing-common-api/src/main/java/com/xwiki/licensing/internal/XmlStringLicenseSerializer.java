@@ -21,8 +21,12 @@ package com.xwiki.licensing.internal;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,6 +45,8 @@ import com.xwiki.licensing.model.jaxb.FeatureIdCollection;
 import com.xwiki.licensing.model.jaxb.InstanceIdCollection;
 import com.xwiki.licensing.model.jaxb.License;
 import com.xwiki.licensing.model.jaxb.LicenseType;
+import com.xwiki.licensing.model.jaxb.Licensee;
+import com.xwiki.licensing.model.jaxb.LicenseeMeta;
 import com.xwiki.licensing.model.jaxb.ObjectFactory;
 import com.xwiki.licensing.model.jaxb.Restrictions;
 
@@ -78,17 +84,15 @@ public class XmlStringLicenseSerializer implements LicenseSerializer<String>
 
         License xmlLicense = objectFactory.createLicense()
             .withId(license.getId().toString())
-            .withModelVersion("1.0.0")
+            .withModelVersion("2.0.0")
             .withType(LicenseType.fromValue(license.getType().toString()))
+            .withLicencee(getLicensee(license.getLicensee()))
             .withLicensed(objectFactory.createLicensedItems().withFeatures(getLicensedExtensionIdCollection(license)));
 
         Restrictions restrictions = getRestrictions(license);
         if (restrictions != null) {
             xmlLicense.setRestrictions(restrictions);
         }
-        xmlLicense.setLicencee(objectFactory.createLicensee()
-            .withName(license.getLicensee().get("name"))
-            .withEmail(license.getLicensee().get("email")));
 
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -147,5 +151,20 @@ public class XmlStringLicenseSerializer implements LicenseSerializer<String>
             instIds.add(id.getInstanceId());
         }
         return instIdsColl;
+    }
+
+    private Licensee getLicensee(Map<String, String> licensee)
+    {
+        Map<String, String> metaData = new LinkedHashMap<>(licensee);
+        metaData.keySet().removeAll(Arrays.asList(com.xwiki.licensing.License.LICENSEE_FIRST_NAME,
+            com.xwiki.licensing.License.LICENSEE_LAST_NAME, com.xwiki.licensing.License.LICENSEE_EMAIL));
+
+        return objectFactory.createLicensee()
+            .withFirstName(licensee.get(com.xwiki.licensing.License.LICENSEE_FIRST_NAME))
+            .withLastName(licensee.get(com.xwiki.licensing.License.LICENSEE_LAST_NAME))
+            .withEmail(licensee.get(com.xwiki.licensing.License.LICENSEE_EMAIL))
+            .withMetas(metaData.entrySet().stream()
+                .map(entry -> new LicenseeMeta().withKey(entry.getKey()).withValue(entry.getValue()))
+                .collect(Collectors.toList()));
     }
 }
