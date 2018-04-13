@@ -120,9 +120,9 @@
 #end
 {{/velocity}}
 
-{{velocity}}
-#if ("$!{request.xpage}" == 'plain')
-  $response.setContentType('application/json')
+{{velocity wiki="false"}}
+#if ($xcontext.action == 'get')
+  #set ($discard = $response.setContentType('application/json'))
 #end
 #if ($request.showAllPaidExtensions == 'true')
   #getPaidExtensions
