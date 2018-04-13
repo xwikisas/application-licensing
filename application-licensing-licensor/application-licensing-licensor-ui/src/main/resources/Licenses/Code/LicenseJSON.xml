@@ -106,10 +106,19 @@
   ##
   ## Other
   ##
+  #set ($queryString = $escapetool.url({
+    'instanceId': $services.instance.instanceId,
+    'featureId': $extension.id.id,
+    'extensionVersion': $extension.id.version,
+    'firstName':$ownerObj.firstName,
+    'lastName': $ownerObj.lastName,
+    'email': $ownerObj.getValue('email')
+  }))
+  #set ($documentationURL = "${storeAccessURL}?${queryString}")
   #set ($discard = $rows.add({
     'doc_viewable': true,
     'name': $extension.name,
-    'name_url': "${storeAccessURL}?featureId=${extension.id.id}",
+    'name_url': $documentationURL,
     'version': $extension.id.version.toString(),
     'status': $expDate,
     'support': $support,
