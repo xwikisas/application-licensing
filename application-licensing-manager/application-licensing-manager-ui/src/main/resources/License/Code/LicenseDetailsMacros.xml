@@ -224,7 +224,9 @@
       #end
       ## Add the paid modules that are transitive dependencies.
       #getDependentFeatureIds($extension $dependentFeatureIds)
-      #set ($licenseDetails.dependentFeatureIds = $dependentFeatureIds)
+      ## The code that uses the license details expects dependentFeatureIds to be a list not a set.
+      #set ($licenseDetails.dependentFeatureIds = [])
+      #set ($discard = $licenseDetails.dependentFeatureIds.addAll($dependentFeatureIds))
     #end
   #end
 #end
