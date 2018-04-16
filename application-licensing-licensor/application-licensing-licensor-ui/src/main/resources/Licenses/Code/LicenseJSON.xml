@@ -110,7 +110,7 @@
     'instanceId': $services.instance.instanceId,
     'featureId': $extension.id.id,
     'extensionVersion': $extension.id.version,
-    'firstName':$ownerObj.getValue('firstName'),
+    'firstName': $ownerObj.getValue('firstName'),
     'lastName': $ownerObj.getValue('lastName'),
     'email': $ownerObj.getValue('email')
   }))
