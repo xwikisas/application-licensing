@@ -23,12 +23,12 @@ import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
@@ -52,12 +52,16 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
 {
     private static final String WIKI_NAMESPACE = "wiki:";
 
+    private static final String SECURITY_CACHE_RULES_INVALIDATOR_HINT =
+        "org.xwiki.security.authorization.internal.DefaultSecurityCacheRulesInvalidator";
+
     /**
      * Fair read-write lock to suspend the delivery of cache updates while there are loads in progress.
      */
-    @Inject
-    @Named("org.xwiki.security.authorization.internal.DefaultSecurityCacheRulesInvalidator")
     private ReadWriteLock readWriteLock;
+
+    @Inject
+    private ComponentManager componentManager;
 
     @Inject
     private SecurityCache securityCache;
@@ -88,10 +92,9 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
 
         boolean locked = acquireLock();
         try {
-            securityCache.remove(
-                securityReferenceFactory.newEntityReference(null));
+            securityCache.remove(securityReferenceFactory.newEntityReference(null));
         } finally {
-            if (locked) {
+            if (locked && readWriteLock != null) {
                 readWriteLock.writeLock().unlock();
             }
         }
@@ -117,12 +120,12 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
                         invalidateForWiki(extension, new WikiReference(wikiId));
                     }
                 } catch (WikiManagerException e) {
-                    logger.error("Failed to invalidate the cache for the extension [{}] on the farm",
-                        extension.getId(), e);
+                    logger.error("Failed to invalidate the cache for the extension [{}] on the farm", extension.getId(),
+                        e);
                 }
             }
         } finally {
-            if (locked) {
+            if (locked && readWriteLock != null) {
                 readWriteLock.writeLock().unlock();
             }
         }
@@ -138,10 +141,7 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
     {
         for (XarEntry entry : extension.getXarPackage().getEntries()) {
             securityCache.remove(
-                securityReferenceFactory.newEntityReference(
-                    documentReferenceResolver.resolve(entry, wikiReference)
-                )
-            );
+                securityReferenceFactory.newEntityReference(documentReferenceResolver.resolve(entry, wikiReference)));
         }
     }
 
@@ -152,11 +152,21 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
         // Authorization Manager is currently loading security rules (DefaultSecurityCacheLoader#load() sets a read
         // lock preventing the write lock from being acquired and resulting in a dead lock).
         // Thus to prevent this we only acquire the lock if it's not already locked.
-        boolean locked = readWriteLock.writeLock().tryLock();
-        if (!locked) {
-            this.logger.warn("Failed to acquire read lock in LicensingSecurityCacheRuleInvalidator. "
-                + "Continuing without lock.");
+
+        // In XWiki 10.4 (XWIKI-15230) the DefaultSecurityCacheRulesInvalidatorLock component was removed and there's no
+        // need to perform locking anymore. This is the reason for dynamically lookup the ReadWriteLock component.
+        if (componentManager.hasComponent(ReadWriteLock.class, SECURITY_CACHE_RULES_INVALIDATOR_HINT)) {
+            if (readWriteLock != null) {
+                readWriteLock = (ReadWriteLock) componentManager.getComponentDescriptor(ReadWriteLock.class,
+                    SECURITY_CACHE_RULES_INVALIDATOR_HINT);
+            }
+            boolean locked = readWriteLock.writeLock().tryLock();
+            if (!locked) {
+                this.logger.warn("Failed to acquire read lock in LicensingSecurityCacheRuleInvalidator. "
+                    + "Continuing without lock.");
+            }
+            return locked;
         }
-        return locked;
+        return false;
     }
 }
