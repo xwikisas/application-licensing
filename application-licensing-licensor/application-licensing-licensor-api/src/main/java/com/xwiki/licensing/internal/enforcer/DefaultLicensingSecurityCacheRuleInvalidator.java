@@ -29,6 +29,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
@@ -48,7 +50,8 @@ import com.xpn.xwiki.XWikiContext;
  */
 @Component
 @Singleton
-public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSecurityCacheRuleInvalidator
+public class DefaultLicensingSecurityCacheRuleInvalidator
+    implements LicensingSecurityCacheRuleInvalidator, Initializable
 {
     private static final String WIKI_NAMESPACE = "wiki:";
 
@@ -153,13 +156,7 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
         // lock preventing the write lock from being acquired and resulting in a dead lock).
         // Thus to prevent this we only acquire the lock if it's not already locked.
 
-        // In XWiki 10.4 (XWIKI-15230) the DefaultSecurityCacheRulesInvalidatorLock component was removed and there's no
-        // need to perform locking anymore. This is the reason for dynamically lookup the ReadWriteLock component.
-        if (componentManager.hasComponent(ReadWriteLock.class, SECURITY_CACHE_RULES_INVALIDATOR_HINT)) {
-            if (readWriteLock != null) {
-                readWriteLock = (ReadWriteLock) componentManager.getComponentDescriptor(ReadWriteLock.class,
-                    SECURITY_CACHE_RULES_INVALIDATOR_HINT);
-            }
+        if (readWriteLock != null) {
             boolean locked = readWriteLock.writeLock().tryLock();
             if (!locked) {
                 this.logger.warn("Failed to acquire read lock in LicensingSecurityCacheRuleInvalidator. "
@@ -168,5 +165,18 @@ public class DefaultLicensingSecurityCacheRuleInvalidator implements LicensingSe
             return locked;
         }
         return false;
+    }
+
+    /**
+     * In XWiki 10.4 (XWIKI-15230) the DefaultSecurityCacheRulesInvalidatorLock component was removed and there's no
+     * need to perform locking anymore. This is the reason for dynamically lookup the ReadWriteLock component.
+     */
+    @Override
+    public void initialize() throws InitializationException
+    {
+        if (componentManager.hasComponent(ReadWriteLock.class, SECURITY_CACHE_RULES_INVALIDATOR_HINT)) {
+            readWriteLock = (ReadWriteLock) componentManager.getComponentDescriptor(ReadWriteLock.class,
+                SECURITY_CACHE_RULES_INVALIDATOR_HINT);
+        }
     }
 }
