@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -175,8 +176,12 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
     public void initialize() throws InitializationException
     {
         if (componentManager.hasComponent(ReadWriteLock.class, SECURITY_CACHE_RULES_INVALIDATOR_HINT)) {
-            readWriteLock = (ReadWriteLock) componentManager.getComponentDescriptor(ReadWriteLock.class,
-                SECURITY_CACHE_RULES_INVALIDATOR_HINT);
+            try {
+                readWriteLock =
+                    componentManager.getInstance(ReadWriteLock.class, SECURITY_CACHE_RULES_INVALIDATOR_HINT);
+            } catch (ComponentLookupException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
