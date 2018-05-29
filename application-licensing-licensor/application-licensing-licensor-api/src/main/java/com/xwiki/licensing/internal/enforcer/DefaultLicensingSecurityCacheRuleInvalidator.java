@@ -180,7 +180,7 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
                 readWriteLock =
                     componentManager.getInstance(ReadWriteLock.class, SECURITY_CACHE_RULES_INVALIDATOR_HINT);
             } catch (ComponentLookupException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage(), e);
             }
         }
     }
