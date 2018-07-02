@@ -141,12 +141,16 @@
 #end
 
 #macro (readLicenseDetailsFromRequest $licenseDetails)
+  #set ($featureId = $request.featureId)
+  #if ($featureId.contains(':::'))
+    #set ($featureId = $featureId.split(':::')[0])
+  #end
   #set ($discard = $licenseDetails.putAll({
     'firstName': $request.firstName,
     'lastName': $request.lastName,
     'email': $request.email,
     'instanceId': $request.instanceId,
-    'featureId': $request.featureId,
+    'featureId': $featureId,
     'extensionVersion': $request.extensionVersion,
     'type': $request.licenseType.toLowerCase(),
     'support': $request.support,
