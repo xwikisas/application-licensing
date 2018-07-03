@@ -319,7 +319,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         ExtensionId extensionId = extension.getId();
 
         // Remove the license binding only if the specified extension version has been uninstalled from all namespaces.
-        if (extension.getNamespaces().isEmpty()) {
+        if (!extension.isInstalled()) {
             extensionToLicense.remove(extensionId);
         }
     }
