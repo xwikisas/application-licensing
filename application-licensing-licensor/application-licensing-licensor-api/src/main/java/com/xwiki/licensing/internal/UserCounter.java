@@ -42,9 +42,10 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
 
 /**
- * Component used to count the existing users.
+ * Component used to count the existing active users.
  * 
  * @version $Id$
  * @since 1.6
@@ -69,7 +70,8 @@ public class UserCounter
     private Long cachedUserCount;
 
     /**
-     * Event listener that invalidates the cached user count when an user is added or deleted.
+     * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
+     * value is changed.
      * 
      * @version $Id$
      * @since 1.6
@@ -83,6 +85,8 @@ public class UserCounter
          * The event listener component hint.
          */
         public static final String HINT = "com.xwiki.licensing.internal.UserCounter.UserListener";
+
+        protected static final String ACTIVE = "active";
 
         protected static final LocalDocumentReference USER_CLASS = new LocalDocumentReference("XWiki", "XWikiUsers");
 
@@ -104,18 +108,22 @@ public class UserCounter
             XWikiDocument newDocument = (XWikiDocument) source;
             XWikiDocument oldDocument = newDocument.getOriginalDocument();
 
-            boolean newDocumentIsUser = newDocument.getXObject(USER_CLASS) != null;
-            boolean oldDocumentIsUser = oldDocument.getXObject(USER_CLASS) != null;
+            BaseObject newObject = newDocument.getXObject(USER_CLASS);
+            BaseObject oldObject = oldDocument.getXObject(USER_CLASS);
 
-            if (newDocumentIsUser != oldDocumentIsUser) {
-                // The user object is either added or removed. Invalidate the cached user count.
+            boolean newDocumentIsUser = newObject != null;
+            boolean oldDocumentIsUser = oldObject != null;
+
+            if (newDocumentIsUser != oldDocumentIsUser
+                || newObject.getIntValue(ACTIVE) != oldObject.getIntValue(ACTIVE)) {
+                // The user object is either added/removed or set to active/inactive. Invalidate the cached user count.
                 this.userCounter.cachedUserCount = null;
             }
         }
     }
 
     /**
-     * Counts the existing users.
+     * Counts the existing active users.
      * 
      * @return the user count
      * @throws Exception if we fail to count the users
@@ -140,7 +148,8 @@ public class UserCounter
 
     private long getUserCountOnWiki(String wikiId) throws QueryException
     {
-        Query query = this.queryManager.createQuery("from doc.object(XWiki.XWikiUsers) as user", Query.XWQL);
+        Query query = this.queryManager.createQuery("from doc.object(XWiki.XWikiUsers) as user where user.active = 1",
+            Query.XWQL);
         query.addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);
