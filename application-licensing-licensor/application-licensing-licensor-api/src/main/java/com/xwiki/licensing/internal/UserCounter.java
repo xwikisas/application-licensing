@@ -111,11 +111,14 @@ public class UserCounter
             BaseObject newObject = newDocument.getXObject(USER_CLASS);
             BaseObject oldObject = oldDocument.getXObject(USER_CLASS);
 
+            // Set defaults to -1 to avoid nulls.
+            int newActive = newObject != null ? newObject.getIntValue(ACTIVE) : -1;
+            int oldActive = oldObject != null ? oldObject.getIntValue(ACTIVE) : -1;
+
             boolean newDocumentIsUser = newObject != null;
             boolean oldDocumentIsUser = oldObject != null;
 
-            if (newDocumentIsUser != oldDocumentIsUser
-                || newObject.getIntValue(ACTIVE) != oldObject.getIntValue(ACTIVE)) {
+            if (newDocumentIsUser != oldDocumentIsUser || newActive != oldActive) {
                 // The user object is either added/removed or set to active/inactive. Invalidate the cached user count.
                 this.userCounter.cachedUserCount = null;
             }
