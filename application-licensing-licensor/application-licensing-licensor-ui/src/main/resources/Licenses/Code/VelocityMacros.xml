@@ -155,7 +155,9 @@
     &lt;dd&gt;
       &lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;
       #if ($prop.name == 'email')
-        &lt;span class="text-danger hidden"&gt;$services.localization.render('licensor.ownerDetails.invalidEmail')&lt;/span&gt;
+        &lt;span class="text-danger hidden"&gt;
+          $services.localization.render('licensor.ownerDetails.invalidEmail')
+        &lt;/span&gt;
       #end
     &lt;/dd&gt;
   #end
