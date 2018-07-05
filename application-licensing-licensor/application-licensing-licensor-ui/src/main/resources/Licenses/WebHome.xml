@@ -481,7 +481,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
       $(this).removeClass('required');
       var inputValue = $(this).val().trim();
       // Check for a minimum number of chars filled in by the user.
-      if (inputValue.length &lt; 2) {
+      if (inputValue.length &lt; 4) {
         // Focus on first element that needs to be filled with data.
         if (focus) {
           $(this).focus();
