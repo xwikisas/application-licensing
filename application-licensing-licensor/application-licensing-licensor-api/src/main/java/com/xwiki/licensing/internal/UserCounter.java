@@ -110,7 +110,7 @@ public class UserCounter
 
             BaseObject newObject = newDocument.getXObject(USER_CLASS);
             BaseObject oldObject = oldDocument.getXObject(USER_CLASS);
-            
+
             boolean newDocumentIsUser = newObject != null;
             boolean oldDocumentIsUser = oldObject != null;
 
