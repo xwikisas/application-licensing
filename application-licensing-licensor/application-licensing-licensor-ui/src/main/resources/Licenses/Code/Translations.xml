@@ -76,6 +76,7 @@ licensor.ownerDetails.email.hint=You will use this email address to contact the 
 licensor.ownerDetails.instanceId.label=Instance id
 licensor.ownerDetails.instanceId.hint=Unique identifier for your XWiki instance. Used to associate your licenses with your XWiki instance.
 licensor.ownerDetails.missingData=This field is required!
+licensor.ownerDetails.invalidEmail=The email address is invalid!
 licensor.ownerDetails.heading=License Ownership
 licensor.ownerDetails.hint=Fill in the following fields in order to buy a license or to get a trial one.
 licensor.licenseManager.heading=Licensed Extensions
