@@ -479,7 +479,9 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     var focus = true;
     ownerDetailsForm.find('input:visible').each(function() {
       $(this).removeClass('required');
-      if (!$(this).val()) {
+      var inputValue = $(this).val().trim();
+      // Check for a minimum number of chars filled in by the user.
+      if (inputValue.length &lt; 2) {
         // Focus on first element that needs to be filled with data.
         if (focus) {
           $(this).focus();
@@ -778,6 +780,15 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
 
 #addLicense + .errormessage {
   margin-top: .7em;
+}
+
+/* Duplicate some rules from style.css for input[type='email'].
+   Should be removed when https://jira.xwiki.org/browse/XWIKI-13803 is implemented.*/
+.xform input[type="email"] {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }</code>
     </property>
     <property>

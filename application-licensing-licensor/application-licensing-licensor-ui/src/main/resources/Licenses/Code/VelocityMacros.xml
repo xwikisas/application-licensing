@@ -152,7 +152,11 @@
         &lt;span class="xHint"&gt;$!escapetool.xml($hint)&lt;/span&gt;
       #end
     &lt;/dt&gt;
-    &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
+    #set ($inputType = 'text')
+    #if ($prop.name == 'email')
+      #set ($inputType = 'email')
+    #end
+    &lt;dd&gt;&lt;input type="$inputType" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
   #end
 #end
 
