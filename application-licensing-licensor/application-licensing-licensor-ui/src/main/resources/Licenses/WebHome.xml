@@ -479,24 +479,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     var focus = true;
     ownerDetailsForm.find('input:visible').each(function() {
       $(this).removeClass('required');
-      var minValueSize = 3;
-      var inputValue = $(this).val().trim();
-
-      // Simple email validation.
-      var emailValid = true;
-      if (this.id === 'email' &amp;&amp; inputValue.length &gt;= minValueSize) {
-        var emailMessage = $(this).siblings('.text-danger');
-        var atpos = inputValue.indexOf('@');
-        var dotpos = inputValue.lastIndexOf('.');
-        if (atpos &lt; 1 || dotpos &lt; atpos + 2 || dotpos + 2 &gt;= inputValue.length) {
-          emailValid = false;
-          emailMessage.removeClass('hidden');
-        } else {
-          emailMessage.addClass('hidden');
-        }
-      }
-
-      if (inputValue.length &lt; minValueSize || !emailValid) {
+      if (!$(this).val()) {
         // Focus on first element that needs to be filled with data.
         if (focus) {
           $(this).focus();

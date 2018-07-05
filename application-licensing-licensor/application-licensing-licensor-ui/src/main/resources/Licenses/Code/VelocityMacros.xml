@@ -152,12 +152,7 @@
         &lt;span class="xHint"&gt;$!escapetool.xml($hint)&lt;/span&gt;
       #end
     &lt;/dt&gt;
-    &lt;dd&gt;
-      &lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;
-      #if ($prop.name == 'email')
-        &lt;span class="text-danger hidden"&gt;$services.localization.render('licensor.ownerDetails.invalidEmail')&lt;/span&gt;
-      #end
-    &lt;/dd&gt;
+    &lt;dd&gt;&lt;input type="text" name="${prop.name}" id="${prop.name}" value="$!{prop.value}" /&gt;&lt;/dd&gt;
   #end
 #end
 
