@@ -292,6 +292,8 @@
       #set ($bestLicenseResults = $bestLicenseQuery.setLimit(1).execute())
       #set ($bestLicenseId = $xwiki.getDocument($bestLicenseResults[0]).getValue('licenseId'))
       #if ($licenseDetails.licenseId.equals($bestLicenseId))
+        ## Store the number of days before expiration in the license details for future purposes.
+        #set ($discard = $licenseDetails.put('daysBeforeExpiration', $days))
         #set ($discard = $results.add($licenseDetails))
       #end
     #end
