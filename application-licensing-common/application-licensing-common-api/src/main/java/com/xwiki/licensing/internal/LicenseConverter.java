@@ -22,6 +22,7 @@ package com.xwiki.licensing.internal;
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +34,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.codec.binary.StringUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.crypto.signer.CMSSignedDataVerifier;
 import org.xwiki.instance.InstanceId;
@@ -57,6 +60,9 @@ import com.xwiki.licensing.model.jaxb.Licensee;
 public class LicenseConverter extends AbstractConverter<com.xwiki.licensing.License>
 {
     @Inject
+    private Logger logger;
+
+    @Inject
     private CMSSignedDataVerifier verifier;
 
     @Override
@@ -72,9 +78,25 @@ public class LicenseConverter extends AbstractConverter<com.xwiki.licensing.Lice
         throw new ConversionException(String.format("Unsupported target type [%s]", targetType));
     }
 
-    private com.xwiki.licensing.SignedLicense convertToLicense(byte[] signedLicense)
+    private com.xwiki.licensing.License convertToLicense(byte[] signedLicense)
     {
-        return new SignedLicense(signedLicense, verifier, this);
+        try {
+            return new SignedLicense(signedLicense, verifier, this);
+        } catch (Exception signedLicenseException) {
+            // Try to fall back on a plain license.
+            String serializedLicense;
+            try {
+                serializedLicense = StringUtils.newStringUtf8(this.verifier.verify(signedLicense).getContent());
+            } catch (GeneralSecurityException e) {
+                // Invalid signed license data.
+                throw signedLicenseException;
+            }
+            // The license data is valid but the certificates used to sign the data are not.
+            com.xwiki.licensing.License license = convertToLicense(serializedLicense);
+            this.logger.warn("The signed license [{}] will not be used because its signature is not trusted.",
+                license.getId(), signedLicenseException);
+            return license;
+        }
     }
 
     private com.xwiki.licensing.License convertToLicense(String serializedLicense)

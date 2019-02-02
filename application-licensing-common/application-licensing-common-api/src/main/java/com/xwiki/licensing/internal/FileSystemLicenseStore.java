@@ -33,6 +33,7 @@ import javax.inject.Singleton;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.properties.converter.Converter;
 
@@ -73,6 +74,9 @@ public class FileSystemLicenseStore implements LicenseStore
             return pattern.matcher(name).matches();
         }
     };
+
+    @Inject
+    private Logger logger;
 
     @Inject
     @Named("xml")
@@ -220,15 +224,32 @@ public class FileSystemLicenseStore implements LicenseStore
     {
         private final File[] files;
         private int index;
+        private License next;
 
         LicenseFileIterator(File[] files)
         {
             this.files = files;
         }
 
+        private License computeNext()
+        {
+            while (this.files != null && this.index < this.files.length) {
+                File file = this.files[this.index++];
+                try {
+                    return converter.convert(License.class, getFileContent(file));
+                } catch (Exception e) {
+                    logger.warn("Failed to read license file [{}].", file, e);
+                }
+            }
+            return null;
+        }
+
         public boolean hasNext()
         {
-            return files != null && index < files.length;
+            if (this.next == null) {
+                this.next = computeNext();
+            }
+            return this.next != null;
         }
 
         public License next()
@@ -236,11 +257,9 @@ public class FileSystemLicenseStore implements LicenseStore
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            try {
-                return converter.convert(License.class, getFileContent(files[index++]));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            License license = this.next;
+            this.next = null;
+            return license;
         }
 
         public void remove()

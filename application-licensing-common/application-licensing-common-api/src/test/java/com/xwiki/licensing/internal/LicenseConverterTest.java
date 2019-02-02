@@ -28,6 +28,8 @@ import java.util.TimeZone;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.xwiki.crypto.signer.CMSSignedDataVerifier;
+import org.xwiki.crypto.signer.param.CMSSignedDataVerified;
 import org.xwiki.instance.InstanceId;
 import org.xwiki.properties.converter.Converter;
 import org.xwiki.test.AllLogRule;
@@ -37,12 +39,20 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.LicensedFeatureId;
+import com.xwiki.licensing.SignedLicense;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link LicenseConverterTest}.
@@ -54,7 +64,7 @@ public class LicenseConverterTest
     public static final boolean INSTANCE_ID_EQUALS_BROKEN = new InstanceId() != new InstanceId();
 
     @Rule
-    public MockitoComponentMockingRule<Converter<License>> mockedConverter =
+    public MockitoComponentMockingRule<Converter<License>> mocker =
         new MockitoComponentMockingRule<>(LicenseConverter.class);
 
     @Rule
@@ -67,7 +77,7 @@ public class LicenseConverterTest
     @Before
     public void setUp() throws Exception
     {
-        converter = mockedConverter.getComponentUnderTest();
+        converter = mocker.getComponentUnderTest();
     }
 
     @Test
@@ -321,5 +331,43 @@ public class LicenseConverterTest
         assertThat(license.getLicensee().get("firstName"), equalTo("John"));
         assertThat(license.getLicensee().get("lastName"), equalTo("Doe"));
         assertThat(license.getLicensee().get("email"), equalTo("john.doe@example.com"));
+    }
+
+    @Test
+    public void fallBackFromSignedToPlainLicense() throws Exception
+    {
+        byte[] signedLicense = new byte[] {1, 2, 3};
+
+        String licenseData = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+            + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
+            + "    <modelVersion>1.0.0</modelVersion>\n"
+            + "    <type>TRIAL</type>\n"
+            + "    <licensed>\n"
+            + "        <features>\n"
+            + "            <feature>\n"
+            + "                <id>test-ui</id>\n"
+            + "                <version>1.0</version>\n"
+            + "            </feature>\n"
+            + "        </features>\n"
+            + "    </licensed>\n"
+            + "    <licencee>\n"
+            + "        <name>user</name>\n"
+            + "        <email>user@example.com</email>\n"
+            + "    </licencee>\n"
+            + "</license>\n";
+
+        CMSSignedDataVerified signedDataVerified = mock(CMSSignedDataVerified.class);
+        when(signedDataVerified.getContent()).thenReturn(licenseData.getBytes());
+
+        CMSSignedDataVerifier verifier = this.mocker.getInstance(CMSSignedDataVerifier.class);
+        when(verifier.verify(signedLicense)).thenReturn(signedDataVerified);
+
+        License license = this.converter.convert(License.class, signedLicense);
+        assertFalse(license instanceof SignedLicense);
+        assertEquals("user", license.getLicensee().get("firstName"));
+
+        verify(this.mocker.getMockedLogger()).warn(
+            eq("The signed license [{}] will not be used because its signature is not trusted."), eq(license.getId()),
+            any(IllegalArgumentException.class));
     }
 }

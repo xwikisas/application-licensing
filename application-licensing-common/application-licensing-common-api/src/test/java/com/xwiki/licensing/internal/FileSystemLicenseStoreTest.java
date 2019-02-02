@@ -47,6 +47,9 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -264,13 +267,17 @@ public class FileSystemLicenseStoreTest
         byte[] signedLicenseBytes = signedLicense.getEncoded();
 
         MULTI_STORE_DIR.mkdir();
+        File invalidStoreFile = new File(MULTI_STORE_DIR, "11111111-1111-1111-1111-111111111111.license");
+        FileUtils.writeStringToFile(invalidStoreFile, "invalid license content", UTF8);
         File unsignedStoreFile = new File(MULTI_STORE_DIR, testLicense.getId() + ".license");
         FileUtils.writeStringToFile(unsignedStoreFile, xmlLicense, UTF8);
         File signedStoreFile = new File(MULTI_STORE_DIR, signedLicense.getId() + ".license");
         FileUtils.writeByteArrayToFile(signedStoreFile, signedLicenseBytes);
 
         boolean unsigned = false, signed = false;
-        for(License license : store.getIterable(MULTI_STORE_REFERENCE)) {
+        int count = 0;
+        for (License license : store.getIterable(MULTI_STORE_REFERENCE)) {
+            count++;
             if (license instanceof SignedLicense) {
                 assertThat(signed, is(false));
                 assertThat(license, equalTo(signedLicense));
@@ -281,8 +288,12 @@ public class FileSystemLicenseStoreTest
                 unsigned = true;
             }
         }
+        assertThat(count, is(2));
         assertThat(signed, is(true));
         assertThat(unsigned, is(true));
+
+        verify(this.mockedStore.getMockedLogger()).warn(eq("Failed to read license file [{}]."), eq(invalidStoreFile),
+            any(IllegalArgumentException.class));
     }
 
 }
