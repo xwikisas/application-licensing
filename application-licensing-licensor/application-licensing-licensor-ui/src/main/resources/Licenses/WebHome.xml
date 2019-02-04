@@ -86,7 +86,7 @@
       &lt;p&gt;$services.localization.render('licensor.addLicense.hint')&lt;/p&gt;
       &lt;textarea name="license" id="license" rows="5"&gt;&lt;/textarea&gt;
       &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
-      &lt;input class="btn btn-default" type="submit" value="Add License"&gt;
+      &lt;input class="btn btn-default" type="submit" value="$services.localization.render('licensor.addLicense.submit')"&gt;
     &lt;/fieldset&gt;
   &lt;/form&gt;
   {{/html}}

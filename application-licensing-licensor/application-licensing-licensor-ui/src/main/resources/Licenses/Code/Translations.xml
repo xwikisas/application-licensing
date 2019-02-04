@@ -92,7 +92,8 @@ licensor.updateLicenses.checking=Checking...
 licensor.updateLicenses.failedToRetrieve=Failed to retrieve the license updates.
 licensor.updateLicenses.noUpdates=The licenses are already up-to-date.
 licensor.updateLicenses.applied=Applied {0} out of {1} license updates.
-licensor.badCSRFToken=Bad CSRF token</content>
+licensor.badCSRFToken=Bad CSRF token
+licensor.addLicense.submit=Add License</content>
   <object>
     <name>Licenses.Code.Translations</name>
     <number>0</number>
