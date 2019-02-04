@@ -576,6 +576,12 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     }, 0);
   });
 
+  var getValue = function(arrayOfNameValuePairs, name) {
+    return arrayOfNameValuePairs.filter(function(pair) {
+      return pair.name === name
+    })[0].value;
+  };
+
   var getTrialLicense = function(data, trialButton) {
     trialButton.prop('disabled', true);
     var progressNotification = new XWiki.widgets.Notification(
@@ -584,8 +590,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
       trialButton.prop('disabled', false);
     }).done(function(result) {
       // Cache the "hasTrials" value in local storage.
-      var urlParams = new URLSearchParams(this.data);
-      var hasTrialsKey = computeHasTrialKey(urlParams.get('instanceId'), urlParams.get('featureId'));
+      var hasTrialsKey = computeHasTrialKey(getValue(data, 'instanceId'), getValue(data, 'featureId'));
       var hasTrialValue = result.hasTrials;
       localStorage.setItem(hasTrialsKey, hasTrialValue);
       // Hide the "Extend Trial" button if "hasTrials" is false.
