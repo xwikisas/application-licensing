@@ -109,8 +109,17 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             licenseValidator = LicenseValidator.INVALIDATOR;
         }
 
-        this.licensorExtensionId = installedExtensionRepository
-            .getInstalledExtension("com.xwiki.licensing:application-licensing-licensor-api", null).getId();
+        this.licensorExtensionId = new ExtensionId("com.xwiki.licensing:application-licensing-licensor-api");
+        InstalledExtension licensorExtension =
+            this.installedExtensionRepository.getInstalledExtension(this.licensorExtensionId.getId(), null);
+        if (licensorExtension != null) {
+            this.licensorExtensionId = licensorExtension.getId();
+        } else {
+            this.logger.warn(
+                "The Licensor API extension ({}) is not installed on the root namespace as it should."
+                    + " Licensed extensions won't be detected correctly as a conseuence.",
+                this.licensorExtensionId.getId());
+        }
 
         logger.debug("About to load registered licenses");
         this.storeReference = new FileLicenseStoreReference(configuration.getLocalStorePath(), true);

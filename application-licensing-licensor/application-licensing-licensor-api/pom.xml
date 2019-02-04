@@ -37,7 +37,7 @@
     <xwiki.extension.category>API</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <checkstyle.suppressions.location>${basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
-    <xwiki.jacoco.instructionRatio>0.14</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.29</xwiki.jacoco.instructionRatio>
   </properties>
   <dependencies>
     <dependency>
@@ -115,6 +115,17 @@
         <!-- Apply the Checkstyle configurations defined in the top level pom.xml file -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <!-- Exclude the test utility classes that we had to put in the source tree in order to pass the
+        LicensingUtils.isPristineImpl() check while running unit tests. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/test/**/*.class</exclude>
+          </excludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>

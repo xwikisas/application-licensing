@@ -21,6 +21,9 @@ package com.xwiki.licensing;
 
 import java.io.File;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
  * Reference to a license store on the filesystem.
  *
@@ -29,6 +32,7 @@ import java.io.File;
 public class FileLicenseStoreReference implements LicenseStoreReference
 {
     private final File file;
+
     private final boolean isMulti;
 
     /**
@@ -46,8 +50,8 @@ public class FileLicenseStoreReference implements LicenseStoreReference
      * Wrap a file or folder as a store reference.
      *
      * @param file a file or folder (that may not exists).
-     * @param isMulti true to force a multi key store when the file does not exists yet.
-     *                Actually, Multi key store are always directory.
+     * @param isMulti true to force a multi key store when the file does not exists yet. Actually, Multi key store are
+     *            always directory.
      */
     public FileLicenseStoreReference(File file, boolean isMulti)
     {
@@ -69,5 +73,28 @@ public class FileLicenseStoreReference implements LicenseStoreReference
     public boolean isMulti()
     {
         return this.isMulti;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder().append(isMulti()).append(getFile()).toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        FileLicenseStoreReference storeReference = (FileLicenseStoreReference) obj;
+        return new EqualsBuilder().append(this.isMulti, storeReference.isMulti).append(this.file, storeReference.file)
+            .isEquals();
     }
 }
