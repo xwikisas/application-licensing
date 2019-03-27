@@ -37,7 +37,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.SecurityReferenceFactory;
-import org.xwiki.security.authorization.cache.SecurityCache;
+import org.xwiki.security.authorization.cache.internal.SecurityCache;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 import org.xwiki.xar.XarEntry;
