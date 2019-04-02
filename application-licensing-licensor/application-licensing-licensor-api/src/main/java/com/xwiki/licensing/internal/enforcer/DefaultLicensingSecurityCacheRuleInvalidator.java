@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -37,12 +36,10 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.SecurityReferenceFactory;
-import org.xwiki.security.authorization.cache.internal.SecurityCache;
+import org.xwiki.security.authorization.cache.SecurityCache;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 import org.xwiki.xar.XarEntry;
-
-import com.xpn.xwiki.XWikiContext;
 
 /**
  * Default implementation of the {@link LicensingSecurityCacheRuleInvalidator}.
@@ -56,11 +53,16 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
 {
     private static final String WIKI_NAMESPACE = "wiki:";
 
+    // This is used only when the XWiki version is older than 10.4RC1 (see XWIKI-15230: Manipulating the (public)
+    // SecurityCache is very dangerous).
     private static final String SECURITY_CACHE_RULES_INVALIDATOR_HINT =
         "org.xwiki.security.authorization.internal.DefaultSecurityCacheRulesInvalidator";
 
     /**
      * Fair read-write lock to suspend the delivery of cache updates while there are loads in progress.
+     * <p>
+     * This is used only when the XWiki version is older than 10.4RC1 (see XWIKI-15230: Manipulating the (public)
+     * SecurityCache is very dangerous).
      */
     private ReadWriteLock readWriteLock;
 
@@ -74,9 +76,6 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
     private SecurityReferenceFactory securityReferenceFactory;
 
     @Inject
-    private Provider<XWikiContext> xcontextProvider;
-
-    @Inject
     private DocumentReferenceResolver<EntityReference> documentReferenceResolver;
 
     @Inject
@@ -84,25 +83,6 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
 
     @Inject
     private Logger logger;
-
-    @Override
-    public void invalidateAll()
-    {
-        // Check that the security factory has enough context
-        // TODO: this is really fragile, should be improved by securing the factory itself
-        if (xcontextProvider.get() == null) {
-            return;
-        }
-
-        boolean locked = acquireLock();
-        try {
-            securityCache.remove(securityReferenceFactory.newEntityReference(null));
-        } finally {
-            if (locked && readWriteLock != null) {
-                readWriteLock.writeLock().unlock();
-            }
-        }
-    }
 
     @Override
     public void invalidate(XarInstalledExtension extension)
@@ -129,9 +109,7 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
                 }
             }
         } finally {
-            if (locked && readWriteLock != null) {
-                readWriteLock.writeLock().unlock();
-            }
+            releaseLock(locked);
         }
     }
 
@@ -149,6 +127,12 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
         }
     }
 
+    /**
+     * This returns {@code false} if the XWiki version is 10.4RC1 or newer (see XWIKI-15230: Manipulating the (public)
+     * SecurityCache is very dangerous). We keep it for backward compatibility with older versions.
+     * 
+     * @return {@code true} if the lock was acquired, {@code false} otherwise
+     */
     private boolean acquireLock()
     {
         // This class is used by the LicenseManager component at initialization time or when a new license is added
@@ -166,6 +150,19 @@ public class DefaultLicensingSecurityCacheRuleInvalidator
             return locked;
         }
         return false;
+    }
+
+    /**
+     * This does nothing if the XWiki version is 10.4RC1 or newer (see XWIKI-15230: Manipulating the (public)
+     * SecurityCache is very dangerous). We keep it for backward compatibility with older versions.
+     * 
+     * @param locked whether the lock was previously acquired or not
+     */
+    private void releaseLock(boolean locked)
+    {
+        if (locked && this.readWriteLock != null) {
+            this.readWriteLock.writeLock().unlock();
+        }
     }
 
     /**

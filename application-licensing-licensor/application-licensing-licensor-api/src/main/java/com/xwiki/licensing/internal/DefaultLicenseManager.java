@@ -141,20 +141,13 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             linkLicenseToInstalledExtensions(entry.getKey(), entry.getValue());
         }
 
-        Collection<ExtensionId> licensed = getLicensedExtensions();
-
-        // Add Unlicensed licenses to all extension installed that are under license
-        for (ExtensionId id : licensed) {
+        // Mark as Unlicensed all the installed extensions that require a license and for which there's no license
+        // available yet.
+        for (ExtensionId id : getLicensedExtensions()) {
             if (extensionToLicense.putIfAbsent(id, License.UNLICENSED) == null) {
                 logger.debug("Mark extension [{}] unlicensed", id);
             }
         }
-
-        // Important: don't clear the security cache here by calling clearSecurityCacheForXarExtensions(licensed)
-        // since that would lock XWiki at startup since this method is called when the Security system is initializing
-        // and thus a lock is set up and the implementation of LicensingSecurityCacheRuleInvalidator is also asking
-        // for the same lock...
-        // See LICENSING-57
     }
 
     private Collection<ExtensionId> linkLicenseToInstalledExtensions(Collection<LicensedFeatureId> licIds,
@@ -380,17 +373,10 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.warn("Licensor was unable to persist license [{}].", license.getId());
             }
 
-            clearSecurityCacheForXarExtensions(linkLicenseToInstalledExtensions(licIds, license));
+            linkLicenseToInstalledExtensions(licIds, license);
             return true;
         }
         return false;
-    }
-
-    private void clearSecurityCacheForXarExtensions(Collection<ExtensionId> extensionIds)
-    {
-        for (ExtensionId extId : extensionIds) {
-            clearSecurityCacheForXarExtension(extId);
-        }
     }
 
     private void clearSecurityCacheForXarExtension(ExtensionId extensionId)

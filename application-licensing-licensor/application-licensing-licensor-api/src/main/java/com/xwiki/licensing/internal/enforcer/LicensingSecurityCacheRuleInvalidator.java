@@ -23,7 +23,7 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 
 /**
- * Security cache rule invalidator for licensed extensions.
+ * Used to invalidate security cache rules that match documents that belong to licensed extensions.
  *
  * @version $Id$
  */
@@ -31,14 +31,9 @@ import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 public interface LicensingSecurityCacheRuleInvalidator
 {
     /**
-     * Invalidate the whole security cache.
-     */
-    void invalidateAll();
-
-    /**
      * Invalidate rules matching documents installed by this extension.
      *
-     * @param extension the extension.
+     * @param extension the extension
      */
     void invalidate(XarInstalledExtension extension);
 }
