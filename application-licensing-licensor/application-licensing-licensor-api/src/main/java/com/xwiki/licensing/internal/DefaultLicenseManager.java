@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,10 +37,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.Extension;
-import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
-import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
@@ -53,6 +50,7 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.LicenseStoreReference;
 import com.xwiki.licensing.LicenseValidator;
+import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
@@ -78,9 +76,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     private LicenseStore store;
 
     @Inject
-    private InstalledExtensionRepository installedExtensionRepository;
-
-    @Inject
     @Named(XarExtensionHandler.TYPE)
     private InstalledExtensionRepository xarInstalledExtensionRepository;
 
@@ -90,6 +85,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Inject
     private LicensingSecurityCacheRuleInvalidator licensingSecurityCacheRuleInvalidator;
 
+    @Inject
+    private LicensedExtensionManager licensedExtensionManager;
+
     private final Map<LicenseId, License> licenses = new HashMap<>();
 
     private final Map<LicenseId, Integer> licensesUsage = new HashMap<>();
@@ -98,8 +96,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
     private final Map<ExtensionId, License> extensionToLicense = new HashMap<>();
 
-    private ExtensionId licensorExtensionId;
-
     private LicenseStoreReference storeReference;
 
     @Override
@@ -107,18 +103,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     {
         if (!LicensingUtils.isPristineImpl(licenseValidator)) {
             licenseValidator = LicenseValidator.INVALIDATOR;
-        }
-
-        this.licensorExtensionId = new ExtensionId("com.xwiki.licensing:application-licensing-licensor-api");
-        InstalledExtension licensorExtension =
-            this.installedExtensionRepository.getInstalledExtension(this.licensorExtensionId.getId(), null);
-        if (licensorExtension != null) {
-            this.licensorExtensionId = licensorExtension.getId();
-        } else {
-            this.logger.warn(
-                "The Licensor API extension ({}) is not installed on the root namespace as it should."
-                    + " Licensed extensions won't be detected correctly as a conseuence.",
-                this.licensorExtensionId.getId());
         }
 
         logger.debug("About to load registered licenses");
@@ -143,7 +127,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
         // Mark as Unlicensed all the installed extensions that require a license and for which there's no license
         // available yet.
-        for (ExtensionId id : getLicensedExtensions()) {
+        for (ExtensionId id : this.licensedExtensionManager.getLicensedExtensions()) {
             if (extensionToLicense.putIfAbsent(id, License.UNLICENSED) == null) {
                 logger.debug("Mark extension [{}] unlicensed", id);
             }
@@ -164,11 +148,11 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     {
         Set<ExtensionId> extensionIds = new HashSet<>();
         License license = licenseTolink;
-        for (Extension extension : getInstalledExtensions(licId)) {
+        for (ExtensionId extensionId : this.licensedExtensionManager.getLicensedExtensions(licId)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Analyze license [{}] for extension [{}]", license.getId(), extension.getId());
+                logger.debug("Analyze license [{}] for extension [{}]", license.getId(), extensionId);
             }
-            License existingLicense = extensionToLicense.get(extension.getId());
+            License existingLicense = extensionToLicense.get(extensionId);
 
             // If already licensed using another license, get the best of both license
             if (existingLicense != null && license != existingLicense) {
@@ -178,11 +162,11 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             // If the new license is better
             if (license != existingLicense) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Register license [{}] for extension [{}]", license.getId(), extension.getId());
+                    logger.debug("Register license [{}] for extension [{}]", license.getId(), extensionId);
                 }
                 // Register the new license for this extension
-                registerLicense(extension.getId(), license);
-                extensionIds.add(extension.getId());
+                registerLicense(extensionId, license);
+                extensionIds.add(extensionId);
             }
         }
         return extensionIds;
@@ -220,18 +204,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             logger.debug("License [{}] is NOT applicable to this wiki instance", license.getId());
         }
         return licensedFeatureIds;
-    }
-
-    private List<Extension> getInstalledExtensions(LicensedFeatureId licensedFeatureId)
-    {
-        List<Extension> coveredExtensions = new ArrayList<>();
-        ExtensionDependency extensionDependency = licensedFeatureId.getExtensionDependency();
-        for (Extension extension : this.installedExtensionRepository.getInstalledExtensions()) {
-            if (extensionDependency.isCompatible(extension)) {
-                coveredExtensions.add(extension);
-            }
-        }
-        return coveredExtensions;
     }
 
     private void registerLicense(ExtensionId extId, License license)
@@ -281,9 +253,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     void installExtensionLicense(String namespace, InstalledExtension extension)
     {
         ExtensionId extensionId = extension.getId();
-        Collection<InstalledExtension> backwardDeps = getLicensorBackwardDependencies().get(namespace);
+        Collection<ExtensionId> licensedExtensions = this.licensedExtensionManager.getLicensedExtensions(namespace);
 
-        if (backwardDeps != null && backwardDeps.contains(extension) && extensionToLicense.get(extensionId) == null) {
+        if (licensedExtensions.contains(extensionId) && this.extensionToLicense.get(extensionId) == null) {
             registerLicense(extensionId, resolveLicenseForExtension(extension));
         }
     }
@@ -323,27 +295,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         // Remove the license binding only if the specified extension version has been uninstalled from all namespaces.
         if (!extension.isInstalled()) {
             extensionToLicense.remove(extensionId);
-        }
-    }
-
-    private Collection<ExtensionId> getLicensedExtensions()
-    {
-        Set<ExtensionId> extIds = new HashSet<>();
-        for (Collection<InstalledExtension> extensions : getLicensorBackwardDependencies().values()) {
-            for (InstalledExtension extension : extensions) {
-                extIds.add(extension.getId());
-            }
-        }
-        return extIds;
-    }
-
-    private Map<String, Collection<InstalledExtension>> getLicensorBackwardDependencies()
-    {
-        try {
-            return installedExtensionRepository.getBackwardDependencies(licensorExtensionId);
-        } catch (ResolveException e) {
-            logger.warn("Licensor is unable to properly register licensed extensions.", e);
-            return Collections.emptyMap();
         }
     }
 

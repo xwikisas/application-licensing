@@ -30,8 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.xwiki.extension.ExtensionId;
-import org.xwiki.extension.InstalledExtension;
-import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.instance.InstanceId;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
@@ -42,6 +40,7 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.LicenseValidator;
+import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.test.LicenseValidatorWrapper;
@@ -49,7 +48,6 @@ import com.xwiki.licensing.internal.test.LicenseValidatorWrapper;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -75,16 +73,11 @@ public class DefaultLicenseManagerTest
     @Before
     public void configure() throws Exception
     {
-        InstalledExtension testApp = mock(InstalledExtension.class);
-        when(testApp.getId()).thenReturn(this.testAppId);
-
-        List<InstalledExtension> installedExtensions = new ArrayList<>();
-        installedExtensions.add(testApp);
-
         this.validLicense.setId(new LicenseId());
         this.validLicense.setType(LicenseType.PAID);
         this.validLicense.addInstanceId(new InstanceId("ec9adc8a-cb98-4d5e-803a-5746fc8330c5"));
-        this.validLicense.addFeatureId(new LicensedFeatureId(testAppId.getId()));
+        LicensedFeatureId licensedFeatureId = new LicensedFeatureId(testAppId.getId());
+        this.validLicense.addFeatureId(licensedFeatureId);
         this.validLicense.addLicenseeInfo("firstName", "John");
         this.validLicense.addLicenseeInfo("lastName", "Doe");
         this.validLicense.addLicenseeInfo("email", "john@doe.com");
@@ -104,13 +97,13 @@ public class DefaultLicenseManagerTest
         when(licenseValidator.isSigned(this.validLicense)).thenReturn(true);
         when(licenseValidator.isValid(this.validLicense)).thenReturn(true);
 
-        InstalledExtensionRepository installedExtensionRepository =
-            this.mocker.getInstance(InstalledExtensionRepository.class);
-        when(installedExtensionRepository.getInstalledExtensions()).thenReturn(installedExtensions);
+        LicensedExtensionManager licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
+        when(licensedExtensionManager.getLicensedExtensions(licensedFeatureId))
+            .thenReturn(Collections.singleton(testAppId));
     }
 
     @Test
-    public void initBeforeLicensorIsMarkedAsInstalled() throws Exception
+    public void init() throws Exception
     {
         LicenseManager licenseManager = this.mocker.getComponentUnderTest();
         assertSame(this.validLicense, licenseManager.get(this.testAppId));
@@ -118,10 +111,5 @@ public class DefaultLicenseManagerTest
             licenseManager.getActiveLicenses()));
         assertTrue(CollectionUtils.isEqualCollection(Collections.singletonList(this.validLicense),
             licenseManager.getUsedLicenses()));
-
-        verify(this.mocker.getMockedLogger()).warn(
-            "The Licensor API extension ({}) is not installed on the root namespace as it should."
-                + " Licensed extensions won't be detected correctly as a conseuence.",
-            "com.xwiki.licensing:application-licensing-licensor-api");
     }
 }
