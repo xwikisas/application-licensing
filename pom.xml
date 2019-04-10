@@ -34,8 +34,8 @@
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
   <scm>
-    <connection>scm:git:https://github.com/xwikisas/application-licensing.git</connection>
-    <developerConnection>scm:git:https://github.com/xwikisas/application-licensing.git</developerConnection>
+    <connection>scm:git:git://github.com/xwikisas/application-licensing.git</connection>
+    <developerConnection>scm:git:git://github.com/xwikisas/application-licensing.git</developerConnection>
     <url>https://github.com/xwikisas/application-licensing</url>
     <tag>HEAD</tag>
   </scm>
