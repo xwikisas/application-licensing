@@ -98,6 +98,7 @@ public class DefaultLicenseManagerTest
         when(licenseValidator.isValid(this.validLicense)).thenReturn(true);
 
         LicensedExtensionManager licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
+        when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singleton(testAppId));
         when(licensedExtensionManager.getLicensedExtensions(licensedFeatureId))
             .thenReturn(Collections.singleton(testAppId));
     }
@@ -106,9 +107,16 @@ public class DefaultLicenseManagerTest
     public void init() throws Exception
     {
         LicenseManager licenseManager = this.mocker.getComponentUnderTest();
-        assertSame(this.validLicense, licenseManager.get(this.testAppId));
+
+        // The extension is marked as Unlicensed until the License Manager initialization thread is done.
+        assertSame(License.UNLICENSED, licenseManager.get(this.testAppId));
         assertTrue(CollectionUtils.isEqualCollection(Collections.singletonList(this.validLicense),
             licenseManager.getActiveLicenses()));
+
+        // Wait for the License Manager initialization thread to execute.
+        Thread.sleep(1000);
+
+        assertSame(this.validLicense, licenseManager.get(this.testAppId));
         assertTrue(CollectionUtils.isEqualCollection(Collections.singletonList(this.validLicense),
             licenseManager.getUsedLicenses()));
     }
