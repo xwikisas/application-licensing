@@ -30,6 +30,10 @@
   <artifactId>application-licensing-test-script</artifactId>
   <name>Licensing Application - Tests - Script Service</name>
   <packaging>jar</packaging>
+  <properties>
+    <!-- Prevent the original licensor-api from being installed when running functional tests -->
+    <xwiki.extension.features>com.xwiki.licensing:application-licensing-licensor-api</xwiki.extension.features>
+  </properties>
   <description>The licensing script service to be used when running the functional tests of a licensed applications</description>
   <dependencies>
     <dependency>
