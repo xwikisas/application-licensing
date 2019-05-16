@@ -33,6 +33,8 @@
   <properties>
     <!-- Prevent the original licensor-api from being installed when running functional tests -->
     <xwiki.extension.features>com.xwiki.licensing:application-licensing-licensor-api</xwiki.extension.features>
+    <!-- Force the installation on the root namespace to match the original licensor. -->
+    <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
   </properties>
   <description>The licensing script service to be used when running the functional tests of a licensed applications</description>
   <dependencies>
