@@ -38,7 +38,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content/>
   <object>
     <name>Licenses.Code.UIExtensionLicenseChecking</name>
@@ -129,9 +129,9 @@
     <property>
       <code>require(['jquery'], function($) {
   $(document).ready(function() {
-    $("#licenseCheckingExtensionPoint").detach().prependTo('#xwikicontent');
-    $("#licenseCheckingExtensionPoint").removeClass("hidden");
-    });
+    $('#licenseCheckingExtensionPoint').detach().prependTo('#xwikicontent');
+    $('#licenseCheckingExtensionPoint').removeClass('hidden');
+  });
 });</code>
     </property>
     <property>
@@ -271,14 +271,16 @@
       <content>{{velocity}}
 #set ($sheetsMissingLicense = $services.licensing.licensor.getSheetsMissingLicense($doc.documentReference, $xcontext.action))
 #if ($services.sheet.getSheets($doc, $xcontext.action).isEmpty() &amp;&amp; $sheetsMissingLicense.size() &gt; 0)
-  #set($message = '')
+  #set ($message = '')
   #foreach ($sheet in $sheetsMissingLicense)
     #foreach ($extension in $services.extension.xar.getInstalledExtensions($sheet))
       #set ($message = $message+" "+$extension.getName())
-     #end
+    #end
   #end
   {{html clean="false"}}
-  &lt;div class="hidden" id="licenseCheckingExtensionPoint"&gt;$services.localization.render("licensor.wrongDisplayedContent", [$message])&lt;/div&gt;
+  &lt;div class="hidden" id="licenseCheckingExtensionPoint"&gt;
+  $services.localization.render("licensor.wrongDisplayedContent", [$message])
+  &lt;/div&gt;
   {{/html}}
   #set($discard = $xwiki.jsx.use('Licenses.Code.UIExtensionLicenseChecking', {'minify':false}))
 #end
