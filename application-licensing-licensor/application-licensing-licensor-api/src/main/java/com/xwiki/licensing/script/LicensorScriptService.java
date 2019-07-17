@@ -255,7 +255,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @param action represents the action made
      * @return a list of DocumentReference (sheets) that are missing license for a specific documentReference and action
      */
-    public List<DocumentReference> getSheetsMissingLicense(DocumentReference documentReference, String action)
+    public List<DocumentReference> getUnlicensedSheets(DocumentReference documentReference, String action)
     {
         try {
             DocumentModelBridge documentModelBridge = documentAccessBridge.getDocument(documentReference);
