@@ -93,7 +93,8 @@ licensor.updateLicenses.failedToRetrieve=Failed to retrieve the license updates.
 licensor.updateLicenses.noUpdates=The licenses are already up-to-date.
 licensor.updateLicenses.applied=Applied {0} out of {1} license updates.
 licensor.badCSRFToken=Bad CSRF token
-licensor.addLicense.submit=Add License</content>
+licensor.addLicense.submit=Add License
+licensor.wrongDisplayedContent=The content of this page is not correctly displayed because the following extensions does not have a valid license: {0}.</content>
   <object>
     <name>Licenses.Code.Translations</name>
     <number>0</number>
