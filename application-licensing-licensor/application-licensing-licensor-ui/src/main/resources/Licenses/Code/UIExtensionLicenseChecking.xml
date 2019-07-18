@@ -274,8 +274,6 @@
   #set ($extensions = [])
   #foreach ($sheet in $unlicensedSheets)
     #foreach ($extension in $services.extension.xar.getInstalledExtensions($sheet))
-      ## add method for an array returns a boolean value
-      ## because we don't need to print that value, will assign it to a variable
       #set ($discard = $extensions.add($extension.name))
     #end
   #end
