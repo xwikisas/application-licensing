@@ -269,17 +269,19 @@
     </property>
     <property>
       <content>{{velocity}}
-#set ($sheetsMissingLicense = $services.licensing.licensor.getSheetsMissingLicense($doc.documentReference, $xcontext.action))
-#if ($services.sheet.getSheets($doc, $xcontext.action).isEmpty() &amp;&amp; $sheetsMissingLicense.size() &gt; 0)
-  #set ($message = '')
-  #foreach ($sheet in $sheetsMissingLicense)
+#set ($unlicensedSheets = $services.licensing.licensor.getUnlicensedSheets($doc.documentReference, $xcontext.action))
+#if ($services.sheet.getSheets($doc, $xcontext.action).isEmpty() &amp;&amp; $unlicensedSheets.size() &gt; 0)
+  #set ($extensions = [])
+  #foreach ($sheet in $unlicensedSheets)
     #foreach ($extension in $services.extension.xar.getInstalledExtensions($sheet))
-      #set ($message = $message+" "+$extension.getName())
+      ## add method for an array returns a boolean value
+      ## because we don't need to print that value, will assign it to a variable
+      #set ($discard = $extensions.add($extension.name))
     #end
   #end
   {{html clean="false"}}
   &lt;div class="hidden" id="licenseCheckingExtensionPoint"&gt;
-  $services.localization.render("licensor.wrongDisplayedContent", [$message])
+  $services.localization.render("licensor.wrongDisplayedContent", [$stringtool.join($extensions, ',')])
   &lt;/div&gt;
   {{/html}}
   #set($discard = $xwiki.jsx.use('Licenses.Code.UIExtensionLicenseChecking', {'minify':false}))
