@@ -279,7 +279,7 @@
   #end
   {{html clean="false"}}
   &lt;div class="hidden" id="licenseCheckingExtensionPoint"&gt;
-  $services.localization.render("licensor.wrongDisplayedContent", [$stringtool.join($extensions, ',')])
+    $services.localization.render("licensor.wrongDisplayedContent", [$stringtool.join($extensions, ',')])
   &lt;/div&gt;
   {{/html}}
   #set($discard = $xwiki.jsx.use('Licenses.Code.UIExtensionLicenseChecking', {'minify':false}))
