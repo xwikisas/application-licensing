@@ -251,9 +251,9 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * @param documentReference is the document for which is searching for associated sheets with missing license
-     * @param action represents the action made
-     * @return a list of DocumentReference (sheets) that are missing license for a specific documentReference and action
+     * @param documentReference the document for which to search for associated sheets with missing license
+     * @param action represents the action the sheets have to match
+     * @return the list of sheets associated with the specified document and action and that are missing a license
      */
     public List<DocumentReference> getUnlicensedSheets(DocumentReference documentReference, String action)
     {
@@ -264,6 +264,8 @@ public class LicensorScriptService implements ScriptService, Initializable
                     .filter(sheet -> !this.hasLicensureForEntity(sheet))
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            this.logger.error("Failed to get the list of associated sheets. Root cause is: [{}].",
+                    ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }
