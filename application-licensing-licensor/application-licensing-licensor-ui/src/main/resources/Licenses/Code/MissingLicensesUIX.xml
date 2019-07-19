@@ -43,6 +43,109 @@
   <object>
     <name>Licenses.Code.MissingLicensesUIX</name>
     <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>2d39adc1-dc39-4f54-a10f-2339f9a47aba</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function($) {
+  $(document).ready(function() {
+    $('#licenseCheckingExtensionPoint').removeClass('hidden').prependTo('#xwikicontent');
+  });
+});</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use/>
+    </property>
+  </object>
+  <object>
+    <name>Licenses.Code.MissingLicensesUIX</name>
+    <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>19028f31-6d36-46b1-90f7-2035f5894546</guid>
     <class>
@@ -119,6 +222,22 @@
 #if (!$xwiki.exists('XWiki.Notifications.Code.NotificationsMenuUIX') &amp;&amp;
     !$xwiki.exists('XWiki.Alerts.Code.AlertsMenuUIX'))
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
+#end
+
+#set ($unlicensedSheets = $services.licensing.licensor.getUnlicensedSheets($doc.documentReference, $xcontext.action))
+#if ($services.sheet.getSheets($doc, $xcontext.action).isEmpty() &amp;&amp; $unlicensedSheets.size() &gt; 0)
+  #set ($extensions = $collectionstool.set)
+  #foreach ($sheet in $unlicensedSheets)
+    #foreach ($extension in $services.extension.xar.getInstalledExtensions($sheet))
+      #set ($discard = $extensions.add($extension.name))
+    #end
+  #end
+  {{html clean="false"}}
+  &lt;div class="hidden" id="licenseCheckingExtensionPoint"&gt;
+    $services.localization.render("licensor.wrongDisplayedContent", ["$stringtool.join($extensions, ', ')"])
+  &lt;/div&gt;
+  {{/html}}
+  #set($discard = $xwiki.jsx.use('Licenses.Code.MissingLicensesUIX'))
 #end
 {{/velocity}}</content>
     </property>
