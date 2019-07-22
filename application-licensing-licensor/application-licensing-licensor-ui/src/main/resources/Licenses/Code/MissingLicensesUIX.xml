@@ -235,7 +235,7 @@
   {{html clean="false"}}
   ## Create a div that will display a warning and the applications that don't have a license.
   ## Because the "After container header" UIX (org.xwiki.platform.template.content.header.after) is available since
-  ## XWiki 10.4RC1 and we need to support XWiki 8.4+, the div will be created and with hidden class. After that, it will bemoved with JS.
+  ## XWiki 10.4RC1 and we need to support XWiki 8.4+, the created div will be made hidden and moved with JS.
   &lt;div class="hidden" id="licenseCheckingExtensionPoint"&gt;
     $services.localization.render("licensor.wrongDisplayedContent", ["$stringtool.join($extensions, ', ')"])
   &lt;/div&gt;
