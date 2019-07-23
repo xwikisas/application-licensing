@@ -20,6 +20,8 @@
 package com.xwiki.licensing.script;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,12 +29,15 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.bridge.DocumentAccessBridge;
+import org.xwiki.bridge.DocumentModelBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.EntityType;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceProvider;
 import org.xwiki.properties.converter.Converter;
@@ -40,6 +45,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.sheet.SheetManager;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
@@ -82,6 +88,12 @@ public class LicensorScriptService implements ScriptService, Initializable
 
     @Inject
     private UserCounter userCounter;
+
+    @Inject
+    private SheetManager sheetManager;
+
+    @Inject
+    private DocumentAccessBridge documentAccessBridge;
 
     @Override
     public void initialize() throws InitializationException
@@ -234,6 +246,26 @@ public class LicensorScriptService implements ScriptService, Initializable
             return this.userCounter.getUserCount();
         } catch (Exception e) {
             this.logger.warn("Failed to count the users. Root cause is: [{}].", ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    /**
+     * @param documentReference the document for which to search for associated sheets with missing license
+     * @param action represents the action the sheets have to match
+     * @return the list of sheets associated with the specified document and action and that are missing a license
+     */
+    public List<DocumentReference> getUnlicensedSheets(DocumentReference documentReference, String action)
+    {
+        try {
+            DocumentModelBridge documentModelBridge = documentAccessBridge.getDocument(documentReference);
+            List<DocumentReference> sheetsUsedByDocument = sheetManager.getSheets(documentModelBridge, action);
+            return sheetsUsedByDocument.stream()
+                    .filter(sheet -> !this.hasLicensureForEntity(sheet))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            this.logger.error("Failed to get the list of associated sheets. Root cause is: [{}].",
+                    ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }
