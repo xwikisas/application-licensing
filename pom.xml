@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:git://github.com/xwikisas/application-licensing.git</connection>
     <developerConnection>scm:git:git@github.com:xwikisas/application-licensing.git</developerConnection>
-    <url>https://github.com/xwikisas/application-licensing</url>
+    <url>https://github.com/xwikisas/application-licensing/tree/master</url>
     <tag>HEAD</tag>
   </scm>
   <issueManagement>
