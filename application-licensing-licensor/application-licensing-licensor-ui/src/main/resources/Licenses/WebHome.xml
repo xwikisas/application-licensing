@@ -314,7 +314,7 @@
       <displayInCategory>extensionmanager</displayInCategory>
     </property>
     <property>
-      <displayInSection>Licenses</displayInSection>
+      <displayInSection>license</displayInSection>
     </property>
     <property>
       <heading/>
