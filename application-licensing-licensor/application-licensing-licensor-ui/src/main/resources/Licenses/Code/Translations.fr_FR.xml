@@ -39,7 +39,8 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>licensor.name=Nom de l'extension
+  <content>admin.license=Licences
+licensor.name=Nom de l'extension
 licensor.version=Version
 licensor.status=Date d'expiration
 licensor.status.noLicenseAvailable=Aucune licence disponible
