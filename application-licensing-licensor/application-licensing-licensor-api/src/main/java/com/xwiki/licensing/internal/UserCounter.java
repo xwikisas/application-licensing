@@ -151,8 +151,11 @@ public class UserCounter
 
     private long getUserCountOnWiki(String wikiId) throws QueryException
     {
-        Query query = this.queryManager.createQuery("from doc.object(XWiki.XWikiUsers) as user where user.active = 1",
-            Query.XWQL);
+        StringBuilder statement = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
+        statement.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
+        statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
+
+        Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
         query.addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);

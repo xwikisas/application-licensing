@@ -59,12 +59,19 @@ public class UserCounterTest
 
     private QueryFilter countFilter;
 
+    private String statement;
+
     @Before
     public void configure() throws Exception
     {
         this.wikiDescriptorManager = this.mocker.getInstance(WikiDescriptorManager.class);
         this.queryManager = this.mocker.getInstance(QueryManager.class);
         this.countFilter = this.mocker.getInstance(QueryFilter.class, "count");
+
+        StringBuilder stringBuilder = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
+        stringBuilder.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
+        stringBuilder.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
+        this.statement = stringBuilder.toString();
     }
 
     @Test
@@ -83,8 +90,7 @@ public class UserCounterTest
 
         Query fooQuery = mock(Query.class, "foo");
         Query barQuery = mock(Query.class, "bar");
-        when(this.queryManager.createQuery("from doc.object(XWiki.XWikiUsers) as user where user.active = 1",
-            Query.XWQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.addFilter(this.countFilter)).thenReturn(fooQuery);
         when(barQuery.addFilter(this.countFilter)).thenReturn(barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
@@ -106,8 +112,7 @@ public class UserCounterTest
 
         Query fooQuery = mock(Query.class, "foo");
         Query barQuery = mock(Query.class, "bar");
-        when(this.queryManager.createQuery("from doc.object(XWiki.XWikiUsers) as user where user.active = 1",
-            Query.XWQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.addFilter(this.countFilter)).thenReturn(fooQuery);
         when(barQuery.addFilter(this.countFilter)).thenReturn(barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
@@ -127,8 +132,7 @@ public class UserCounterTest
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(Collections.singletonList("foo"));
 
         Query fooQuery = mock(Query.class, "foo");
-        when(this.queryManager.createQuery("from doc.object(XWiki.XWikiUsers) as user where user.active = 1",
-            Query.XWQL)).thenReturn(fooQuery);
+        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery);
         when(fooQuery.addFilter(this.countFilter)).thenReturn(fooQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
 
