@@ -39,7 +39,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>admin.license=Licences
+  <content>admin.licenses=Licences
 licensor.name=Nom de l'extension
 licensor.version=Version
 licensor.status=Date d'expiration
