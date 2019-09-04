@@ -214,6 +214,11 @@
       <content>{{include reference="Licenses.Code.VelocityMacros" /}}
 
 {{velocity}}
+## The result of this UIX is needed only in the view mode.
+#if ($xcontext.action != 'view')
+  #stop
+#end
+
 ## The bell icon from the top bar is provided by NotificationsMenuUIX in XWiki &lt;9.10RC1
 ## and by AlertsMenuUIX in XWiki 9.10RC1+.
 #if (!$xwiki.exists('XWiki.Notifications.Code.NotificationsMenuUIX') &amp;&amp;
