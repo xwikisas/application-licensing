@@ -212,7 +212,7 @@
     </class>
     <property>
       <content>{{velocity}}
-#if ($xwiki.user.hasAccessLevel('view', 'Licenses.Code.VelocityMacros'))
+#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.VelocityMacros'))
   {{include reference="Licenses.Code.VelocityMacros" /}}
 #end
 {{/velocity}}
