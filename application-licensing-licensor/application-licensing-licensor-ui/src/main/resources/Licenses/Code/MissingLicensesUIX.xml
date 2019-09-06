@@ -211,7 +211,11 @@
       </scope>
     </class>
     <property>
-      <content>{{include reference="Licenses.Code.VelocityMacros" /}}
+      <content>{{velocity}}
+#if ($xwiki.user.hasAccessLevel('view', 'Licenses.Code.VelocityMacros'))
+  {{include reference="Licenses.Code.VelocityMacros" /}}
+#end
+{{/velocity}}
 
 {{velocity}}
 ## The bell icon from the top bar is provided by NotificationsMenuUIX in XWiki &lt;9.10RC1
