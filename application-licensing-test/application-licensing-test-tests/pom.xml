@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.licensing</groupId>
     <artifactId>application-licensing-test</artifactId>
-    <version>1.14.5</version>
+    <version>1.15-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-test-tests</artifactId>
   <name>Licensing Application - Tests - Functional Tests</name>
