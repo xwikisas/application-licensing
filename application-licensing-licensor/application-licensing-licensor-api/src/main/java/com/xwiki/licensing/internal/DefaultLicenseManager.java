@@ -66,6 +66,32 @@ import com.xwiki.licensing.internal.enforcer.LicensingUtils;
 @Singleton
 public class DefaultLicenseManager implements LicenseManager, Initializable
 {
+    private class LinkLicenseToInstalledExtensionsRunnable implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            // Link registered licenses to installed extensions and invalidate the security cache for the licensed
+            // extensions.
+            Iterator<Map.Entry<LicensedFeatureId, License>> registeredLicensesIterator =
+                featureToLicense.entrySet().iterator();
+            while (!Thread.interrupted() && registeredLicensesIterator.hasNext()) {
+                Map.Entry<LicensedFeatureId, License> entry = registeredLicensesIterator.next();
+                logger.debug("Associating license [{}] for feature [{}].", entry.getValue().getId(), entry.getKey());
+                linkLicenseToInstalledExtensions(entry.getKey(), entry.getValue());
+            }
+
+            // The license manager component can be re-initialized at runtime (e.g. when the XWiki distribution is
+            // upgraded) so we also need to invalidate the security cache for the extensions that have remained
+            // unlicensed (no license was found for them).
+            for (ExtensionId id : licensedExtensionManager.getLicensedExtensions()) {
+                if (License.UNLICENSED.equals(extensionToLicense.get(id))) {
+                    clearSecurityCacheForXarExtension(id);
+                }
+            }
+        }
+    };
+
     @Inject
     private Logger logger;
 
@@ -134,21 +160,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         // cache. The solution we chose is to decouple the security cache invalidation (i.e. linking registered licenses
         // to installed extensions) from the License Manager initialization. The down-side is that some extensions /
         // wiki pages may appear as unlicensed for a short period of time (until the following thread ends).
-        Thread linkLicenseToInstalledExtensionsThread = new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                Iterator<Map.Entry<LicensedFeatureId, License>> registeredLicensesIterator =
-                    featureToLicense.entrySet().iterator();
-                while (!Thread.interrupted() && registeredLicensesIterator.hasNext()) {
-                    Map.Entry<LicensedFeatureId, License> entry = registeredLicensesIterator.next();
-                    logger.debug("Associating license [{}] for feature [{}].", entry.getValue().getId(),
-                        entry.getKey());
-                    linkLicenseToInstalledExtensions(entry.getKey(), entry.getValue());
-                }
-            }
-        });
+        Thread linkLicenseToInstalledExtensionsThread = new Thread(new LinkLicenseToInstalledExtensionsRunnable());
         linkLicenseToInstalledExtensionsThread.setName("XWiki License Manager Initialization Thread");
         linkLicenseToInstalledExtensionsThread.setDaemon(true);
         linkLicenseToInstalledExtensionsThread.start();
