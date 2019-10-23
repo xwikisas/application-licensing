@@ -45,7 +45,7 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.internal.DefaultLicenseManager;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**

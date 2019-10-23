@@ -562,16 +562,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     reloadTimeoutId = setTimeout(function() {
       if ($.type(window.livetable_licenseManager) !== 'undefined') {
         // Reload the livetable.
-        if ($.type(livetable_licenseManager.refresh) === 'function') {
-          // Available only for XWiki version &gt;= 9.5RC1.
-          livetable_licenseManager.refresh();
-        } else {
-          // This branch should be removed when the licensing app will use XWiki &gt;= 9.5RC1.
-          var end = livetable_licenseManager.limit;
-          var start = Math.max(livetable_licenseManager.lastOffset, 1);
-          livetable_licenseManager.clearCache();
-          livetable_licenseManager.getRows(start, end, start, end);
-        }
+        livetable_licenseManager.refresh();
       }
     }, 0);
   });

@@ -95,8 +95,5 @@ licensor.updateLicenses.noUpdates=Les licences sont déjà à jour.
 licensor.updateLicenses.applied=Appliqué {0} sur {1} mises à jour de licence.
 licensor.badCSRFToken=Token CSRF incorrect
 licensor.addLicense.submit=Ajouter la licence
-licensor.wrongDisplayedContent=Cette page ne s''affiche pas correctement car les extensions suivantes ne possèdent pas de licence valide: {0}. Veuillez visiter la {1}section Licences{2}.
-
-## Temporarily added, to be cleaned on upgrade to 9.x.
-licensor.wrongDisplayedContent8.4=Cette page ne s''affiche pas correctement car l''extension actuelle ne dispose pas d''une licence valide. Veuillez visiter la {0}section Licences{1}.</content>
+licensor.wrongDisplayedContent=Cette page ne s''affiche pas correctement car les extensions suivantes ne possèdent pas de licence valide: {0}. Veuillez visiter la {1}section Licences{2}.</content>
 </xwikidoc>

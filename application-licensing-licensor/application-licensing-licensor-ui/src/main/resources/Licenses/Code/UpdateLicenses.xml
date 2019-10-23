@@ -75,7 +75,7 @@
   #set ($licensesJSON = $xwiki.getURLContent("$storeUpdateURL?$escapetool.url($data)"))
   #set ($licenses = $jsontool.fromString($licensesJSON))
   #if (!$licenses)
-    ## Either invalid JSON or an older version of XWiki (&lt;9.9RC1).
+    ## Invalid JSON.
     #set ($licenses = $jsontool.parse($licensesJSON))
   #end
 #else

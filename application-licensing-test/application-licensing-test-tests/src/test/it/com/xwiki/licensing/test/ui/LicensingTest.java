@@ -49,7 +49,6 @@ import com.xwiki.licensing.test.po.LicensesAdminPage;
 import com.xwiki.licensing.test.po.LicensesHomePage;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 /**
  * Functional tests for the Licensing application.
@@ -131,13 +130,15 @@ public class LicensingTest extends AbstractTest
         assertEquals("No license is needed to edit this page.", new WikiEditPage().getContent());
 
         // Verify the notification for the missing license.
+        LicenseNotificationPane notification = new LicenseNotificationPane();
         // The simple users should not see the notification.
         getUtil().gotoPage(getTestClassName(), getTestMethodName());
-        assertFalse(viewPage.hasNotificationsMenu());
+        viewPage.toggleNotificationsMenu();
+        assertEquals(0, notification.getExtensions().size());
+
         // Users with administration rights should see it though.
         getUtil().loginAsSuperAdminAndGotoPage(getUtil().getURL(getTestClassName(), getTestMethodName()));
         viewPage.toggleNotificationsMenu();
-        LicenseNotificationPane notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
         // Navigate to the Licenses administration section.
@@ -177,7 +178,6 @@ public class LicensingTest extends AbstractTest
         // We need to refresh the page in order for the notification menu to be updated.
         getDriver().navigate().refresh();
         licensesAdminSection.toggleNotificationsMenu();
-        notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
         // Generate and import a license for 0 users and unspecified support level.
@@ -194,7 +194,6 @@ public class LicensingTest extends AbstractTest
         // Check the license notification message.
         // We need to refresh the page in order for the notification menu to be updated.
         licensesAdminSection.toggleNotificationsMenu();
-        notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
         // Generate and import a license for unlimited users
@@ -213,7 +212,8 @@ public class LicensingTest extends AbstractTest
         assertEquals("Hello", viewPage.getContent());
 
         // Check the license notification message.
-        assertFalse(licensesAdminSection.hasNotificationsMenu());
+        licensesAdminSection.toggleNotificationsMenu();
+        assertEquals(0, notification.getExtensions().size());
 
         // Try also with a simple user.
         getUtil().loginAndGotoPage("alice", "test", getUtil().getURL("Example", "WebHome"));

@@ -68,6 +68,12 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-mail-send-default</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Required by the script used to generate the certificates. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -154,6 +160,11 @@
         <groupId>org.xwiki.platform</groupId>
         <artifactId>xwiki-platform-tool-packager-plugin</artifactId>
         <version>${platform.version}</version>
+        <configuration>
+          <!--Disable the PR checker for the Licensing tests. There are pages that require programming rights, but the
+          Licensing application will be installed all the time on root, so there shouldn't be any issues. -->
+          <testProgrammingRights>false</testProgrammingRights>
+        </configuration>
         <dependencies>
           <!-- TODO: remove the need for this dependency in the future. The reason we need it right now is because
                the Packager Mojo will use the Import Mojo to import XARs but since we've defined the
