@@ -41,58 +41,75 @@
   <hidden>true</hidden>
   <content>{{include reference="License.Code.LicenseDetailsMacros"/}}
 
+{{velocity output="false"}}
+#macro (editLicenseDetails)
+  (% class="xform" %)(((
+    ## The license id is generated.
+    $doc.display('licenseId', 'hidden')
+    ## Display the fields that are editable.
+    #foreach ($propertyName in ['type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId', 'support',
+        'maxUserCount'])
+      ; $doc.displayPrettyName($propertyName)
+      : $doc.display($propertyName)
+    #end
+  )))
+#end
+
+#macro (viewLicenseDetails)
+  (% class="xform" %)(((
+    #foreach ($propertyName in ['type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId',
+        'dependentFeatureIds', 'support', 'maxUserCount', 'issueDate', 'expirationDate'])
+      #set ($value = $doc.getValue($propertyName))
+      #if ("$!value.size()" == '')
+        #set ($value = [$value])
+      #end
+      #if ("$!stringtool.join($value, '')" != '')
+        ; $doc.displayPrettyName($propertyName)
+        : $doc.display($propertyName)
+      #end
+    #end
+    #set ($hasLicense = $doc.getValue('hasLicense'))
+    #if ("$!hasLicense" == '1')
+      #set ($licenseId = $doc.getValue('licenseId'))
+      #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
+      #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
+      #if ("$!license" != '')
+        ; License
+        : {{html clean="false"}}&lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;{{/html}}
+      #else
+        {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
+
+        #displayGenerateButton()
+      #end
+    #else
+
+      ## No license ID, we consider that no license has been generated yet. Propose to generate one.
+      #displayGenerateButton()
+    #end
+  )))
+#end
+
+#macro (displayGenerateButton)
+  {{html clean="false"}}
+  &lt;form&gt;
+    &lt;button name="action" value="generate" class="btn btn-primary"&gt;Generate License&lt;/button&gt;
+  &lt;/form&gt;
+  {{/html}}
+#end
+{{/velocity}}
+
+
 {{velocity}}
-#if ("$!request.action" == 'generate')
+#if ($request.action == 'generate')
   #readLicenseDetailsFromDocument($doc)
+  #setExtraLicenseDetails($licenseDetails)
   #generateLicense($licenseDetails true $doc.documentReference)
   ## Refresh the page.
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
+#elseif ($xcontext.action == 'edit')
+  #editLicenseDetails()
+#else
+  #viewLicenseDetails()
 #end
-(% class="xform"%)(((
-#foreach ($propertyName in ['licenseId', 'type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId',
-    'dependentFeatureIds', 'support', 'maxUserCount'])
-  ; $doc.displayPrettyName($propertyName)
-  : $doc.display($propertyName)
-#end
-#if ($xcontext.action == 'view')
-  #macro (displayGenerateButton)
-    {{html clean='false'}}
-      &lt;form&gt;
-        &lt;input type='hidden' name='action' value='generate'/&gt;
-        &lt;span class='buttonwrapper'&gt;
-          &lt;input class='button' type='submit' value='Generate License'/&gt;
-        &lt;/span&gt;
-      &lt;/form&gt;
-    {{/html}}
-  #end
-  #set ($issueDate = $doc.getValue('issueDate'))
-  #if ("$!issueDate" != '')
-    ; $doc.displayPrettyName('issueDate')
-    : $doc.display('issueDate')
-  #end
-  #set ($expirationDate = $doc.getValue('expirationDate'))
-  #if ("$!expirationDate" != '')
-    ; $doc.displayPrettyName('expirationDate')
-    : $doc.display('expirationDate')
-  #end
-  #set ($hasLicense = $doc.getValue('hasLicense'))
-  #if ("$!hasLicense" == '1')
-    #set ($licenseId = $doc.getValue('licenseId'))
-    #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
-    #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
-    #if ("$!license" != '')
-      ; License
-      : {{html clean="false"}}&lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;{{/html}}
-    #else
-      {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
-
-      #displayGenerateButton
-    #end
-  #else
-    ## No license ID, we consider that no license has been generated yet. Propose to generate one.
-    #displayGenerateButton
-  #end
-#end
-)))
 {{/velocity}}</content>
 </xwikidoc>

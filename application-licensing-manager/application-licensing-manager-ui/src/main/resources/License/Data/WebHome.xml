@@ -44,7 +44,7 @@
 {{velocity}}
 #if ($hasAdmin &amp;&amp; "$!request.action" == 'add')
   #findNextUniqueDetailsPageReference($detailsPageReference)
-  $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'inline', $escapetool.url({
+  $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'edit', $escapetool.url({
     'template': $request.template,
     'License.Code.LicenseDetailsClass_0_licenseId': $detailsPageReference.name
   })))

@@ -120,19 +120,21 @@
     ## Persist the license.
     #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
     #set ($discard = $services.licensing.manager.storeGeneratedLicense($licenseStore, $signedLicense))
-    ## Update the license details with the License ID and the fact that a license now exists.
+    ## Update the license details object.
     #if ("$!licenseDetailsReference" != '')
       #set ($detailsDocument = $xwiki.getDocument($licenseDetailsReference))
       #set ($detailsObject = $detailsDocument.getObject('License.Code.LicenseDetailsClass'))
       #if ("$!detailsObject" != '')
+        #foreach ($entry in $licenseDetails.entrySet())
+          #set ($discard = $detailsObject.set($entry.key, $entry.value))
+        #end
         #set ($discard = $detailsObject.set('hasLicense', '1'))
         #set ($discard = $detailsObject.set('licenseId', $signedLicense.id.id))
         ## If the issue date is not set, compute it.
         #if ("$!issueDate" == '')
           #set ($discard = $detailsObject.set('issueDate', $datetool.date))
         #end
-        #set ($discard = $detailsObject.set('expirationDate', $licenseDetails.expirationDate))
-        #set ($discard = $detailsDocument.save('License ID added', true))
+        #set ($discard = $detailsDocument.save('License generated', true))
         #set ($licenseAsString = $NULL)
         #setVariable ("$licenseAsString", $services.licensing.license.encode($signedLicense))
       #end
@@ -209,7 +211,7 @@
 #end
 
 #macro (setExtraLicenseDetails $licenseDetails)
-  #if ("$!licenseDetails.dependentFeatureIds" == '')
+  #if ("$!licenseDetails.dependentFeatureIds" == '' || $licenseDetails.dependentFeatureIds.isEmpty())
     #getLicensedExtension($licenseDetails)
     #if ($extension)
       #set ($dependentFeatureIds = $collectionstool.set)
