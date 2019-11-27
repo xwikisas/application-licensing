@@ -66,12 +66,6 @@ public class LicenseDetailsEditPage extends InlinePage
         return this;
     }
 
-    public LicenseDetailsEditPage setDependentExtensionIds(String dependentExtensionIds)
-    {
-        setValue("dependentFeatureIds", dependentExtensionIds);
-        return this;
-    }
-
     public LicenseDetailsEditPage setSupportLevel(String support)
     {
         setValue("support", support);

@@ -31,7 +31,7 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class LicenseDetailsViewPage extends ViewPage
 {
-    @FindBy(css = "input[type='submit'][value='Generate License']")
+    @FindBy(css = "button[name='action'][value='generate']")
     private WebElement generateLicenseButton;
 
     @FindBy(css = "pre.code")
