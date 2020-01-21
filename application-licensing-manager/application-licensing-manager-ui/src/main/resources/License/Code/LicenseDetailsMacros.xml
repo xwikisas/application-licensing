@@ -336,5 +336,109 @@
   #set ($query = $NULL)
   #setVariable ("$query", $computedQuery)
 #end
+
+#**
+ * Computes the list of licenses that are currently in use (the license with the best expiration date for an instance id
+ * and feature id wins).
+ *#
+#macro (getActiveLicenses)
+  ## Collect the best expiration date per instance id and feature id.
+  #set ($statement = "select instanceId.value, featureId.value, max(expirationDate.value)"
+    + " from XWikiDocument as doc, BaseObject as licenseObj, StringProperty as instanceId, StringProperty as featureId, DateProperty as expirationDate"
+    + " where doc.fullName = licenseObj.name and licenseObj.className = 'License.Code.LicenseDetailsClass'"
+    + " and licenseObj.id = instanceId.id.id and instanceId.id.name = 'instanceId'"
+    + " and licenseObj.id = featureId.id.id and featureId.id.name = 'featureId'"
+    + " and licenseObj.id = expirationDate.id.id and expirationDate.id.name = 'expirationDate'"
+    + " and expirationDate.value &gt; :now"
+    + " group by instanceId.value, featureId.value")
+  #set ($query = $services.query.hql($statement))
+  #set ($query = $query.bindValue('now', $datetool.date))
+  #set ($bestExpirationDate = {})
+  #foreach ($result in $query.execute())
+    #set ($instanceId = $result.get(0))
+    #set ($featureId = $result.get(1))
+    #set ($expirationDate = $result.get(2))
+    #set ($instanceIdEntry = $bestExpirationDate.getOrDefault($instanceId, {}))
+    #set ($discard = $bestExpirationDate.put($instanceId, $instanceIdEntry))
+    #set ($discard = $instanceIdEntry.put($featureId, $expirationDate))
+  #end
+  ## Now collect the active licenses.
+  #set ($activeLicenses = [])
+  #set ($statement = ", BaseObject as licenseObj, DateProperty as expirationDate, StringProperty email"
+    + " where doc.fullName = licenseObj.name and licenseObj.className = 'License.Code.LicenseDetailsClass'"
+    + " and licenseObj.id = expirationDate.id.id and expirationDate.id.name = 'expirationDate'"
+    + " and licenseObj.id = email.id.id and email.id.name = 'email'"
+    + " and expirationDate.value &gt; :now and email.value not like '%@xwiki.com'")
+  #set ($query = $services.query.hql($statement))
+  #set ($query = $query.bindValue('now', $datetool.date))
+  #foreach ($result in $query.execute())
+    #set ($licenseDetailsDocument = $xwiki.getDocument($result))
+    #readLicenseDetailsFromDocument($licenseDetailsDocument)
+    ## Check if this is the best license for the given instance id and feature id.
+    #if ($licenseDetails.expirationDate == $bestExpirationDate.get($licenseDetails.instanceId).get($licenseDetails.featureId))
+      #set ($discard = $activeLicenses.add($licenseDetails.licenseId))
+    #end
+  #end
+#end
+
+#**
+ * Computes the list of active licenses that have to be regenerated because they were signed with a certificate that has
+ * expired.
+ *#
+#macro (getActiveLicensesToRegenerate)
+  #getActiveLicenses()
+  #set ($licensesToRegenerate = [])
+  #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
+  #foreach ($licenseId in $activeLicenses)
+    #set ($retrieveGeneratedLicenseError = $NULL)
+    #try ('retrieveGeneratedLicenseError')
+      #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
+    #end
+    #if ($retrieveGeneratedLicenseError)
+      #set ($discard = $licensesToRegenerate.add($licenseId))
+    #end
+  #end
+#end
+
+#macro (getEmailsForActiveLicensesToRegenerate)
+  #getActiveLicensesToRegenerate()
+  #set ($emailsForActiveLicensesToRegenerate = {
+    'free': $collectionstool.getSortedSet(),
+    'paid': $collectionstool.getSortedSet(),
+    'trial': $collectionstool.getSortedSet()
+  })
+  #foreach ($licenseId in $licensesToRegenerate)
+    #set ($licenseDetailsDocument = $xwiki.getDocument("License.Data.$licenseId"))
+    #set ($email = $licenseDetailsDocument.getValue('email'))
+    #set ($licenseType = $licenseDetailsDocument.getValue('type'))
+    #set ($discard = $emailsForActiveLicensesToRegenerate.get($licenseType.toLowerCase()).add($email))
+  #end
+#end
+
+#**
+ * Regenerate the specified license, adding 1 second to the expiration date and using a newer certificate.
+ *#
+#macro (regenerateLicense $licenseId)
+  #set ($licenseDetailsDocument = $xwiki.getDocument("License.Data.$licenseId"))
+  #readLicenseDetailsFromDocument($licenseDetailsDocument)
+  ## Add 1 second to the expiration date to make the new license better (anything less than 1 second will be discarded
+  ## at the database level so won't make the new license better).
+  #set ($licenseDetails.expirationDate = $datetool.toDate($mathtool.add($licenseDetails.expirationDate.time, 1000)))
+  #set ($discard = $licenseDetails.keySet().removeAll(['licenseId', 'hasLicense', 'issueDate']))
+  #addLicenseDetails($licenseDetails true $licenseAsString)
+#end
+
+#**
+ * Regenerate all active licenses that are broken because they were signed with a certificate that has expired.
+ *#
+#macro (regenerateBrokenLicenses)
+  #getActiveLicensesToRegenerate()
+  #foreach ($licenseId in $licensesToRegenerate)
+    #regenerateLicense($licenseId)
+    #if ($foreach.index &gt; 10)
+      #break
+    #end
+  #end
+#end
 {{/velocity}}</content>
 </xwikidoc>

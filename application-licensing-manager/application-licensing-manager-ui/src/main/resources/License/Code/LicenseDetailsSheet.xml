@@ -72,12 +72,17 @@
     #if ("$!hasLicense" == '1')
       #set ($licenseId = $doc.getValue('licenseId'))
       #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
-      #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
-      #if ("$!license" != '')
-        ; License
+      #set ($retrieveGeneratedLicenseError = $NULL)
+      #try ('retrieveGeneratedLicenseError')
+        #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
+      #end
+      ; License
+      #if ($retrieveGeneratedLicenseError)
+        : {{error}}$retrieveGeneratedLicenseError.getCause(){{/error}}
+      #elseif ("$!license" != '')
         : {{html clean="false"}}&lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;{{/html}}
       #else
-        {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
+        : {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
 
         #displayGenerateButton()
       #end

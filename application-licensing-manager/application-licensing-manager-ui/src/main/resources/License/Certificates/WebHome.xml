@@ -39,7 +39,64 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="License.Code.LicenseDetailsMacros" /}}
+
+{{velocity output="false"}}
+#set ($certificateStore = $services.crypto.store.getX509SpaceCertificateStore(
+  $services.model.resolveSpace('License.Certificates')))
+
+#macro (getValidCertificates)
+  #set ($validCertificates = [])
+  #foreach ($certificate in $certificateStore.getAllCertificates())
+    #if ($datetool.date.before($certificate.notAfter))
+      #set ($discard = $validCertificates.add($certificate))
+    #end
+  #end
+  #set ($validCertificates = $sorttool.sort($validCertificates, 'notAfter'))
+#end
+
+#macro (getExpiredCertificates)
+  #set ($expiredCertificates = [])
+  #foreach ($certificate in $certificateStore.getAllCertificates())
+    #if ($datetool.date.after($certificate.notAfter))
+      #set ($discard = $expiredCertificates.add($certificate))
+    #end
+  #end
+  #set ($expiredCertificates = $sorttool.sort($expiredCertificates, 'notBefore:desc'))
+#end
+
+#macro (certificatesTable $certificates)
+  |=Name|=Expires|=Issued
+  #foreach ($certificate in $certificates)
+    |$certificate.subject.name|$certificate.notAfter|$certificate.notBefore
+  #end
+#end
+{{/velocity}}
+
+{{velocity}}
+= Valid Certificates =
+
+The following certificates are valid:
+
+#getValidCertificates()
+#certificatesTable($validCertificates)
+
+= Expired Certificates =
+
+#getActiveLicensesToRegenerate()
+#if ($licensesToRegenerate.isEmpty())
+  {{info}}There are no active licenses signed with expired certificates.{{/info}}
+#else
+  {{warning}}There are $licensesToRegenerate.size() licenses signed with expired certificates!{{/warning}}
+#end
+
+The following certificates are expired:
+
+#getExpiredCertificates()
+#certificatesTable($expiredCertificates)
+
+= All Certificates =
+
 #set($columns = ['doc.name', 'subject', 'keyid', 'issuer', 'serial'])
 #set($columnsProperties = {
   'doc.name' : { 'type' : 'text', 'link' : 'view' },
@@ -53,6 +110,5 @@
    'translationPrefix' : 'certificates.'
 })
 #livetable('certificates' $columns $columnsProperties $options)
-{{velocity}}
-</content>
+{{/velocity}}</content>
 </xwikidoc>
