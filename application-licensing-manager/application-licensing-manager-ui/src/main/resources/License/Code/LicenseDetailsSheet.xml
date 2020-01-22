@@ -80,7 +80,13 @@
       #if ($retrieveGeneratedLicenseError)
         : {{error}}$retrieveGeneratedLicenseError.getCause(){{/error}}
       #elseif ("$!license" != '')
-        : {{html clean="false"}}&lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;{{/html}}
+        : {{html clean="false"}}
+          &lt;p&gt;
+            $services.icon.renderHTML('download')
+            &lt;a href="$doc.getURL('get', 'outputSyntax=plain&amp;action=download')"&gt;Download license file&lt;/a&gt;
+          &lt;/p&gt;
+          &lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;
+          {{/html}}
       #else
         : {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
 
@@ -101,8 +107,26 @@
   &lt;/form&gt;
   {{/html}}
 #end
-{{/velocity}}
 
+#macro (downloadLicense)
+  #set ($licenseId = $doc.getValue('licenseId'))
+  #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
+  #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
+  #set ($bytes = $license.getEncoded())
+  ## We write the output directly to the HTTP response in order to avoid going through the Rendering which executes
+  ## transformations that could break the license (e.g. the icon transformation).
+  #set ($discard = $response.setContentType('application/octet-stream'))
+  #set ($discard = $response.setContentLength($bytes.size()))
+  #set ($discard = $response.setHeader('Content-disposition', "attachment; filename=${licenseId}.license"))
+  #foreach ($byte in $bytes)
+    #set ($discard = $response.outputStream.write($byte))
+  #end
+  ## Make sure the entire content is send back to the client.
+  #set ($discard = $response.flushBuffer())
+  ## Make sure XWiki doesn't write any more content to the response.
+  #set ($discard = $xcontext.setFinished(true))
+#end
+{{/velocity}}
 
 {{velocity}}
 #if ($request.action == 'generate')
@@ -111,6 +135,8 @@
   #generateLicense($licenseDetails true $doc.documentReference)
   ## Refresh the page.
   $response.sendRedirect($xwiki.getURL($doc.documentReference, 'view'))
+#elseif ($request.action == 'download')
+  #downloadLicense()
 #elseif ($xcontext.action == 'edit')
   #editLicenseDetails()
 #else
