@@ -142,6 +142,10 @@
   #if ($featureId.contains(':::'))
     #set ($featureId = $featureId.split(':::')[0])
   #end
+  #set ($sendEmails = 1)
+  #if ($request.sendEmails == '0')
+    #set ($sendEmails = 0)
+  #end
   #set ($discard = $licenseDetails.putAll({
     'firstName': $request.firstName,
     'lastName': $request.lastName,
@@ -151,7 +155,8 @@
     'extensionVersion': $request.extensionVersion,
     'type': $request.licenseType.toLowerCase(),
     'support': $request.support,
-    'maxUserCount': $request.maxUserCount
+    'maxUserCount': $request.maxUserCount,
+    'sendEmails': $sendEmails
   }))
 #end
 
