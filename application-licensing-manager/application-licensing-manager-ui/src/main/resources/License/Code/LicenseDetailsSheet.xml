@@ -48,7 +48,7 @@
     $doc.display('licenseId', 'hidden')
     ## Display the fields that are editable.
     #foreach ($propertyName in ['type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId', 'support',
-        'maxUserCount'])
+        'maxUserCount', 'sendEmails'])
       ; $doc.displayPrettyName($propertyName)
       : $doc.display($propertyName)
     #end
@@ -58,7 +58,7 @@
 #macro (viewLicenseDetails)
   (% class="xform" %)(((
     #foreach ($propertyName in ['type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId',
-        'dependentFeatureIds', 'support', 'maxUserCount', 'issueDate', 'expirationDate'])
+        'dependentFeatureIds', 'support', 'maxUserCount', 'issueDate', 'expirationDate', 'sendEmails'])
       #set ($value = $doc.getValue($propertyName))
       #if ("$!value.size()" == '')
         #set ($value = [$value])
