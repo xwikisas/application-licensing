@@ -424,7 +424,7 @@
       'paid': $collectiontool.sortedSet,
       'trial': $collectiontool.sortedSet
     })
-    #else
+  #else
     #set ($emailsForActiveLicensesToRegenerate = {
       'free': $collectionstool.sortedSet,
       'paid': $collectionstool.sortedSet,
