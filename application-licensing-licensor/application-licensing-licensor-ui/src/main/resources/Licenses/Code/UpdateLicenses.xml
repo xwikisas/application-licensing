@@ -50,9 +50,14 @@
 #end
 #set ($data = {
   'outputSyntax': 'plain',
-  'instanceId': "$services.instance.instanceId",
-  'featureId': $collectionstool.set
+  'instanceId': "$services.instance.instanceId"
 })
+## CollectionsTool is deprecated since 12.1RC1.
+#if ($collectiontool)
+  #set ($discard = $data.put('featureId', $collectiontool.set))
+#else
+  #set ($discard = $data.put('featureId', $collectionstool.set))
+#end
 ##
 ## Collect the feature ids.
 ##

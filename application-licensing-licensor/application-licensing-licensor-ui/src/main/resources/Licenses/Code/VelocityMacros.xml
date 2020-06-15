@@ -50,7 +50,12 @@
 
 #macro (getPaidExtensions)
   #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  #set ($paidExtensions = $collectionstool.set)
+  ## CollectionsTool is deprecated since 12.1RC1.
+  #if ($collectiontool)
+    #set ($paidExtensions = $collectiontool.set)
+  #else
+    #set ($paidExtensions = $collectionstool.set)
+  #end
   #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
     #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
   #end
@@ -58,7 +63,12 @@
 
 #macro (getVisiblePaidExtensions)
   #getPaidExtensions
-  #set ($visiblePaidExtensions = $collectionstool.set)
+  ## CollectionsTool is deprecated since 12.1RC1.
+  #if ($collectiontool)
+    #set ($visiblePaidExtensions = $collectiontool.set)
+  #else
+    #set ($visiblePaidExtensions = $collectionstool.set)
+  #end
   #foreach ($paidExtension in $paidExtensions)
     ## Filter out the paid extensions that are dependencies of other paid extensions (because the license of a paid
     ## extension should cover its paid dependencies).
@@ -71,7 +81,12 @@
 
 #macro (isRequiredBy $installedExtension $extensions)
   #set ($isRequiredBy = false)
-  #set ($backwardDependencies = $collectionstool.queue)
+  ## CollectionsTool is deprecated since 12.1RC1.
+  #if ($collectiontool)
+    #set ($backwardDependencies = $collectiontool.queue)
+  #else
+    #set ($backwardDependencies = $collectionstool.queue)
+  #end
   #addBackwardDependencies($installedExtension $backwardDependencies)
   ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
   ## rely on a range loop (limiting the number of backward dependencies that we analyze).
@@ -91,7 +106,12 @@
 #end
 
 #macro (addBackwardDependencies $installedExtension $backwardDependencies)
-  #set ($backwardDependenciesSet = $collectionstool.set)
+  ## CollectionsTool is deprecated since 12.1RC1.
+  #if ($collectiontool)
+    #set ($backwardDependenciesSet = $collectiontool.set)
+  #else
+    #set ($backwardDependenciesSet = $collectionstool.set)
+  #end
   #set ($discard = $backwardDependenciesSet.addAll($backwardDependencies))
   #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($installedExtension.id))
   #foreach ($backwardDependenciesOnNamespace in $backwardDependenciesByNamespace.values())

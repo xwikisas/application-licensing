@@ -214,7 +214,12 @@
   #if ("$!licenseDetails.dependentFeatureIds" == '' || $licenseDetails.dependentFeatureIds.isEmpty())
     #getLicensedExtension($licenseDetails)
     #if ($extension)
-      #set ($dependentFeatureIds = $collectionstool.set)
+      ## CollectionsTool is deprecated since 12.1RC1.
+      #if ($collectiontool)
+        #set ($dependentFeatureIds = $collectiontool.set)
+      #else
+        #set ($dependentFeatureIds = $collectionstool.set)
+      #end
       #set ($packageId = $extension.getProperty('xwiki.extension.licensing.packageId'))
       #if ("$!packageId" != '')
         ## See XWIKI-15051: SafeExtension#getProperty(key, defaultValue) ignores the default value
@@ -240,7 +245,12 @@
 #macro (getDependentFeatureIds $extension $dependentFeatureIds)
   #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
   #set ($namespace = "wiki:$xcontext.database")
-  #set ($dependencies = $collectionstool.queue)
+  ## CollectionsTool is deprecated since 12.1RC1.
+  #if ($collectiontool)
+    #set ($dependencies = $collectiontool.queue)
+  #else
+    #set ($dependencies = $collectionstool.queue)
+  #end
   #set ($discard = $dependencies.add($services.extension.createExtensionDependency($extension.id.id,
     $extension.id.version)))
   ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
@@ -407,11 +417,20 @@
 
 #macro (getEmailsForActiveLicensesToRegenerate)
   #getActiveLicensesToRegenerate()
-  #set ($emailsForActiveLicensesToRegenerate = {
-    'free': $collectionstool.getSortedSet(),
-    'paid': $collectionstool.getSortedSet(),
-    'trial': $collectionstool.getSortedSet()
-  })
+  ## CollectionsTool is deprecated since 12.1RC1.
+  #if ($collectiontool)
+    #set ($emailsForActiveLicensesToRegenerate = {
+      'free': $collectiontool.sortedSet,
+      'paid': $collectiontool.sortedSet,
+      'trial': $collectiontool.sortedSet
+    })
+    #else
+    #set ($emailsForActiveLicensesToRegenerate = {
+      'free': $collectionstool.sortedSet,
+      'paid': $collectionstool.sortedSet,
+      'trial': $collectionstool.sortedSet
+    })
+  #end
   #foreach ($licenseId in $licensesToRegenerate)
     #set ($licenseDetailsDocument = $xwiki.getDocument("License.Data.$licenseId"))
     #set ($email = $licenseDetailsDocument.getValue('email'))
