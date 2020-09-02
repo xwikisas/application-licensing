@@ -186,6 +186,12 @@
 #tmNotifications &gt; .dropdown-toggle span:empty::before {
   color: $theme.notificationErrorColor;
 }
+/* Highlight the notification bell icon when using Silk icon theme.*/
+#tmNotifications &gt; .dropdown-toggle img {
+  margin: -10px;
+  padding: 10px;
+  background-color: $theme.notificationErrorColor;
+}
 
 .notifications-missingLicenses {
   min-width: 280px;
