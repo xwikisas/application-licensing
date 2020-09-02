@@ -102,7 +102,12 @@
     #end
     #set ($discard = $namespaces.add($wikiPrettyName))
   #end
-  #set ($namespaces = $sorttool.sort($namespaces))
+  ## SortTool is deprecated since 12.0.
+  #if ($collectiontool)
+    #set ($namespaces = $collectiontool.sort($namespaces))
+  #else
+    #set ($namespaces = $sorttool.sort($namespaces))
+  #end
   ##
   ## Other
   ##
@@ -144,13 +149,18 @@
 #foreach ($extension in $extensions)
   #addPaidExtensionRow($extension $rows)
 #end
-#set ($rows = $sorttool.sort($rows, 'name'))
-#set ($offset = $mathtool.sub($mathtool.toInteger($request.offset), 1))
+## SortTool is deprecated since 12.0.
+#if ($collectiontool)
+  #set ($rows = $collectiontool.sort($rows, 'name'))
+#else
+  #set ($rows = $sorttool.sort($rows, 'name'))
+#end
+#set ($offset = $mathtool.sub($numbertool.toNumber($request.offset).intValue(), 1))
 #if ("$!offset" == '')
   #set ($offset = 0)
 #end
 #set ($offset = $mathtool.max($mathtool.min($offset, $mathtool.sub($rows.size(), 1)), 0))
-#set ($limit = $mathtool.toInteger($request.limit))
+#set ($limit = $numbertool.toNumber($request.limit).intValue())
 #if ("$!limit" == '')
   #set ($limit = 10)
 #elseif ($limit &lt;= 0)
