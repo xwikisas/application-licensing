@@ -153,7 +153,7 @@
       <cron>0 0 0 * * ?</cron>
     </property>
     <property>
-      <jobClass>com.xwiki.licensing.internal.upgrade.AutomaticDependenciesUpgradeJob</jobClass>
+      <jobClass>com.xwiki.licensing.internal.upgrades.AutomaticDependenciesUpgradeJob</jobClass>
     </property>
     <property>
       <jobDescription/>

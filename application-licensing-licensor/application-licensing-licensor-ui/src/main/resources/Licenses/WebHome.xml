@@ -464,6 +464,12 @@
         new XWiki.Document('UpdateOwnerDetails', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
         data
       );
+    },
+    modifyAutoUpgradesBlocklist: function(data) {
+      return $.post(
+        new XWiki.Document('UpdateAutomaticUpgradesBlocklist', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
+        data
+      );
     }
   };
 });
@@ -653,6 +659,19 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
       updateButton.prop('disabled', false);
       // Update the notification message.
       progressNotification.replace(new XWiki.widgets.Notification(result.notification, result.status));
+    });
+  });
+
+  $('input[name=autoUpgrade]').click(function() {
+    var autoUpgradeForm = $(this).parent('form').serializeArray();
+    licensor.modifyAutoUpgradesBlocklist(autoUpgradeForm).success(function(data) {
+      if(data.isAutoUpgrade) {
+        new XWiki.widgets.Notification(
+          $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');
+      } else {
+        new XWiki.widgets.Notification(
+          $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.removed')), 'done');
+      }
     });
   });
 

@@ -45,21 +45,19 @@ public class LicensingDepedenciesUpgradeManager
 
     @Inject
     private UpgradeExtensionHandler upgradeExtensionHandler;
-    
+
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
-    
+
     @Inject
-    private LicensingConfigurationSource licensingConfig;
+    private AutomaticUpgradesConfigurationSource licensingConfig;
 
     public void resolveExtensionsUpgrade()
     {
-        // ExtensionId extensionId = new ExtensionId("com.xwiki.meeting:application-meeting-ui", "1.11.2-SNAPSHOT");
-//        ExtensionId extensionId = new ExtensionId("com.xwiki.flashmessages:application-flashmessages-ui", "1.4.6");
-        List<String> blocklistExtensions = licensingConfig.getBlocklist();
+        List<String> upgradesBlocklist = licensingConfig.getUpgradesBlocklist();
 
         for (ExtensionId extensionId : licensedExtensionManager.getLicensedExtensions()) {
-            if (blocklistExtensions.contains(extensionId.getId())) {
+            if (upgradesBlocklist.contains(extensionId.getId())) {
                 continue;
             }
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);
