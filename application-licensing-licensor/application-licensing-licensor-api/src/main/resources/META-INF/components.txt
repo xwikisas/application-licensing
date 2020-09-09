@@ -12,3 +12,5 @@ com.xwiki.licensing.internal.LicenseManagerEventListener
 com.xwiki.licensing.internal.UserCounter
 com.xwiki.licensing.internal.UserCounter$UserListener
 com.xwiki.licensing.script.LicensorScriptService
+com.xwiki.licensing.internal.upgrade.UpgradeExtensionHandler
+com.xwiki.licensing.internal.upgrade.LicensingDepedenciesUpgradeManager
