@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.internal.AbstractDocumentConfigurationSource;
 import org.xwiki.model.reference.DocumentReference;
@@ -35,6 +37,11 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
+/**
+ * Configuration source for automatic upgrades settings.
+ *
+ * @since 1.17
+ */
 @Component(roles = AutomaticUpgradesConfigurationSource.class)
 @Singleton
 public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfigurationSource
@@ -46,6 +53,9 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
 
     private static final LocalDocumentReference CLASS_REFERENCE =
         new LocalDocumentReference(SPACE_NAMES, "AutomaticUpgradesBlocklistClass");
+
+    @Inject
+    private Logger logger;
 
     @Override
     protected DocumentReference getDocumentReference()
@@ -65,6 +75,9 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
         return "licensing.autoUpgrade";
     }
 
+    /**
+     * @return
+     */
     public List<String> getUpgradesBlocklist()
     {
         XWikiContext xcontext = this.xcontextProvider.get();
@@ -73,9 +86,10 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
         try {
             document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
             BaseObject blocklistObject = document.getXObject(CLASS_REFERENCE);
+            // TODO: getListValue returns a List?
             upgradesBlocklist = blocklistObject.getListValue("upgradesBlocklist");
         } catch (XWikiException e) {
-            e.printStackTrace();
+            logger.error("Error while getting the upgrades blocklist from configuration document", e);
         }
         return upgradesBlocklist;
     }

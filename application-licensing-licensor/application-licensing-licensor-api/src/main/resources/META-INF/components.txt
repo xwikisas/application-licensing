@@ -15,3 +15,4 @@ com.xwiki.licensing.script.LicensorScriptService
 com.xwiki.licensing.internal.upgrades.UpgradeExtensionHandler
 com.xwiki.licensing.internal.upgrades.LicensingDepedenciesUpgradeManager
 com.xwiki.licensing.internal.upgrades.AutomaticUpgradesConfigurationSource
+com.xwiki.licensing.internal.upgrades.LicensingSchedulerCheckListener
