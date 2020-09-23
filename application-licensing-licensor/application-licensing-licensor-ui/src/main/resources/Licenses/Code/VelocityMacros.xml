@@ -212,7 +212,7 @@
       title="$services.localization.render("licensor.moreActions")" role="button"&gt;
       &lt;span class="fa fa-ellipsis-v"&gt;&lt;/span&gt;
     &lt;/a&gt;
-    &lt;ul class="dropdown-menu"&gt;
+    &lt;ul class="dropdown-menu dropdown-left"&gt;
       &lt;li class="dropdown-header"&gt;
         &lt;form target="_blank" class="xform half"&gt;
             &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;

@@ -78,9 +78,7 @@
       </upgradesBlocklist>
     </class>
     <property>
-      <upgradesBlocklist>
-        <value></value>
-      </upgradesBlocklist>
+      <upgradesBlocklist/>
     </property>
   </object>
   <object>
