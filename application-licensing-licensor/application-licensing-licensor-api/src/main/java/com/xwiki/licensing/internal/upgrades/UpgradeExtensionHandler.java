@@ -24,12 +24,14 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.internal.validator.AbstractExtensionValidator;
 import org.xwiki.extension.job.ExtensionRequest;
@@ -41,16 +43,28 @@ import org.xwiki.extension.version.Version;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
+import org.xwiki.localization.ContextualLocalizationManager;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.observation.ObservationManager;
+
+import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent;
 
 /**
- * Upgrades an extension from a namespace to the last compatible version
+ * Upgrades an extension from a namespace to the last compatible version and sends a notification. The notification will
+ * be displayed only for users that subscribed to it and disabled the System filter since it is send by superadmin user.
  * 
+ * @version $Id$
  * @since 1.17
  */
 @Component(roles = UpgradeExtensionHandler.class)
 @Singleton
 public class UpgradeExtensionHandler
 {
+    /**
+     * The id of application-licensing-licensor-api module.
+     */
+    private static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
+
     @Inject
     protected DocumentAccessBridge documentAccessBridge;
 
@@ -63,30 +77,49 @@ public class UpgradeExtensionHandler
     @Inject
     private ExtensionRepositoryManager extensionRepositoryManager;
 
-    // private List<ExtensionId> failedInstalledExtensions;
+    /** The default factory for creating event objects. */
+    @Inject
+    private ObservationManager observationManager;
+
+    @Inject
+    @Named("current")
+    private DocumentReferenceResolver<String> currentDocumentReferenceResolver;
+
+    @Inject
+    private ContextualLocalizationManager localization;
 
     /**
-     * Try upgrading the given extension to the last compatible version.
+     * Try upgrading an extension inside a namespace to the last compatible version.
      * 
-     * @param installedExtensionId ExtensionId of the already installed extension
-     * @param namespace namespace in which the extension is installed
+     * @param installedExtension the already installed extension
+     * @param namespace the namespace in which the extension is installed
      */
-    public void tryUpgradeExtensionToLastVersion(ExtensionId installedExtensionId, String namespace)
+    public void tryUpgradeExtensionToLastVersion(InstalledExtension installedExtension, String namespace)
     {
+        ExtensionId installedExtensionId = installedExtension.getId();
+        // Use the reversed list of versions since the last compatible version is targeted.
         List<Version> versions = getInstallableVersions(installedExtensionId);
 
         for (Version version : versions) {
             ExtensionId toInstallExtensionId = new ExtensionId(installedExtensionId.getId(), version);
             Boolean upgradeDone = true;
             try {
-                Job job = installExtension(toInstallExtensionId, namespace);
-                logger.info("Upgrade done for [{}] from version [{}] to [{}]", installedExtensionId.getId(),
-                    installedExtensionId.getVersion().getValue(), version.getValue());
+                installExtension(toInstallExtensionId, namespace);
+
+                String doneUpgradeMessage = this.localization.getTranslationPlain("licensor.notifications.event.done",
+                    installedExtension.getName(), installedExtensionId.getVersion().getValue(),
+                    toInstallExtensionId.getVersion().getValue());
+
+                this.observationManager.notify(new ExtensionAutoUpgradedEvent(), LICENSOR_API_ID, doneUpgradeMessage);
             } catch (JobException | InterruptedException e) {
-                logger.error("Error while upgrading [{}] from version [{}] to [{}] ", installedExtensionId.getId(),
-                    installedExtensionId.getVersion().getValue(), version.getValue(), e);
+                String failedUpgradeMessage = this.localization.getTranslationPlain(
+                    "licensor.notifications.event.failed", installedExtension.getName(),
+                    installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
+
+                this.observationManager.notify(new ExtensionAutoUpgradedEvent(), LICENSOR_API_ID, failedUpgradeMessage);
                 upgradeDone = false;
             }
+
             if (upgradeDone) {
                 break;
             }
@@ -94,7 +127,7 @@ public class UpgradeExtensionHandler
     }
 
     /**
-     * Install the given extension.
+     * Install the given extension inside a namespace.
      * 
      * @param extensionId extension to install
      * @param namespace namespace where the install is done
@@ -132,7 +165,7 @@ public class UpgradeExtensionHandler
     /**
      * Get the reversed list of versions that can be installed, considering the already installed version.
      * 
-     * @param extensionId ExtensionId of the application that is needed.
+     * @param extensionId ExtensionId of the application that is needed
      * @return reversed list of versions until the already installed one
      */
     public List<Version> getInstallableVersions(ExtensionId extensionId)

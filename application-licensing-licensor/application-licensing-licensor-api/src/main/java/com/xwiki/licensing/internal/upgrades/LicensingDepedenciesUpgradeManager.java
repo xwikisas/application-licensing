@@ -35,6 +35,7 @@ import com.xwiki.licensing.LicensedExtensionManager;
  * Verifies extensions that have a license for possible upgrades and installs the last compatible version.
  * 
  * @since 1.17
+ * @version $Id$
  */
 @Component(roles = LicensingDepedenciesUpgradeManager.class)
 @Singleton
@@ -52,17 +53,22 @@ public class LicensingDepedenciesUpgradeManager
     @Inject
     private AutomaticUpgradesConfigurationSource licensingConfig;
 
+    /**
+     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, considering also the
+     * ones that are blocklisted for upgrade.
+     */
     public void resolveExtensionsUpgrade()
     {
+        // ExtensionId extensionId = new ExtensionId("com.xwiki.ideas:application-ideas", "1.11.6");
         List<String> upgradesBlocklist = licensingConfig.getUpgradesBlocklist();
 
         for (ExtensionId extensionId : licensedExtensionManager.getLicensedExtensions()) {
             if (upgradesBlocklist.contains(extensionId.getId())) {
-                continue;
+                return;
             }
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);
             for (String namespace : installedExtension.getNamespaces()) {
-                upgradeExtensionHandler.tryUpgradeExtensionToLastVersion(extensionId, namespace);
+                upgradeExtensionHandler.tryUpgradeExtensionToLastVersion(installedExtension, namespace);
             }
         }
     }

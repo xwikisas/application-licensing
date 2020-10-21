@@ -41,6 +41,7 @@ import com.xpn.xwiki.objects.BaseObject;
  * Configuration source for automatic upgrades settings.
  *
  * @since 1.17
+ * @version $Id$
  */
 @Component(roles = AutomaticUpgradesConfigurationSource.class)
 @Singleton
@@ -76,7 +77,9 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     }
 
     /**
-     * @return
+     * Get a list of extensions that should not be upgraded automatically.
+     *
+     * @return the list of blocklisted extensions for upgrade
      */
     public List<String> getUpgradesBlocklist()
     {
@@ -86,7 +89,6 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
         try {
             document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
             BaseObject blocklistObject = document.getXObject(CLASS_REFERENCE);
-            // TODO: getListValue returns a List?
             upgradesBlocklist = blocklistObject.getListValue("upgradesBlocklist");
         } catch (XWikiException e) {
             logger.error("Error while getting the upgrades blocklist from configuration document", e);

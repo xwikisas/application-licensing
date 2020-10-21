@@ -46,29 +46,41 @@ import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 import com.xpn.xwiki.plugin.scheduler.SchedulerPluginException;
 
 /**
- * Assures that AutomaticDependenciesUpgrade job is scheduled after licensing install. Also, reschedules it
- * after an licensing upgrade to avoid possible errors.
+ * Assures that AutomaticDependenciesUpgrade job is scheduled after licensing install. Also, reschedules it after an
+ * licensing upgrade to avoid possible errors.
  * 
  * @since 1.17
+ * @version $Id$
  */
 @Component
 @Named(LicensingSchedulerCheckListener.ROLE_HINT)
 @Singleton
 public class LicensingSchedulerCheckListener extends AbstractEventListener
 {
+    /**
+     * The role hint of this component.
+     */
     public static final String ROLE_HINT = "LicensingSchedulerCheckListener";
 
+    /**
+     * The id of application-licensing-licensor-api module..
+     */
     private static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
 
     private static final List<Event> EVENTS =
         Arrays.asList(new ExtensionInstalledEvent(), new ExtensionUpgradedEvent(LICENSOR_API_ID));
 
-    private static final LocalDocumentReference DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "AutomaticDependenciesUpgrade");
+    private static final List<String> LICENSES_SPACE = Arrays.asList("Licenses", "Code");
+
+    private static final LocalDocumentReference JOB_DOC =
+        new LocalDocumentReference(LICENSES_SPACE, "AutomaticDependenciesUpgrade");
 
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    /**
+     * Constructor.
+     */
     public LicensingSchedulerCheckListener()
     {
         super(ROLE_HINT, EVENTS);
@@ -84,8 +96,8 @@ public class LicensingSchedulerCheckListener extends AbstractEventListener
                 XWikiContext xcontext = contextProvider.get();
                 SchedulerPlugin scheduler =
                     (SchedulerPlugin) xcontext.getWiki().getPluginManager().getPlugin("scheduler");
-                XWikiDocument doc = xcontext.getWiki().getDocument(DOC, xcontext);
-                BaseObject job = doc.getXObject(SchedulerPlugin.XWIKI_JOB_CLASSREFERENCE);
+                XWikiDocument jobDoc = xcontext.getWiki().getDocument(JOB_DOC, xcontext);
+                BaseObject job = jobDoc.getXObject(SchedulerPlugin.XWIKI_JOB_CLASSREFERENCE);
 
                 if (event instanceof ExtensionInstalledEvent) {
                     scheduleAtInstall(scheduler, job, xcontext);

@@ -17,30 +17,27 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing.internal.upgrades;
+package com.xwiki.licensing.internal.upgrades.notifications;
 
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-
-import com.xpn.xwiki.plugin.scheduler.AbstractJob;
-import com.xpn.xwiki.web.Utils;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
- * Scheduler job that upgrades to the last compatible version of extensions that have a license.
+ * An event that should be send when an application is automatically upgraded, or when this operation fails.
+ * Used in UpgradeExtensionHandler.
  * 
- * @since 1.17
  * @version $Id$
+ * @since 1.17
  */
-public class AutomaticDependenciesUpgradeJob extends AbstractJob implements Job
+public class ExtensionAutoUpgradedEvent implements RecordableEvent
 {
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void executeJob(JobExecutionContext jobContext) throws JobExecutionException
-    {
-        LicensingDepedenciesUpgradeManager licensingDependenciesManager =
-            Utils.getComponent(LicensingDepedenciesUpgradeManager.class);
+    /**
+     * The event type used for this component.
+     */
+    public static final String EVENT_TYPE = "ExtensionAutoUpgradedEvent";
 
-        licensingDependenciesManager.resolveExtensionsUpgrade();
+    @Override
+    public boolean matches(Object otherEvent)
+    {
+        return otherEvent instanceof ExtensionAutoUpgradedEvent;
     }
 }

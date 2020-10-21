@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="Licenses.Code.ExtensionAutoUpgradedEventDisplayer" locale="">
+  <web>Licenses.Code</web>
+  <name>ExtensionAutoUpgradedEventDisplayer</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1602608751000</creationDate>
+  <parent>Licenses.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1602750921000</date>
+  <contentUpdateDate>1602750743000</contentUpdateDate>
+  <version>1.1</version>
+  <title>ExtensionAutoUpgradedEventDisplayer</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>
+</content>
+  <object>
+    <name>Licenses.Code.ExtensionAutoUpgradedEventDisplayer</name>
+    <number>0</number>
+    <className>XWiki.Notifications.Code.NotificationDisplayerClass</className>
+    <guid>63f23cd3-ad86-4c72-bba6-feb2eef58b63</guid>
+    <class>
+      <name>XWiki.Notifications.Code.NotificationDisplayerClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <eventType>
+        <disabled>0</disabled>
+        <name>eventType</name>
+        <number>1</number>
+        <prettyName>Event type</prettyName>
+        <size>64</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </eventType>
+      <notificationTemplate>
+        <contenttype>VelocityCode</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>notificationTemplate</name>
+        <number>2</number>
+        <prettyName>Notification template</prettyName>
+        <rows>3</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </notificationTemplate>
+    </class>
+    <property>
+      <eventType>com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent</eventType>
+    </property>
+    <property>
+      <notificationTemplate>#template('notification/macros.vm')
+
+#set ($mainIcon = "bell")
+#set ($smallIcon = "arrow_up")
+#set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
+
+#macro (displayEventDetails $event)
+  #set ($userName = $event.user.name)
+  &lt;tr&gt;
+    &lt;td&gt;
+      &lt;span class="notification-event-user"&gt;$userName&lt;/span&gt;
+    &lt;/td&gt;
+    &lt;td class="description"&gt;$event.getBody()&lt;/td&gt;
+    &lt;td class="text-right text-muted"&gt;$escapetool.xml($datetool.whenIs($event.date))&lt;/td&gt;
+&lt;/tr&gt;
+#end
+
+#define ($content)
+  #set ($document = $xwiki.getDocument($event.document))
+  &lt;div class="notification-page"&gt;
+    &lt;a href="$!escapetool.xml($document.getURL())"&gt;$document.displayTitle&lt;/a&gt;
+    #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
+      &lt;span class="text-muted"&gt;($services.wiki.getById($event.document.wikiReference.name).prettyName)&lt;/span&gt;
+    #end
+  &lt;/div&gt;
+  &lt;div class="notification-description"&gt;
+    &lt;div class="activity-summary"&gt;
+      #if ($event.events.size() == 1)
+        $services.localization.render("licensor.notifications.event.singular")
+      #else
+        $services.localization.render("licensor.notifications.event.plural")
+      #end
+    &lt;/div&gt;
+    &lt;div&gt;&lt;small class="text-muted"&gt;$compositeEventDate&lt;/small&gt;&lt;/div&gt;
+  &lt;/div&gt;
+#end
+
+#define ($details)
+  #define($rows)
+    #foreach($thisEvent in $event.events)
+      #displayEventDetails($thisEvent)
+    #end
+  #end
+  #displayNotificationEventDetailsSkeletons($events.size(), $rows)
+#end
+
+#displayNotificationEventSkeleton($mainIcon $smallIcon $content $details)
+</notificationTemplate>
+    </property>
+  </object>
+</xwikidoc>
