@@ -19,3 +19,4 @@ com.xwiki.licensing.internal.upgrades.LicensingSchedulerCheckListener
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventConverter
+com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDisplayer

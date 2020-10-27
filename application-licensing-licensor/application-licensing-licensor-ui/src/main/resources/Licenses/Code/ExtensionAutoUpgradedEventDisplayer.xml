@@ -38,9 +38,8 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
-  <content>
-</content>
+  <hidden>true</hidden>
+  <content/>
   <object>
     <name>Licenses.Code.ExtensionAutoUpgradedEventDisplayer</name>
     <number>0</number>
