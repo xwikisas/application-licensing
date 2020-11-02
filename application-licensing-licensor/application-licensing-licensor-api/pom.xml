@@ -126,6 +126,13 @@
       <artifactId>xwiki-commons-crypto-pkix</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <!-- Remove when https://jira.xwiki.org/browse/XCOMMONS-2064 is fixed and the Licensing starts depending on
+      XWiki >= the version where it's fixed.-->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-classloader-xwiki</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>

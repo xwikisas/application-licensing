@@ -62,11 +62,13 @@ public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplaye
 
     private static final List<String> EVENTS = Arrays.asList(EVENT_TYPE);
 
+    private static final String CODE_SPACE = "Code";
+
     private static final LocalDocumentReference DISPLAYER_DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "ExtensionAutoUpgradedEventDisplayer");
+        new LocalDocumentReference(Arrays.asList("Licenses", CODE_SPACE), "ExtensionAutoUpgradedEventDisplayer");
 
     private static final LocalDocumentReference DISPLAYER_OBJ =
-        new LocalDocumentReference(Arrays.asList("XWiki", "Notifications", "Code"), "NotificationDisplayerClass");
+        new LocalDocumentReference(Arrays.asList("XWiki", "Notifications", CODE_SPACE), "NotificationDisplayerClass");
 
     @Inject
     private TemplateManager templateManager;

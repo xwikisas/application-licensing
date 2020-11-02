@@ -49,10 +49,10 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
 {
     private static final List<String> SPACE_NAMES = Arrays.asList("Licenses", "Code");
 
-    private static final LocalDocumentReference DOCUMENT_REFERENCE =
+    private static final LocalDocumentReference LICENSING_CONFIG_DOC =
         new LocalDocumentReference(SPACE_NAMES, "LicensingConfig");
 
-    private static final LocalDocumentReference CLASS_REFERENCE =
+    private static final LocalDocumentReference BLOCKLIST_CLASS =
         new LocalDocumentReference(SPACE_NAMES, "AutomaticUpgradesBlocklistClass");
 
     @Inject
@@ -61,13 +61,13 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     @Override
     protected DocumentReference getDocumentReference()
     {
-        return new DocumentReference(DOCUMENT_REFERENCE, this.getCurrentWikiReference());
+        return new DocumentReference(LICENSING_CONFIG_DOC, this.getCurrentWikiReference());
     }
 
     @Override
     protected LocalDocumentReference getClassReference()
     {
-        return CLASS_REFERENCE;
+        return BLOCKLIST_CLASS;
     }
 
     @Override
@@ -84,11 +84,11 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     public List<String> getUpgradesBlocklist()
     {
         XWikiContext xcontext = this.xcontextProvider.get();
-        XWikiDocument document;
         List<String> upgradesBlocklist = new ArrayList<String>();
+
         try {
-            document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
-            BaseObject blocklistObject = document.getXObject(CLASS_REFERENCE);
+            XWikiDocument document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
+            BaseObject blocklistObject = document.getXObject(BLOCKLIST_CLASS);
             upgradesBlocklist = blocklistObject.getListValue("upgradesBlocklist");
         } catch (XWikiException e) {
             logger.error("Error while getting the upgrades blocklist from configuration document", e);

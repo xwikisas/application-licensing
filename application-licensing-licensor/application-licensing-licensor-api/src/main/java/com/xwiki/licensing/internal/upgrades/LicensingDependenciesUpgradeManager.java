@@ -37,9 +37,9 @@ import com.xwiki.licensing.LicensedExtensionManager;
  * @since 1.17
  * @version $Id$
  */
-@Component(roles = LicensingDepedenciesUpgradeManager.class)
+@Component(roles = LicensingDependenciesUpgradeManager.class)
 @Singleton
-public class LicensingDepedenciesUpgradeManager
+public class LicensingDependenciesUpgradeManager
 {
     @Inject
     private InstalledExtensionRepository installedRepository;
