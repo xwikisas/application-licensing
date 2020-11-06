@@ -52,7 +52,7 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     private static final LocalDocumentReference LICENSING_CONFIG_DOC =
         new LocalDocumentReference(SPACE_NAMES, "LicensingConfig");
 
-    private static final LocalDocumentReference BLOCKLIST_CLASS =
+    protected static final LocalDocumentReference BLOCKLIST_CLASS =
         new LocalDocumentReference(SPACE_NAMES, "AutomaticUpgradesBlocklistClass");
 
     @Inject

@@ -27,8 +27,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.eventstream.RecordableEventDescriptor;
 
 /**
- * Description of the ExtensionAutoUpgraded notification.
- * Used for displaying settings in Notifications Preferences.
+ * Description of the ExtensionAutoUpgraded notification. Used for displaying settings in Notifications Preferences.
  * 
  * @version $Id$
  * @since 1.17

@@ -71,12 +71,12 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     /**
      * The id of application-licensing-licensor-api module..
      */
-    private static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
+    protected static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
+
+    protected static final LocalDocumentReference JOB_DOC =
+        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "AutomaticDependenciesUpgrade");
 
     private static final List<Event> EVENTS = Arrays.asList(new ExtensionInstalledEvent());
-
-    private static final LocalDocumentReference JOB_DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "AutomaticDependenciesUpgrade");
 
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -116,7 +116,9 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
             new ContextNamespaceURLClassLoader(this.wikiDescriptorManager, this.classLoaderManager));
 
         try {
-            scheduleAutomaticUpgradesJob(true);
+            if (this.contextProvider.get() != null) {
+                scheduleAutomaticUpgradesJob(true);
+            }
         } catch (XWikiException | SchedulerException e) {
             logger.error("Error while rescheduling AutomaticDependenciesUpgradeJob", e);
         }
@@ -136,7 +138,7 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
         }
     }
 
-    private void scheduleAutomaticUpgradesJob(boolean doReschedule) throws XWikiException, SchedulerException
+    protected void scheduleAutomaticUpgradesJob(boolean doReschedule) throws XWikiException, SchedulerException
     {
         XWikiContext xcontext = contextProvider.get();
 

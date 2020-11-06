@@ -63,7 +63,7 @@ public class UpgradeExtensionHandler
     /**
      * The id of application-licensing-licensor-api module.
      */
-    private static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
+    protected static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
 
     @Inject
     protected DocumentAccessBridge documentAccessBridge;
@@ -136,6 +136,22 @@ public class UpgradeExtensionHandler
      */
     protected Job installExtension(ExtensionId extensionId, String namespace) throws JobException, InterruptedException
     {
+        InstallRequest installRequest = getInstallRequest(extensionId, namespace);
+
+        Job job = this.jobExecutor.execute(InstallJob.JOBTYPE, installRequest);
+        job.join();
+        return job;
+    }
+
+    /**
+     * Create an install plan.
+     *
+     * @param extensionId the extension to be installed
+     * @param namespace the namespace where the extension will be installed
+     * @return the install request
+     */
+    protected InstallRequest getInstallRequest(ExtensionId extensionId, String namespace)
+    {
         // Create install plan.
         InstallRequest installRequest = new InstallRequest();
         installRequest
@@ -156,10 +172,7 @@ public class UpgradeExtensionHandler
         // property whose value is a DocumentReference.
         installRequest.setExtensionProperty(AbstractExtensionValidator.PROPERTY_USERREFERENCE,
             this.documentAccessBridge.getCurrentUserReference().toString());
-
-        Job job = this.jobExecutor.execute(InstallJob.JOBTYPE, installRequest);
-        job.join();
-        return job;
+        return installRequest;
     }
 
     /**

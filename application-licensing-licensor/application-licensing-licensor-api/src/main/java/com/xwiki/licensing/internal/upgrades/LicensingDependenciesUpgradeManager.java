@@ -64,7 +64,7 @@ public class LicensingDependenciesUpgradeManager
 
         for (ExtensionId extensionId : licensedExtensionManager.getLicensedExtensions()) {
             if (upgradesBlocklist.contains(extensionId.getId())) {
-                return;
+                continue;
             }
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);
             for (String namespace : installedExtension.getNamespaces()) {
