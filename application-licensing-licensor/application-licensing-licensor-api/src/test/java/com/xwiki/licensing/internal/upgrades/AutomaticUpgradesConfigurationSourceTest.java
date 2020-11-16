@@ -44,6 +44,12 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
+/**
+ * Unit tests for {@link AutomaticUpgradesConfigurationSource}.
+ *
+ * @version $Id$
+ * @since 1.17
+ */
 public class AutomaticUpgradesConfigurationSourceTest
 {
     @Rule

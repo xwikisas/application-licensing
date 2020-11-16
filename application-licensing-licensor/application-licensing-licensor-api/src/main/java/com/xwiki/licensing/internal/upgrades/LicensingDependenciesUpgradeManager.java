@@ -32,8 +32,9 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
- * Verifies extensions that have a license for possible upgrades and installs the last compatible version.
- * 
+ * Verifies extensions that have a license for possible upgrades and tries the install of the last compatible
+ * version.
+ *
  * @since 1.17
  * @version $Id$
  */
@@ -54,12 +55,11 @@ public class LicensingDependenciesUpgradeManager
     private AutomaticUpgradesConfigurationSource licensingConfig;
 
     /**
-     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, considering also the
-     * ones that are blocklisted for upgrade.
+     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, bypassing the ones
+     * that are blocked for upgrade.
      */
     public void resolveExtensionsUpgrade()
     {
-        // ExtensionId extensionId = new ExtensionId("com.xwiki.ideas:application-ideas", "1.11.6");
         List<String> upgradesBlocklist = licensingConfig.getUpgradesBlocklist();
 
         for (ExtensionId extensionId : licensedExtensionManager.getLicensedExtensions()) {

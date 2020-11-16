@@ -36,6 +36,12 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
+/**
+ * Unit tests for {@link ExtensionAutoUpgradedEventConverter}.
+ *
+ * @version $Id$
+ * @since 1.17
+ */
 public class ExtensionAutoUpgradedEventConverterTest
 {
     @Rule
@@ -68,7 +74,6 @@ public class ExtensionAutoUpgradedEventConverterTest
 
         when(this.defaultConverter.convert(event, null, message)).thenReturn(convertedEvent);
         when(((Event) convertedEvent).getUser()).thenReturn(userRef);
-
         when(this.explicitDocumentReferenceResolver.resolve("Licenses.Code.LicensingConfig", userRef))
             .thenReturn(configRef);
 

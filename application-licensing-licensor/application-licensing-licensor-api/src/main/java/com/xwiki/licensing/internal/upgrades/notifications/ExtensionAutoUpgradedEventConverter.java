@@ -35,8 +35,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 
 /**
- * Add additional information to the auto uograde event. Before 12.6 or if you use the hibernate event store, the
- * parameters you put in an event from a custom converter are not stored so the message is send inside the body.
+ * Add additional information to ExtensionAutoUpgradedEvent.
  *
  * @version $Id$
  * @since 1.17

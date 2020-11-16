@@ -22,7 +22,7 @@ package com.xwiki.licensing.internal.upgrades.notifications;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
- * An event that should be send when an application is automatically upgraded, or when this operation fails.
+ * The event send when an application is automatically upgraded, or when this operation fails.
  * Used in UpgradeExtensionHandler.
  * 
  * @version $Id$

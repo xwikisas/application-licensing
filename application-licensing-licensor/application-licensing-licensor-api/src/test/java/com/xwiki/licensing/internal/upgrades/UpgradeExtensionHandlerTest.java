@@ -57,6 +57,12 @@ import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent;
 
+/**
+ * Unit tests for {@link UpgradeExtensionHandler}.
+ *
+ * @version $Id$
+ * @since 1.17
+ */
 public class UpgradeExtensionHandlerTest
 {
     @Rule
@@ -73,8 +79,6 @@ public class UpgradeExtensionHandlerTest
 
     private JobExecutor jobExecutor;
 
-    private DocumentAccessBridge documentAccessBridge;
-
     private ExtensionId installedExtensionId;
 
     private Version installedVersion;
@@ -82,135 +86,135 @@ public class UpgradeExtensionHandlerTest
     private Version newVersion1;
 
     private Version newVersion2;
-    
+
     private DocumentReference userReference;
 
     @Before
     public void configure() throws Exception
     {
-        extensionRepositoryManager = mocker.getInstance(ExtensionRepositoryManager.class);
+        this.extensionRepositoryManager = this.mocker.getInstance(ExtensionRepositoryManager.class);
 
-        observationManager = mocker.getInstance(ObservationManager.class);
+        this.observationManager = this.mocker.getInstance(ObservationManager.class);
 
-        documentAccessBridge = mocker.getInstance(DocumentAccessBridge.class);
+        this.jobExecutor = this.mocker.getInstance(JobExecutor.class);
 
-        jobExecutor = mocker.getInstance(JobExecutor.class);
+        this.localization = this.mocker.getInstance(ContextualLocalizationManager.class);
 
-        localization = mocker.getInstance(ContextualLocalizationManager.class);
+        this.installedVersion = new DefaultVersion("1.0");
+        this.installedExtensionId = new ExtensionId("application", this.installedVersion);
+        this.newVersion1 = new DefaultVersion("2.0");
+        this.newVersion2 = new DefaultVersion("3.0");
 
-        installedVersion = new DefaultVersion("1.0");
-        newVersion1 = new DefaultVersion("2.0");
-        newVersion2 = new DefaultVersion("3.0");
-        installedExtensionId = new ExtensionId("application", installedVersion);
+        when(this.installedExtension.getId()).thenReturn(this.installedExtensionId);
 
-        when(this.installedExtension.getId()).thenReturn(installedExtensionId);
-
-        userReference = new DocumentReference("wiki", Arrays.asList("XWiki"), "UserName");
-        when(this.documentAccessBridge.getCurrentUserReference()).thenReturn(userReference);
+        DocumentAccessBridge documentAccessBridge = this.mocker.getInstance(DocumentAccessBridge.class);
+        this.userReference = new DocumentReference("wiki", Arrays.asList("XWiki"), "UserName");
+        when(documentAccessBridge.getCurrentUserReference()).thenReturn(this.userReference);
     }
 
     @Test
-    public void getInstallableVersionsNullList() throws Exception
+    public void getInstallableVersionsWithEmptyList() throws Exception
     {
-        Collection<Version> allVersions = Arrays.asList(installedVersion);
-        when(extensionRepositoryManager.resolveVersions(installedExtensionId.getId(), 0, -1))
+        Collection<Version> allVersions = Arrays.asList(this.installedVersion);
+        when(extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
 
         assertEquals(Collections.emptyList(),
-            this.mocker.getComponentUnderTest().getInstallableVersions(installedExtensionId));
+            this.mocker.getComponentUnderTest().getInstallableVersions(this.installedExtensionId));
     }
 
     @Test
     public void getInstallableVersionsWithoutInstalledVersion() throws Exception
     {
-        Collection<Version> allVersions = Arrays.asList(installedVersion, newVersion1);
-        when(extensionRepositoryManager.resolveVersions(installedExtensionId.getId(), 0, -1))
+        Collection<Version> allVersions = Arrays.asList(this.installedVersion, this.newVersion1);
+        when(extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
 
-        assertEquals(Arrays.asList(newVersion1),
-            this.mocker.getComponentUnderTest().getInstallableVersions(installedExtensionId));
+        assertEquals(Arrays.asList(this.newVersion1),
+            this.mocker.getComponentUnderTest().getInstallableVersions(this.installedExtensionId));
     }
 
     @Test
-    public void getInstallableVersionsWithCorrectOrder() throws Exception
+    public void getInstallableVersionsInCorrectOrder() throws Exception
     {
-        Collection<Version> allVersions = Arrays.asList(installedVersion, newVersion1, newVersion2);
-        when(extensionRepositoryManager.resolveVersions(installedExtensionId.getId(), 0, -1))
+        Collection<Version> allVersions = Arrays.asList(this.installedVersion, this.newVersion1, this.newVersion2);
+        when(extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
 
-        assertEquals(Arrays.asList(newVersion2, newVersion1),
-            this.mocker.getComponentUnderTest().getInstallableVersions(installedExtensionId));
+        assertEquals(Arrays.asList(this.newVersion2, this.newVersion1),
+            this.mocker.getComponentUnderTest().getInstallableVersions(this.installedExtensionId));
     }
 
     @Test
     public void getInstallRequest() throws Exception
     {
         InstallRequest installRequest =
-            mocker.getComponentUnderTest().getInstallRequest(installedExtensionId, "wiki:test");
+            this.mocker.getComponentUnderTest().getInstallRequest(this.installedExtensionId, "wiki:test");
 
-        assertEquals(
-            Arrays.asList("extension", ExtensionRequest.JOBID_ACTION_PREFIX, installedExtensionId.getId(), "wiki:test"),
-            installRequest.getId());
-        assertEquals(Collections.singletonList(installedExtensionId), installRequest.getExtensions());
+        assertEquals(Arrays.asList("extension", ExtensionRequest.JOBID_ACTION_PREFIX, this.installedExtensionId.getId(),
+            "wiki:test"), installRequest.getId());
+        assertEquals(Collections.singletonList(this.installedExtensionId), installRequest.getExtensions());
         assertEquals(Collections.singletonList("wiki:test"), installRequest.getNamespaces());
         assertTrue(installRequest.isRootModificationsAllowed());
         assertFalse(installRequest.isInteractive());
-        assertEquals(userReference, installRequest.getProperty(AbstractExtensionValidator.PROPERTY_USERREFERENCE));
-        assertEquals(userReference.toString(),
+        assertEquals(this.userReference, installRequest.getProperty(AbstractExtensionValidator.PROPERTY_USERREFERENCE));
+        assertEquals(this.userReference.toString(),
             installRequest.getExtensionProperties().get(AbstractExtensionValidator.PROPERTY_USERREFERENCE));
     }
 
     @Test
-    public void tryUpgradeExtensionToLastVersion() throws Exception
+    public void tryUpgradeExtensionToLastVersionWithCorrectVersion() throws Exception
     {
-        Collection<Version> allVersions = Arrays.asList(installedVersion, newVersion1, newVersion2);
-        when(extensionRepositoryManager.resolveVersions(installedExtensionId.getId(), 0, -1))
+        Collection<Version> allVersions = Arrays.asList(this.installedVersion, this.newVersion1, this.newVersion2);
+        when(this.extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
 
         Job job = mock(Job.class);
         when(this.jobExecutor.execute(eq(InstallJob.JOBTYPE), any(InstallRequest.class))).thenReturn(job);
 
-        when(this.localization.getTranslationPlain("licensor.notifications.event.done", installedExtension.getName(),
-            installedExtensionId.getVersion().getValue(), newVersion2.getValue())).thenReturn("extension upgraded");
+        when(this.localization.getTranslationPlain("licensor.notifications.event.done",
+            this.installedExtension.getName(), this.installedExtensionId.getVersion().getValue(),
+            this.newVersion2.getValue())).thenReturn("extension upgraded");
 
-        mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(installedExtension, "wiki:test");
+        this.mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(this.installedExtension, "wiki:test");
 
         verify(job).join();
 
-        verify(observationManager).notify(any(ExtensionAutoUpgradedEvent.class),
+        verify(this.observationManager).notify(any(ExtensionAutoUpgradedEvent.class),
             eq(UpgradeExtensionHandler.LICENSOR_API_ID), eq("extension upgraded"));
     }
 
     @Test
     public void tryUpgradeExtensionToLastVersionWithException() throws Exception
     {
-        Collection<Version> allVersions = Arrays.asList(installedVersion, newVersion1, newVersion2);
-        when(extensionRepositoryManager.resolveVersions(installedExtensionId.getId(), 0, -1))
+        Collection<Version> allVersions = Arrays.asList(this.installedVersion, this.newVersion1, this.newVersion2);
+        when(this.extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
 
-        when(this.localization.getTranslationPlain("licensor.notifications.event.failed", installedExtension.getName(),
-            installedExtensionId.getVersion().getValue(), newVersion2.getValue())).thenReturn("upgrade failed");
+        when(this.localization.getTranslationPlain("licensor.notifications.event.failed",
+            this.installedExtension.getName(), this.installedExtensionId.getVersion().getValue(),
+            this.newVersion2.getValue())).thenReturn("upgrade failed");
 
         when(this.jobExecutor.execute(eq(InstallJob.JOBTYPE), any(InstallRequest.class)))
             .thenThrow(new JobException("extension upgrade failed"));
 
-        mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(installedExtension, "wiki:test");
+        this.mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(this.installedExtension, "wiki:test");
 
-        verify(observationManager).notify(any(ExtensionAutoUpgradedEvent.class),
+        verify(this.observationManager).notify(any(ExtensionAutoUpgradedEvent.class),
             eq(UpgradeExtensionHandler.LICENSOR_API_ID), eq("upgrade failed"));
     }
 
     @Test
     public void tryUpgradeExtensionToLastVersionWhenNoVersions() throws Exception
     {
-        when(extensionRepositoryManager.resolveVersions(installedExtensionId.getId(), 0, -1))
+        when(this.extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, Collections.emptyList()));
 
-        mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(installedExtension, "wiki:test");
+        this.mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(this.installedExtension, "wiki:test");
 
         verify(this.jobExecutor, never()).execute(eq(InstallJob.JOBTYPE), any(InstallRequest.class));
 
-        verify(observationManager, never()).notify(any(ExtensionAutoUpgradedEvent.class),
+        verify(this.observationManager, never()).notify(any(ExtensionAutoUpgradedEvent.class),
             eq(UpgradeExtensionHandler.LICENSOR_API_ID), any());
     }
 }

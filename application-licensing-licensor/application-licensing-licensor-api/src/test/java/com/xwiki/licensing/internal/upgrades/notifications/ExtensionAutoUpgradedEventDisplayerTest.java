@@ -43,6 +43,12 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
+/**
+ * Unit tests for {@link ExtensionAutoUpgradedEventDisplayer}.
+ *
+ * @version $Id$
+ * @since 1.17
+ */
 public class ExtensionAutoUpgradedEventDisplayerTest
 {
     @Rule
@@ -68,14 +74,16 @@ public class ExtensionAutoUpgradedEventDisplayerTest
         this.xcontext = mock(XWikiContext.class);
         when(contextProvider.get()).thenReturn(this.xcontext);
 
-        xwiki = mock(XWiki.class);
-        when(xcontext.getWiki()).thenReturn(xwiki);
+        this.xwiki = mock(XWiki.class);
+        when(this.xcontext.getWiki()).thenReturn(this.xwiki);
 
-        displayerDoc = mock(XWikiDocument.class);
-        when(xwiki.getDocument(ExtensionAutoUpgradedEventDisplayer.DISPLAYER_DOC, xcontext)).thenReturn(displayerDoc);
+        this.displayerDoc = mock(XWikiDocument.class);
+        when(this.xwiki.getDocument(ExtensionAutoUpgradedEventDisplayer.DISPLAYER_DOC, this.xcontext))
+            .thenReturn(this.displayerDoc);
 
-        displayerObj = mock(BaseObject.class);
-        when(displayerDoc.getXObject(ExtensionAutoUpgradedEventDisplayer.DISPLAYER_OBJ, 0)).thenReturn(displayerObj);
+        this.displayerObj = mock(BaseObject.class);
+        when(this.displayerDoc.getXObject(ExtensionAutoUpgradedEventDisplayer.DISPLAYER_OBJ, 0))
+            .thenReturn(this.displayerObj);
 
     }
 
@@ -85,58 +93,59 @@ public class ExtensionAutoUpgradedEventDisplayerTest
         CompositeEvent eventNotification = mock(CompositeEvent.class);
 
         DocumentReference displayerDocRef = new DocumentReference("wiki", Arrays.asList("Notification"), "Displayer");
-        when(displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
+        when(this.displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
 
         String content = "content";
-        when(displayerObj.getStringValue("notificationTemplate")).thenReturn(content);
+        when(this.displayerObj.getStringValue("notificationTemplate")).thenReturn(content);
 
         Template template = mock(Template.class);
         when(this.templateManager.createStringTemplate(content, displayerDocRef)).thenReturn(template);
 
-        XDOM customTemplate = mock(XDOM.class);
-        when(this.templateManager.execute(template)).thenReturn(customTemplate);
+        XDOM customTemplateXDOM = mock(XDOM.class);
+        when(this.templateManager.execute(template)).thenReturn(customTemplateXDOM);
 
-        assertEquals(customTemplate, this.mocker.getComponentUnderTest().renderNotification(eventNotification));
+        assertEquals(customTemplateXDOM, this.mocker.getComponentUnderTest().renderNotification(eventNotification));
     }
-    
+
     @Test
     public void renderNotificationWithDefaultTemplate() throws Exception
     {
         CompositeEvent eventNotification = mock(CompositeEvent.class);
 
         DocumentReference displayerDocRef = new DocumentReference("wiki", Arrays.asList("Notification"), "Displayer");
-        when(displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
+        when(this.displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
 
         String content = "content";
-        when(displayerObj.getStringValue("notificationTemplate")).thenReturn(content);
+        when(this.displayerObj.getStringValue("notificationTemplate")).thenReturn(content);
 
         when(this.templateManager.createStringTemplate(content, displayerDocRef)).thenReturn(null);
 
-        XDOM defaultTemplate = mock(XDOM.class);
-        when(this.templateManager.execute("notification/default.vm")).thenReturn(defaultTemplate);
+        XDOM defaultTemplateXDOM = mock(XDOM.class);
+        when(this.templateManager.execute("notification/default.vm")).thenReturn(defaultTemplateXDOM);
 
-        assertEquals(defaultTemplate, this.mocker.getComponentUnderTest().renderNotification(eventNotification));
+        assertEquals(defaultTemplateXDOM, this.mocker.getComponentUnderTest().renderNotification(eventNotification));
     }
-    
+
     @Test
     public void renderNotificationWithNull() throws Exception
     {
         CompositeEvent eventNotification = mock(CompositeEvent.class);
 
         DocumentReference displayerDocRef = new DocumentReference("wiki", Arrays.asList("Notification"), "Displayer");
-        when(displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
+        when(this.displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
 
         String content = "content";
-        when(displayerObj.getStringValue("notificationTemplate")).thenReturn(content);
+        when(this.displayerObj.getStringValue("notificationTemplate")).thenReturn(content);
 
         when(this.templateManager.createStringTemplate(content, displayerDocRef)).thenThrow(new Exception());
 
         assertNull(this.mocker.getComponentUnderTest().renderNotification(eventNotification));
     }
-    
+
     @Test
     public void getSupportedEvents() throws Exception
     {
-        assertEquals(ExtensionAutoUpgradedEventDisplayer.EVENTS, this.mocker.getComponentUnderTest().getSupportedEvents());
+        assertEquals(ExtensionAutoUpgradedEventDisplayer.EVENTS,
+            this.mocker.getComponentUnderTest().getSupportedEvents());
     }
 }

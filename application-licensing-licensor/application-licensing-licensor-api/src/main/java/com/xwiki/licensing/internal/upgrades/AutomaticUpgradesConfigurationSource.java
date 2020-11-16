@@ -19,8 +19,8 @@
  */
 package com.xwiki.licensing.internal.upgrades;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -35,7 +35,6 @@ import org.xwiki.model.reference.LocalDocumentReference;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 
 /**
  * Configuration source for automatic upgrades settings.
@@ -47,13 +46,13 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfigurationSource
 {
-    private static final List<String> SPACE_NAMES = Arrays.asList("Licenses", "Code");
+    private static final List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
 
-    private static final LocalDocumentReference LICENSING_CONFIG_DOC =
-        new LocalDocumentReference(SPACE_NAMES, "LicensingConfig");
+    protected static final LocalDocumentReference LICENSING_CONFIG_DOC =
+        new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
 
     protected static final LocalDocumentReference BLOCKLIST_CLASS =
-        new LocalDocumentReference(SPACE_NAMES, "AutomaticUpgradesBlocklistClass");
+        new LocalDocumentReference(CODE_SPACE, "AutomaticUpgradesBlocklistClass");
 
     @Inject
     private Logger logger;
@@ -84,16 +83,14 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     public List<String> getUpgradesBlocklist()
     {
         XWikiContext xcontext = this.xcontextProvider.get();
-        List<String> upgradesBlocklist = new ArrayList<String>();
+        List<String> upgradesBlocklist = Collections.emptyList();
 
         try {
             XWikiDocument document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
-            BaseObject blocklistObject = document.getXObject(BLOCKLIST_CLASS);
-            upgradesBlocklist = blocklistObject.getListValue("upgradesBlocklist");
+            upgradesBlocklist = document.getXObject(BLOCKLIST_CLASS).getListValue("upgradesBlocklist");
         } catch (XWikiException e) {
             logger.error("Error while getting the upgrades blocklist from configuration document", e);
         }
         return upgradesBlocklist;
     }
-
 }

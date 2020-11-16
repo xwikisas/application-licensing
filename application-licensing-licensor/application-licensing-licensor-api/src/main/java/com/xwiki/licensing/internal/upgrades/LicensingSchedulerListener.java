@@ -52,8 +52,8 @@ import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 /**
  * Ensure that AutomaticDependenciesUpgrade job is scheduled after licensing install. Reschedule
  * AutomaticDependenciesUpgradeJob to work around https://jira.xwiki.org/browse/XWIKI-14494. The unschedule / schedule
- * process from initialization should be removed once the issue is fixed and licensing depends on a version of XWiki >=
- * the version where is fixed.
+ * process should be removed once the issue is fixed and licensing depends on a version of XWiki >= the version where
+ * is fixed.
  * 
  * @since 1.17
  * @version $Id$
@@ -116,6 +116,7 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
             new ContextNamespaceURLClassLoader(this.wikiDescriptorManager, this.classLoaderManager));
 
         try {
+            // Don't trigger the rescheduling process at xwiki startup time.
             if (this.contextProvider.get() != null) {
                 scheduleAutomaticUpgradesJob(true);
             }

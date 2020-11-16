@@ -19,12 +19,11 @@
  */
 package com.xwiki.licensing.internal.upgrades;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,13 +34,17 @@ import org.junit.Test;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
-import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
 import org.xwiki.extension.version.internal.DefaultVersion;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
-import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xwiki.licensing.LicensedExtensionManager;
 
+/**
+ * Unit tests for {@link LicensingDependenciesUpgradeManager}.
+ *
+ * @version $Id$
+ * @since 1.17
+ */
 public class LicensingDependenciesUpgradeManagerTest
 {
     @Rule
@@ -60,10 +63,6 @@ public class LicensingDependenciesUpgradeManagerTest
 
     private ExtensionId extensionId2;
 
-    // private InstalledExtension installedExtension1;
-    //
-    // private InstalledExtension installedExtension2;
-
     @Before
     public void configure() throws Exception
     {
@@ -81,7 +80,6 @@ public class LicensingDependenciesUpgradeManagerTest
     public void resolveExtensionsUpgradeWithoutBlocklist() throws Exception
     {
         String namespace = "wiki:test";
-        // when(this.licensingConfig.getUpgradesBlocklist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
         when(this.licensingConfig.getUpgradesBlocklist()).thenReturn(Collections.emptyList());
 
         when(this.licensedExtensionManager.getLicensedExtensions())
@@ -97,12 +95,8 @@ public class LicensingDependenciesUpgradeManagerTest
 
         mocker.getComponentUnderTest().resolveExtensionsUpgrade();
 
-        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension2), eq(namespace));
         verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension1), eq(namespace));
-
-        // verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension2),
-        // eq("wiki:test"));
-
+        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension2), eq(namespace));
     }
 
     @Test
