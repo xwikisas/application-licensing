@@ -92,7 +92,7 @@ public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplaye
             return (customTemplate != null) ? this.templateManager.execute(customTemplate)
                 : this.templateManager.execute("notification/default.vm");
         } catch (Exception e) {
-            logger.warn("Failed to render the template for ExtensionAutoUpgradedEvent. Root cause is: [{}]",
+            logger.warn("Failed to render custom template. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
         }
         return null;
