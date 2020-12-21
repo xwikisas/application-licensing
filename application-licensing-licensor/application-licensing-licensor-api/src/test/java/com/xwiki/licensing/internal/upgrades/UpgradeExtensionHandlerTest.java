@@ -56,6 +56,7 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent;
+import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEvent;
 
 /**
  * Unit tests for {@link UpgradeExtensionHandler}.
@@ -200,7 +201,7 @@ public class UpgradeExtensionHandlerTest
 
         this.mocker.getComponentUnderTest().tryUpgradeExtensionToLastVersion(this.installedExtension, "wiki:test");
 
-        verify(this.observationManager).notify(any(ExtensionAutoUpgradedEvent.class),
+        verify(this.observationManager).notify(any(ExtensionAutoUpgradedFailedEvent.class),
             eq(UpgradeExtensionHandler.LICENSOR_API_ID), eq("upgrade failed"));
     }
 

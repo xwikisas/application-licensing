@@ -56,7 +56,7 @@ public class AutomaticUpgradesConfigurationSourceTest
     public MockitoComponentMockingRule<AutomaticUpgradesConfigurationSource> mocker =
         new MockitoComponentMockingRule<>(AutomaticUpgradesConfigurationSource.class);
 
-    private BaseObject blocklistObj;
+    private BaseObject autoUpgradesObj;
 
     private XWiki xwiki;
 
@@ -78,25 +78,26 @@ public class AutomaticUpgradesConfigurationSourceTest
             new DocumentReference("currentWiki", Arrays.asList("Licenses", "Code"), "LicensingConfig");
         when(xwiki.getDocument(configDocRef, xcontext)).thenReturn(configDoc);
 
-        blocklistObj = mock(BaseObject.class);
-        when(configDoc.getXObject(AutomaticUpgradesConfigurationSource.BLOCKLIST_CLASS)).thenReturn(blocklistObj);
+        autoUpgradesObj = mock(BaseObject.class);
+        when(configDoc.getXObject(AutomaticUpgradesConfigurationSource.AUTO_UPGRADES_CLASS))
+            .thenReturn(autoUpgradesObj);
     }
 
     @Test
-    public void getUpgradesBlocklist() throws Exception
+    public void getBlocklist() throws Exception
     {
         List<String> blocklist = Arrays.asList("extension1", "extension2");
 
-        when(blocklistObj.getListValue("upgradesBlocklist")).thenReturn(blocklist);
+        when(autoUpgradesObj.getListValue("blocklist")).thenReturn(blocklist);
 
-        assertEquals(blocklist, mocker.getComponentUnderTest().getUpgradesBlocklist());
+        assertEquals(blocklist, mocker.getComponentUnderTest().getBlocklist());
     }
 
     @Test
-    public void getUpgradesBlocklistWithException() throws Exception
+    public void getBlocklistWithException() throws Exception
     {
         when(xwiki.getDocument(any(EntityReference.class), any(XWikiContext.class))).thenThrow(new XWikiException());
 
-        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getUpgradesBlocklist());
+        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getBlocklist());
     }
 }

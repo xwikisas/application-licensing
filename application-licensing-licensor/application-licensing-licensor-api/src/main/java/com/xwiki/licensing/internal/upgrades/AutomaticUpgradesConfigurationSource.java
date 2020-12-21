@@ -26,6 +26,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.internal.AbstractDocumentConfigurationSource;
@@ -51,8 +52,8 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     protected static final LocalDocumentReference LICENSING_CONFIG_DOC =
         new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
 
-    protected static final LocalDocumentReference BLOCKLIST_CLASS =
-        new LocalDocumentReference(CODE_SPACE, "AutomaticUpgradesBlocklistClass");
+    protected static final LocalDocumentReference AUTO_UPGRADES_CLASS =
+        new LocalDocumentReference(CODE_SPACE, "AutomaticUpgradesClass");
 
     @Inject
     private Logger logger;
@@ -66,7 +67,7 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     @Override
     protected LocalDocumentReference getClassReference()
     {
-        return BLOCKLIST_CLASS;
+        return AUTO_UPGRADES_CLASS;
     }
 
     @Override
@@ -80,17 +81,19 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
      *
      * @return the list of blocklisted extensions for upgrade
      */
-    public List<String> getUpgradesBlocklist()
+    public List<String> getBlocklist()
     {
         XWikiContext xcontext = this.xcontextProvider.get();
-        List<String> upgradesBlocklist = Collections.emptyList();
+        List<String> blocklist = Collections.emptyList();
 
         try {
             XWikiDocument document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
-            upgradesBlocklist = document.getXObject(BLOCKLIST_CLASS).getListValue("upgradesBlocklist");
+            blocklist = document.getXObject(AUTO_UPGRADES_CLASS).getListValue("blocklist");
         } catch (XWikiException e) {
-            logger.error("Error while getting the upgrades blocklist from configuration document", e);
+            logger.warn(
+                "Failed to read the blocklist property from the automatic upgrades configuration. Root cause is: [{}].",
+                ExceptionUtils.getRootCauseMessage(e));
         }
-        return upgradesBlocklist;
+        return blocklist;
     }
 }

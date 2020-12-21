@@ -93,6 +93,7 @@ licensor.notifications.event.done=Upgrade done for {0} from version {1} to {2}
 licensor.notifications.event.failed=Error while upgrading {0} from version {1} to {2}
 licensor.notifications.event.type=Automatic upgrades
 licensor.notifications.event.type.description=An extension is upgraded automatically
+licensor.notifications.event.failed.type.description=An extension fails to be upgraded automatically
 licensor.notifications.event.singular=Upgrade to the last compatible version has been attempted for an extension
 licensor.notifications.event.plural=Upgrade to the last compatible version has been attempted for multiple extensions
 licensor.accessDenied=Only the administrators with programming rights are allowed to manage the licenses.

@@ -43,10 +43,10 @@
   <object>
     <name>Licenses.Code.LicensingConfig</name>
     <number>0</number>
-    <className>Licenses.Code.AutomaticUpgradesBlocklistClass</className>
+    <className>Licenses.Code.AutomaticUpgradesClass</className>
     <guid>f8762aa4-0c85-41e5-b864-f7691164a349</guid>
     <class>
-      <name>Licenses.Code.AutomaticUpgradesBlocklistClass</name>
+      <name>Licenses.Code.AutomaticUpgradesClass</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
@@ -54,17 +54,17 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
-      <upgradesBlocklist>
+      <blocklist>
         <cache>0</cache>
         <customDisplay/>
         <disabled>0</disabled>
         <displayType>input</displayType>
         <hint/>
         <multiSelect>1</multiSelect>
-        <name>upgradesBlocklist</name>
+        <name>blocklist</name>
         <number>1</number>
         <picker>0</picker>
-        <prettyName>upgradesBlocklist</prettyName>
+        <prettyName>blocklist</prettyName>
         <relationalStorage>1</relationalStorage>
         <separator> </separator>
         <separators>|, </separators>
@@ -75,10 +75,10 @@
         <validationRegExp/>
         <values/>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </upgradesBlocklist>
+      </blocklist>
     </class>
     <property>
-      <upgradesBlocklist/>
+      <blocklist/>
     </property>
   </object>
   <object>

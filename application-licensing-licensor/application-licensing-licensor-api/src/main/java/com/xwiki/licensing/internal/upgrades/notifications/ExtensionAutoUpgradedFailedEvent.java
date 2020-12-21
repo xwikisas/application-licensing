@@ -22,21 +22,21 @@ package com.xwiki.licensing.internal.upgrades.notifications;
 import org.xwiki.eventstream.RecordableEvent;
 
 /**
- * The event send when an application is automatically upgraded. Used in UpgradeExtensionHandler.
+ * The event send when upgrading automatically an extension fails. Used in UpgradeExtensionHandler.
  * 
  * @version $Id$
  * @since 1.17
  */
-public class ExtensionAutoUpgradedEvent implements RecordableEvent
+public class ExtensionAutoUpgradedFailedEvent implements RecordableEvent
 {
     /**
      * The event type used for this component.
      */
-    public static final String EVENT_TYPE = "ExtensionAutoUpgradedEvent";
+    public static final String EVENT_TYPE = "ExtensionAutoUpgradedFailedEvent";
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        return otherEvent instanceof ExtensionAutoUpgradedEvent;
+        return otherEvent instanceof ExtensionAutoUpgradedFailedEvent;
     }
 }

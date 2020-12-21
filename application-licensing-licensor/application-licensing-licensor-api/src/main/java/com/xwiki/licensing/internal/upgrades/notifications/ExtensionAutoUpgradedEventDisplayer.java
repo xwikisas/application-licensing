@@ -27,6 +27,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.LocalDocumentReference;
@@ -42,30 +43,28 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
 /**
- * Displaying a custom template for ExtensionAutoUpgradedEvent. The NotificationDisplayerClass XObject should work
- * independently of this class but it is unstable on older versions and sometimes the default template is rendered.
- * After upgrading the 9.11 xwiki parent only the object should be used and this class removed.
+ * Displaying a custom template for ExtensionAutoUpgradedEvent or ExtensionAutoUpgradedFailedEvent. The
+ * NotificationDisplayerClass XObject should work independently of this class, but it is unstable on older versions and
+ * sometimes the default template is rendered. After upgrading to 10.x XWiki parent only the XObject should be used and
+ * this class removed.
  * 
  * @version $Id$
  * @since 1.17
  */
 @Component
 @Singleton
-@Named(ExtensionAutoUpgradedEventDisplayer.EVENT_TYPE)
+@Named(ExtensionAutoUpgradedEventDisplayer.NAME)
 public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplayer
 {
-    /**
-     * The event type.
-     */
-    public static final String EVENT_TYPE =
-        "com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent";
+    protected static final String CODE_SPACE = "Code";
 
-    private static final String CODE_SPACE = "Code";
+    protected static final String NAME = "ExtensionAutoUpgradedEventDisplayer";
 
-    protected static final List<String> EVENTS = Arrays.asList(EVENT_TYPE);
+    protected static final List<String> EVENTS = Arrays.asList(ExtensionAutoUpgradedEvent.class.getCanonicalName(),
+        ExtensionAutoUpgradedFailedEvent.class.getCanonicalName());
 
     protected static final LocalDocumentReference DISPLAYER_DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", CODE_SPACE), "ExtensionAutoUpgradedEventDisplayer");
+        new LocalDocumentReference(Arrays.asList("Licenses", CODE_SPACE), NAME);
 
     protected static final LocalDocumentReference DISPLAYER_OBJ =
         new LocalDocumentReference(Arrays.asList("XWiki", "Notifications", CODE_SPACE), "NotificationDisplayerClass");
@@ -89,12 +88,12 @@ public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplaye
             BaseObject displayerObj = displayerDoc.getXObject(DISPLAYER_OBJ, 0);
 
             Template customTemplate = templateManager.createStringTemplate(
-                displayerObj.getStringValue("notificationTemplate"), displayerDoc.getDocumentReference());
-
+                displayerObj.getStringValue("notificationTemplate"), displayerDoc.getAuthorReference());
             return (customTemplate != null) ? this.templateManager.execute(customTemplate)
                 : this.templateManager.execute("notification/default.vm");
         } catch (Exception e) {
-            logger.error("Failed to render the template for ExtensionAutoUpgradedEvent", e);
+            logger.warn("Failed to render the template for ExtensionAutoUpgradedEvent. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
         }
         return null;
     }
@@ -104,5 +103,4 @@ public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplaye
     {
         return EVENTS;
     }
-
 }

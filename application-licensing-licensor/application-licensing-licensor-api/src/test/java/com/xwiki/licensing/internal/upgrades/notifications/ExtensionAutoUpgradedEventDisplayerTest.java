@@ -92,8 +92,8 @@ public class ExtensionAutoUpgradedEventDisplayerTest
     {
         CompositeEvent eventNotification = mock(CompositeEvent.class);
 
-        DocumentReference displayerDocRef = new DocumentReference("wiki", Arrays.asList("Notification"), "Displayer");
-        when(this.displayerDoc.getDocumentReference()).thenReturn(displayerDocRef);
+        DocumentReference displayerDocRef = new DocumentReference("wiki", Arrays.asList("XWiki"), "User");
+        when(this.displayerDoc.getAuthorReference()).thenReturn(displayerDocRef);
 
         String content = "content";
         when(this.displayerObj.getStringValue("notificationTemplate")).thenReturn(content);

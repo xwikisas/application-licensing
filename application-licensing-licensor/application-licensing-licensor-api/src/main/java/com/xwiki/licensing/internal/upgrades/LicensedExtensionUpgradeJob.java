@@ -22,8 +22,6 @@ package com.xwiki.licensing.internal.upgrades;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.xpn.xwiki.plugin.scheduler.AbstractJob;
 import com.xpn.xwiki.web.Utils;
@@ -34,20 +32,14 @@ import com.xpn.xwiki.web.Utils;
  * @since 1.17
  * @version $Id$
  */
-public class AutomaticDependenciesUpgradeJob extends AbstractJob implements Job
+public class LicensedExtensionUpgradeJob extends AbstractJob implements Job
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AutomaticDependenciesUpgradeJob.class);
-
     @SuppressWarnings("deprecation")
     @Override
     protected void executeJob(JobExecutionContext jobContext) throws JobExecutionException
     {
-        try {
-            LicensingDependenciesUpgradeManager licensingDependenciesManager =
-                Utils.getComponent(LicensingDependenciesUpgradeManager.class);
-            licensingDependenciesManager.resolveExtensionsUpgrade();
-        } catch (Exception e) {
-            LOGGER.error("Failed to successfully run the Automatic Dependencies Upgrade job", e);
-        }
+        LicensedExtensionUpgradeManager licensingDependenciesManager =
+            Utils.getComponent(LicensedExtensionUpgradeManager.class);
+        licensingDependenciesManager.upgradeLicensedExtensions();
     }
 }

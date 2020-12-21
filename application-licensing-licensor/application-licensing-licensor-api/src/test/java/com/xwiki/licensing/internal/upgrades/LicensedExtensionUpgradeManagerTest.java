@@ -40,16 +40,16 @@ import org.xwiki.test.mockito.MockitoComponentMockingRule;
 import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
- * Unit tests for {@link LicensingDependenciesUpgradeManager}.
+ * Unit tests for {@link LicensedExtensionUpgradeManager}.
  *
  * @version $Id$
  * @since 1.17
  */
-public class LicensingDependenciesUpgradeManagerTest
+public class LicensedExtensionUpgradeManagerTest
 {
     @Rule
-    public MockitoComponentMockingRule<LicensingDependenciesUpgradeManager> mocker =
-        new MockitoComponentMockingRule<>(LicensingDependenciesUpgradeManager.class);
+    public MockitoComponentMockingRule<LicensedExtensionUpgradeManager> mocker =
+        new MockitoComponentMockingRule<>(LicensedExtensionUpgradeManager.class);
 
     private InstalledExtensionRepository installedRepository;
 
@@ -77,10 +77,10 @@ public class LicensingDependenciesUpgradeManagerTest
     }
 
     @Test
-    public void resolveExtensionsUpgradeWithoutBlocklist() throws Exception
+    public void upgradeLicensedExtensionsWithoutBlocklist() throws Exception
     {
         String namespace = "wiki:test";
-        when(this.licensingConfig.getUpgradesBlocklist()).thenReturn(Collections.emptyList());
+        when(this.licensingConfig.getBlocklist()).thenReturn(Collections.emptyList());
 
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
@@ -93,17 +93,17 @@ public class LicensingDependenciesUpgradeManagerTest
         when(installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
         when(installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
 
-        mocker.getComponentUnderTest().resolveExtensionsUpgrade();
+        mocker.getComponentUnderTest().upgradeLicensedExtensions();
 
         verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension1), eq(namespace));
         verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension2), eq(namespace));
     }
 
     @Test
-    public void resolveExtensionsUpgradeWithBlocklist() throws Exception
+    public void upgradeLicensedExtensionsWithBlocklist() throws Exception
     {
         String namespace = "wiki:test";
-        when(this.licensingConfig.getUpgradesBlocklist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
+        when(this.licensingConfig.getBlocklist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
 
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
@@ -115,7 +115,7 @@ public class LicensingDependenciesUpgradeManagerTest
 
         when(installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
 
-        mocker.getComponentUnderTest().resolveExtensionsUpgrade();
+        mocker.getComponentUnderTest().upgradeLicensedExtensions();
 
         verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension2), eq(namespace));
 

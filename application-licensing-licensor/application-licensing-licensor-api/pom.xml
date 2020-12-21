@@ -96,6 +96,7 @@
       <artifactId>xwiki-platform-instance</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- Needed for scheduling the automatic upgrades of licensed extensions-->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-scheduler-api</artifactId>
@@ -106,6 +107,7 @@
       <artifactId>xwiki-platform-configuration-default</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- Needed for notifications send by automatic upgrades events -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-notifications-notifiers-api</artifactId>

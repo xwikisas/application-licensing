@@ -205,8 +205,8 @@
 
 #macro (moreActionsButton $extensionId)
   #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-  #set ($blocklistObj = $licensingConfigDoc.getObject('Licenses.Code.AutomaticUpgradesBlocklistClass'))
-  #set ($isAutoUpgrade = !$blocklistObj.getValue('upgradesBlocklist').contains($extensionId))
+  #set ($autoUpgradesObj = $licensingConfigDoc.getObject('Licenses.Code.AutomaticUpgradesClass'))
+  #set ($isAutoUpgrade = !$autoUpgradesObj.getValue('blocklist').contains($extensionId))
   &lt;div class="btn-group"&gt;
     &lt;a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
       title="$services.localization.render("licensor.moreActions")" role="button"&gt;

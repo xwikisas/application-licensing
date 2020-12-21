@@ -82,6 +82,8 @@
     <property>
       <notificationTemplate>#template('notification/macros.vm')
 
+#includeMacros('Licenses.Code.VelocityMacros')
+
 #set ($mainIcon = "bell")
 #set ($smallIcon = "arrow_up")
 #set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
@@ -100,7 +102,9 @@
 #define ($content)
   #set ($document = $xwiki.getDocument($event.document))
   &lt;div class="notification-page"&gt;
-    &lt;a href="$!escapetool.xml($document.getURL())"&gt;$document.displayTitle&lt;/a&gt;
+    &lt;a href="#getLicensesAdminSectionURL"&gt;
+      $escapetool.xml($services.localization.render('admin.licenses'))
+    &lt;/a&gt;
     #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
       &lt;span class="text-muted"&gt;($services.wiki.getById($event.document.wikiReference.name).prettyName)&lt;/span&gt;
     #end

@@ -48,6 +48,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.ObservationManager;
 
 import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent;
+import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEvent;
 
 /**
  * Upgrades an extension from a namespace to the last compatible version and sends a notification. The notification will
@@ -77,7 +78,7 @@ public class UpgradeExtensionHandler
     @Inject
     private ExtensionRepositoryManager extensionRepositoryManager;
 
-    /** The default factory for creating event objects. */
+    /** Used for managing event notifications. */
     @Inject
     private ObservationManager observationManager;
 
@@ -111,17 +112,18 @@ public class UpgradeExtensionHandler
                     toInstallExtensionId.getVersion().getValue());
 
                 this.observationManager.notify(new ExtensionAutoUpgradedEvent(), LICENSOR_API_ID, doneUpgradeMessage);
+
+                if (upgradeDone) {
+                    break;
+                }
             } catch (JobException | InterruptedException e) {
                 String failedUpgradeMessage = this.localization.getTranslationPlain(
                     "licensor.notifications.event.failed", installedExtension.getName(),
                     installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
 
-                this.observationManager.notify(new ExtensionAutoUpgradedEvent(), LICENSOR_API_ID, failedUpgradeMessage);
+                this.observationManager.notify(new ExtensionAutoUpgradedFailedEvent(), LICENSOR_API_ID,
+                    failedUpgradeMessage);
                 upgradeDone = false;
-            }
-
-            if (upgradeDone) {
-                break;
             }
         }
     }

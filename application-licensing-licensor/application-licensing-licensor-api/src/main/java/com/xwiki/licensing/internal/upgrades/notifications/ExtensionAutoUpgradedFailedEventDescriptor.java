@@ -17,26 +17,53 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 package com.xwiki.licensing.internal.upgrades.notifications;
 
-import org.xwiki.eventstream.RecordableEvent;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.eventstream.RecordableEventDescriptor;
 
 /**
- * The event send when an application is automatically upgraded. Used in UpgradeExtensionHandler.
+ * Description of the ExtensionAutoUpgradedFailed notification. Used for displaying settings in Notifications
+ * Preferences.
  * 
  * @version $Id$
  * @since 1.17
  */
-public class ExtensionAutoUpgradedEvent implements RecordableEvent
+@Component
+@Singleton
+@Named(ExtensionAutoUpgradedFailedEventDescriptor.NAME)
+public class ExtensionAutoUpgradedFailedEventDescriptor implements RecordableEventDescriptor
 {
     /**
-     * The event type used for this component.
+     * The name used for this component.
      */
-    public static final String EVENT_TYPE = "ExtensionAutoUpgradedEvent";
+    public static final String NAME = "ExtensionAutoUpgradedFailedEventDescriptor";
 
     @Override
-    public boolean matches(Object otherEvent)
+    public String getApplicationIcon()
     {
-        return otherEvent instanceof ExtensionAutoUpgradedEvent;
+        return "arrow_up";
+    }
+
+    @Override
+    public String getApplicationName()
+    {
+        return "licensor.notifications.event.type";
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "licensor.notifications.event.failed.type.description";
+    }
+
+    @Override
+    public String getEventType()
+    {
+        return ExtensionAutoUpgradedFailedEvent.class.getCanonicalName();
     }
 }

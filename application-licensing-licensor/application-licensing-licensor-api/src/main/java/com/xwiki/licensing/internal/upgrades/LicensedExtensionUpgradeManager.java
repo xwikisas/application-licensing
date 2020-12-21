@@ -38,9 +38,9 @@ import com.xwiki.licensing.LicensedExtensionManager;
  * @since 1.17
  * @version $Id$
  */
-@Component(roles = LicensingDependenciesUpgradeManager.class)
+@Component(roles = LicensedExtensionUpgradeManager.class)
 @Singleton
-public class LicensingDependenciesUpgradeManager
+public class LicensedExtensionUpgradeManager
 {
     @Inject
     private InstalledExtensionRepository installedRepository;
@@ -52,18 +52,18 @@ public class LicensingDependenciesUpgradeManager
     private LicensedExtensionManager licensedExtensionManager;
 
     @Inject
-    private AutomaticUpgradesConfigurationSource licensingConfig;
+    private AutomaticUpgradesConfigurationSource autoUpgradeConfig;
 
     /**
-     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, bypassing the ones
+     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, skipping the ones
      * that are blocked for upgrade.
      */
-    public void resolveExtensionsUpgrade()
+    public void upgradeLicensedExtensions()
     {
-        List<String> upgradesBlocklist = licensingConfig.getUpgradesBlocklist();
+        List<String> blocklist = autoUpgradeConfig.getBlocklist();
 
         for (ExtensionId extensionId : licensedExtensionManager.getLicensedExtensions()) {
-            if (upgradesBlocklist.contains(extensionId.getId())) {
+            if (blocklist.contains(extensionId.getId())) {
                 continue;
             }
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);

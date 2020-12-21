@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="Licenses.Code.AutomaticDependenciesUpgrade" locale="">
+<xwikidoc version="1.3" reference="Licenses.Code.LicensedExtensionUpgradeJob" locale="">
   <web>Licenses.Code</web>
-  <name>AutomaticDependenciesUpgrade</name>
+  <name>LicensedExtensionUpgradeJob</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -31,17 +31,17 @@
   <parent>Licenses.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1599557281000</date>
-  <contentUpdateDate>1599557281000</contentUpdateDate>
+  <date>1605528886000</date>
+  <contentUpdateDate>1604059273000</contentUpdateDate>
   <version>1.1</version>
-  <title>AutomaticDependenciesUpgrade</title>
+  <title>LicensedExtensionUpgradeJob</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>Licenses.Code.AutomaticDependenciesUpgrade</name>
+    <name>Licenses.Code.LicensedExtensionUpgradeJob</name>
     <number>0</number>
     <className>XWiki.SchedulerJobClass</className>
     <guid>65c663ad-749f-4123-a10e-59a35790080a</guid>
@@ -153,13 +153,13 @@
       <cron>0 0 0 * * ?</cron>
     </property>
     <property>
-      <jobClass>com.xwiki.licensing.internal.upgrades.AutomaticDependenciesUpgradeJob</jobClass>
+      <jobClass>com.xwiki.licensing.internal.upgrades.LicensedExtensionUpgradeJob</jobClass>
     </property>
     <property>
       <jobDescription/>
     </property>
     <property>
-      <jobName>Automatic licensing dependencies upgrades</jobName>
+      <jobName>Licensed extensions upgrade</jobName>
     </property>
     <property>
       <script/>

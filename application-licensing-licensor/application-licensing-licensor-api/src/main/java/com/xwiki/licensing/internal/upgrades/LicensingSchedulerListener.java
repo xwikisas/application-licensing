@@ -52,8 +52,8 @@ import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 /**
  * Ensure that AutomaticDependenciesUpgrade job is scheduled after licensing install. Reschedule
  * AutomaticDependenciesUpgradeJob to work around https://jira.xwiki.org/browse/XWIKI-14494. The unschedule / schedule
- * process should be removed once the issue is fixed and licensing depends on a version of XWiki >= the version where
- * is fixed.
+ * process should be removed once the issue is fixed and licensing depends on a version of XWiki >= the version where is
+ * fixed.
  * 
  * @since 1.17
  * @version $Id$
@@ -74,7 +74,7 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     protected static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
 
     protected static final LocalDocumentReference JOB_DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "AutomaticDependenciesUpgrade");
+        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "LicensedExtensionUpgradeJob");
 
     private static final List<Event> EVENTS = Arrays.asList(new ExtensionInstalledEvent());
 
@@ -121,12 +121,12 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
                 scheduleAutomaticUpgradesJob(true);
             }
         } catch (XWikiException | SchedulerException e) {
-            logger.error("Error while rescheduling AutomaticDependenciesUpgradeJob", e);
+            logger.error("Error while rescheduling LicensedExtensionUpgradeJob", e);
         }
     }
 
     @Override
-    public void onEvent(Event event, Object source, Object data)
+    public void onEvent(Event event, Object source, Object data) throws RuntimeException
     {
         String extensionId = ((DefaultInstalledExtension) source).getId().getId();
 
@@ -134,7 +134,8 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
             try {
                 scheduleAutomaticUpgradesJob(false);
             } catch (XWikiException | SchedulerException e) {
-                logger.error("Error while scheduling AutomaticDependenciesUpgradeJob after licensing install", e);
+                throw new RuntimeException("Error while scheduling LicensedExtensionUpgradeJob after licensing install",
+                    e);
             }
         }
     }
