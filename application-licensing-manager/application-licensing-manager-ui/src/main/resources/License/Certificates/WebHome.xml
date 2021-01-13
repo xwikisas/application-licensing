@@ -83,11 +83,20 @@ The following certificates are valid:
 
 = Expired Certificates =
 
-#getActiveLicensesToRegenerate()
-#if ($licensesToRegenerate.isEmpty())
-  {{info}}There are no active licenses signed with expired certificates.{{/info}}
+#if ($request.countBrokenLicenses == 1)
+  #getActiveLicensesToRegenerate()
+  #if ($licensesToRegenerate.isEmpty())
+    {{info}}There are no active licenses signed with expired certificates.{{/info}}
+  #else
+    {{warning}}There are $licensesToRegenerate.size() active licenses signed with expired certificates!{{/warning}}
+  #end
+  #set ($aboutToExpire = $activeLicenses.size() - $licensesToRegenerate.size())
+  #if ($aboutToExpire &gt; 0)
+
+    {{warning}}There are $aboutToExpire active licenses signed with certificates that are about to expire!{{/warning}}
+  #end
 #else
-  {{warning}}There are $licensesToRegenerate.size() licenses signed with expired certificates!{{/warning}}
+  [[Count broken licenses&gt;&gt;||anchor="HExpiredCertificates" queryString="countBrokenLicenses=1" class="btn btn-default"]]
 #end
 
 The following certificates are expired:

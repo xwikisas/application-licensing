@@ -356,15 +356,17 @@
  * Computes the list of licenses that are currently in use (the license with the best expiration date for an instance id
  * and feature id wins).
  *#
-#macro (getActiveLicenses)
+#macro (getActiveLicenses $issuedBeforeYear)
   ## Collect the best expiration date per instance id and feature id.
   #set ($statement = "select instanceId.value, featureId.value, max(expirationDate.value)"
-    + " from XWikiDocument as doc, BaseObject as licenseObj, StringProperty as instanceId, StringProperty as featureId, DateProperty as expirationDate"
+    + " from XWikiDocument as doc, BaseObject as licenseObj, StringProperty as instanceId, StringProperty as featureId"
+      + ", IntegerProperty hasLicense, DateProperty as expirationDate"
     + " where doc.fullName = licenseObj.name and licenseObj.className = 'License.Code.LicenseDetailsClass'"
     + " and licenseObj.id = instanceId.id.id and instanceId.id.name = 'instanceId'"
     + " and licenseObj.id = featureId.id.id and featureId.id.name = 'featureId'"
+    + " and licenseObj.id = hasLicense.id.id and hasLicense.id.name = 'hasLicense'"
     + " and licenseObj.id = expirationDate.id.id and expirationDate.id.name = 'expirationDate'"
-    + " and expirationDate.value &gt; :now"
+    + " and hasLicense.value = 1 and expirationDate.value &gt; :now"
     + " group by instanceId.value, featureId.value")
   #set ($query = $services.query.hql($statement))
   #set ($query = $query.bindValue('now', $datetool.date))
@@ -379,13 +381,18 @@
   #end
   ## Now collect the active licenses.
   #set ($activeLicenses = [])
-  #set ($statement = ", BaseObject as licenseObj, DateProperty as expirationDate, StringProperty email"
+  #set ($statement = ", BaseObject as licenseObj, DateProperty as expirationDate, DateProperty as issueDate"
+      +", IntegerProperty hasLicense, StringProperty email"
     + " where doc.fullName = licenseObj.name and licenseObj.className = 'License.Code.LicenseDetailsClass'"
     + " and licenseObj.id = expirationDate.id.id and expirationDate.id.name = 'expirationDate'"
+    + " and licenseObj.id = issueDate.id.id and issueDate.id.name = 'issueDate'"
+    + " and licenseObj.id = hasLicense.id.id and hasLicense.id.name = 'hasLicense'"
     + " and licenseObj.id = email.id.id and email.id.name = 'email'"
-    + " and expirationDate.value &gt; :now and email.value not like '%@xwiki.com'")
+    + " and expirationDate.value &gt; :now and year(issueDate.value) &lt;= :issuedBeforeYear"
+      + " and hasLicense.value = 1 and email.value not like '%@xwiki.com'")
   #set ($query = $services.query.hql($statement))
   #set ($query = $query.bindValue('now', $datetool.date))
+  #set ($query = $query.bindValue('issuedBeforeYear', $issuedBeforeYear))
   #foreach ($result in $query.execute())
     #set ($licenseDetailsDocument = $xwiki.getDocument($result))
     #readLicenseDetailsFromDocument($licenseDetailsDocument)
@@ -401,7 +408,10 @@
  * expired.
  *#
 #macro (getActiveLicensesToRegenerate)
-  #getActiveLicenses()
+  ## The certificates used to sign the licenses we generate are valid for 2 years so we look for active licenses that
+  ## were generated more than 2 years ago.
+  #set ($issuedBeforeYear = $datetool.year - 2)
+  #getActiveLicenses($issuedBeforeYear)
   #set ($licensesToRegenerate = [])
   #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
   #foreach ($licenseId in $activeLicenses)
