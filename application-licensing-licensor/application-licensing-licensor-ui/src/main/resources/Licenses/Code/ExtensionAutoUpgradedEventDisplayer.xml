@@ -105,6 +105,8 @@
     &lt;a href="#getLicensesAdminSectionURL"&gt;
       $escapetool.xml($services.localization.render('admin.licenses'))
     &lt;/a&gt;
+    ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+    ## to actually know where the request comes from.
     #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
       &lt;span class="text-muted"&gt;($services.wiki.getById($event.document.wikiReference.name).prettyName)&lt;/span&gt;
     #end
@@ -112,9 +114,9 @@
   &lt;div class="notification-description"&gt;
     &lt;div class="activity-summary"&gt;
       #if ($event.events.size() == 1)
-        $services.localization.render("licensor.notifications.event.singular")
+        $services.localization.render("licensor.notification.autoUpgrade.singular")
       #else
-        $services.localization.render("licensor.notifications.event.plural")
+        $services.localization.render("licensor.notification.autoUpgrade.plural")
       #end
     &lt;/div&gt;
     &lt;div&gt;&lt;small class="text-muted"&gt;$compositeEventDate&lt;/small&gt;&lt;/div&gt;

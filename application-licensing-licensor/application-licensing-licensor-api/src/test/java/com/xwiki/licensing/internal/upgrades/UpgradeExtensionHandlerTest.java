@@ -52,6 +52,7 @@ import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
@@ -111,6 +112,9 @@ public class UpgradeExtensionHandlerTest
         DocumentAccessBridge documentAccessBridge = this.mocker.getInstance(DocumentAccessBridge.class);
         this.userReference = new DocumentReference("wiki", Arrays.asList("XWiki"), "UserName");
         when(documentAccessBridge.getCurrentUserReference()).thenReturn(this.userReference);
+
+        EntityReferenceSerializer<String> serializer = this.mocker.getInstance(EntityReferenceSerializer.TYPE_STRING);
+        when(serializer.serialize(userReference)).thenReturn("wiki:XWiki.UserName");
     }
 
     @Test
@@ -173,7 +177,7 @@ public class UpgradeExtensionHandlerTest
         Job job = mock(Job.class);
         when(this.jobExecutor.execute(eq(InstallJob.JOBTYPE), any(InstallRequest.class))).thenReturn(job);
 
-        when(this.localization.getTranslationPlain("licensor.notifications.event.done",
+        when(this.localization.getTranslationPlain("licensor.notification.autoUpgrade.done",
             this.installedExtension.getName(), this.installedExtensionId.getVersion().getValue(),
             this.newVersion2.getValue())).thenReturn("extension upgraded");
 
@@ -192,7 +196,7 @@ public class UpgradeExtensionHandlerTest
         when(this.extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
             .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
 
-        when(this.localization.getTranslationPlain("licensor.notifications.event.failed",
+        when(this.localization.getTranslationPlain("licensor.notification.autoUpgrade.failed",
             this.installedExtension.getName(), this.installedExtensionId.getVersion().getValue(),
             this.newVersion2.getValue())).thenReturn("upgrade failed");
 

@@ -150,7 +150,7 @@
       <contextUser>XWiki.superadmin</contextUser>
     </property>
     <property>
-      <cron>0 0 0 * * ?</cron>
+      <cron>0 0 0 ? * SUN</cron>
     </property>
     <property>
       <jobClass>com.xwiki.licensing.internal.upgrades.LicensedExtensionUpgradeJob</jobClass>

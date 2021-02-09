@@ -29,7 +29,6 @@ import javax.inject.Singleton;
 
 import org.quartz.SchedulerException;
 import org.quartz.Trigger.TriggerState;
-import org.slf4j.Logger;
 import org.xwiki.classloader.ClassLoaderManager;
 import org.xwiki.classloader.xwiki.internal.ContextNamespaceURLClassLoader;
 import org.xwiki.component.annotation.Component;
@@ -50,8 +49,8 @@ import com.xpn.xwiki.plugin.scheduler.JobState;
 import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 
 /**
- * Ensure that AutomaticDependenciesUpgrade job is scheduled after licensing install. Reschedule
- * AutomaticDependenciesUpgradeJob to work around https://jira.xwiki.org/browse/XWIKI-14494. The unschedule / schedule
+ * Ensure that LicensedExtensionUpgradeJob is scheduled after licensing install. Reschedule
+ * LicensedExtensionUpgradeJob to work around https://jira.xwiki.org/browse/XWIKI-14494. The unschedule / schedule
  * process should be removed once the issue is fixed and licensing depends on a version of XWiki >= the version where is
  * fixed.
  * 
@@ -87,9 +86,6 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     @Inject
     private ClassLoaderManager classLoaderManager;
 
-    @Inject
-    private Logger logger;
-
     /**
      * Constructor.
      */
@@ -121,7 +117,7 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
                 scheduleAutomaticUpgradesJob(true);
             }
         } catch (XWikiException | SchedulerException e) {
-            logger.error("Error while rescheduling LicensedExtensionUpgradeJob", e);
+            throw new InitializationException("Error while rescheduling LicensedExtensionUpgradeJob", e);
         }
     }
 

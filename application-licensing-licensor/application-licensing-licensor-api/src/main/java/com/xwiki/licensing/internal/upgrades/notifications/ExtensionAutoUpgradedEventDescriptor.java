@@ -51,13 +51,13 @@ public class ExtensionAutoUpgradedEventDescriptor implements RecordableEventDesc
     @Override
     public String getApplicationName()
     {
-        return "licensor.notifications.event.type";
+        return "licensor.notification.autoUpgrade.type";
     }
 
     @Override
     public String getDescription()
     {
-        return "licensor.notifications.event.type.description";
+        return "licensor.notification.autoUpgrade.done.description";
     }
 
     @Override

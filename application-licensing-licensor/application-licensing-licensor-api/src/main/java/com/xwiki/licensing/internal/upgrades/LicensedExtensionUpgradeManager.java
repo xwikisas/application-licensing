@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.internal.upgrades;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -32,8 +33,7 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
- * Verifies extensions that have a license for possible upgrades and tries the install of the last compatible
- * version.
+ * Verifies extensions that have a license for possible upgrades and tries the install of the last compatible version.
  *
  * @since 1.17
  * @version $Id$
@@ -52,11 +52,11 @@ public class LicensedExtensionUpgradeManager
     private LicensedExtensionManager licensedExtensionManager;
 
     @Inject
-    private AutomaticUpgradesConfigurationSource autoUpgradeConfig;
+    private AutomaticUpgradesConfiguration autoUpgradeConfig;
 
     /**
-     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, skipping the ones
-     * that are blocked for upgrade.
+     * Triggers the upgrade for licensed applications in all namespaces where they are enabled, skipping the ones that
+     * are blocked for upgrade.
      */
     public void upgradeLicensedExtensions()
     {
@@ -66,10 +66,17 @@ public class LicensedExtensionUpgradeManager
             if (blocklist.contains(extensionId.getId())) {
                 continue;
             }
+
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);
-            for (String namespace : installedExtension.getNamespaces()) {
-                upgradeExtensionHandler.tryUpgradeExtensionToLastVersion(installedExtension, namespace);
+            Collection<String> namespaces = installedExtension.getNamespaces();
+            if (namespaces == null) {
+                upgradeExtensionHandler.tryUpgradeExtensionToLastVersion(installedExtension, null);
+            } else {
+                for (String namespace : installedExtension.getNamespaces()) {
+                    upgradeExtensionHandler.tryUpgradeExtensionToLastVersion(installedExtension, namespace);
+                }
             }
+
         }
     }
 }

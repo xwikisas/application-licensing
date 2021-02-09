@@ -20,6 +20,7 @@
 package com.xwiki.licensing.internal.upgrades;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,7 +58,7 @@ public class LicensedExtensionUpgradeManagerTest
 
     private LicensedExtensionManager licensedExtensionManager;
 
-    private AutomaticUpgradesConfigurationSource licensingConfig;
+    private AutomaticUpgradesConfiguration licensingConfig;
 
     private ExtensionId extensionId1;
 
@@ -69,7 +70,7 @@ public class LicensedExtensionUpgradeManagerTest
         this.installedRepository = this.mocker.getInstance(InstalledExtensionRepository.class);
         this.upgradeExtensionHandler = this.mocker.getInstance(UpgradeExtensionHandler.class);
         this.licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
-        this.licensingConfig = this.mocker.getInstance(AutomaticUpgradesConfigurationSource.class);
+        this.licensingConfig = this.mocker.getInstance(AutomaticUpgradesConfiguration.class);
 
         this.extensionId1 = new ExtensionId("extensionId1", new DefaultVersion("1.0"));
         this.extensionId2 = new ExtensionId("extensionId2", new DefaultVersion("2.0"));
@@ -77,7 +78,7 @@ public class LicensedExtensionUpgradeManagerTest
     }
 
     @Test
-    public void upgradeLicensedExtensionsWithoutBlocklist() throws Exception
+    public void upgradeLicensedExtensionsOnNamespaceWithoutBlocklist() throws Exception
     {
         String namespace = "wiki:test";
         when(this.licensingConfig.getBlocklist()).thenReturn(Collections.emptyList());
@@ -122,5 +123,21 @@ public class LicensedExtensionUpgradeManagerTest
         verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
             eq(namespace));
 
+    }
+
+    @Test
+    public void upgradeLicensedExtensionsOnRootNamespace() throws Exception
+    {
+        when(this.licensingConfig.getBlocklist()).thenReturn(Collections.emptyList());
+        when(this.licensedExtensionManager.getLicensedExtensions()).thenReturn(Arrays.asList(this.extensionId1));
+
+        InstalledExtension installedExtension1 = mock(InstalledExtension.class);
+        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(installedExtension1);
+
+        when(installedExtension1.getNamespaces()).thenReturn(null);
+
+        mocker.getComponentUnderTest().upgradeLicensedExtensions();
+
+        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension1), isNull());
     }
 }

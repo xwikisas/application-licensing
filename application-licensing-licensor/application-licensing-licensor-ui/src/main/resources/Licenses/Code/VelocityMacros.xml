@@ -218,7 +218,9 @@
             &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
             &lt;input type="hidden" name="extensionId" value="$extensionId" /&gt;
             &lt;input type="checkbox" name="autoUpgrade" #if (!$isAutoUpgrade) checked #end /&gt;
-            &lt;label for="autoUpgrade"&gt;$services.localization.render("licensor.moreActions.autoUpgrade")&lt;/label&gt;
+            &lt;label for="autoUpgrade"&gt;
+              $services.localization.render("licensor.moreActions.autoUpgrade.block")
+            &lt;/label&gt;
         &lt;/form&gt;
       &lt;/li&gt;
     &lt;/ul&gt;

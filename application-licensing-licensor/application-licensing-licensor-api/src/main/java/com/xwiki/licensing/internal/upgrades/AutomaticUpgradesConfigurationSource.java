@@ -20,22 +20,15 @@
 package com.xwiki.licensing.internal.upgrades;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.internal.AbstractDocumentConfigurationSource;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
-
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Configuration source for automatic upgrades settings.
@@ -43,7 +36,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * @since 1.17
  * @version $Id$
  */
-@Component(roles = AutomaticUpgradesConfigurationSource.class)
+@Component
+@Named("LicensedExtensionAutomaticUpgrades")
 @Singleton
 public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfigurationSource
 {
@@ -54,9 +48,6 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
 
     protected static final LocalDocumentReference AUTO_UPGRADES_CLASS =
         new LocalDocumentReference(CODE_SPACE, "AutomaticUpgradesClass");
-
-    @Inject
-    private Logger logger;
 
     @Override
     protected DocumentReference getDocumentReference()
@@ -74,26 +65,5 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     protected String getCacheId()
     {
         return "licensing.autoUpgrade";
-    }
-
-    /**
-     * Get a list of extensions that should not be upgraded automatically.
-     *
-     * @return the list of blocklisted extensions for upgrade
-     */
-    public List<String> getBlocklist()
-    {
-        XWikiContext xcontext = this.xcontextProvider.get();
-        List<String> blocklist = Collections.emptyList();
-
-        try {
-            XWikiDocument document = xcontext.getWiki().getDocument(getDocumentReference(), xcontext);
-            blocklist = document.getXObject(AUTO_UPGRADES_CLASS).getListValue("blocklist");
-        } catch (XWikiException e) {
-            logger.warn(
-                "Failed to read the blocklist property from the automatic upgrades configuration. Root cause is: [{}].",
-                ExceptionUtils.getRootCauseMessage(e));
-        }
-        return blocklist;
     }
 }

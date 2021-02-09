@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
@@ -45,6 +46,7 @@ import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.ObservationManager;
 
 import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent;
@@ -89,6 +91,9 @@ public class UpgradeExtensionHandler
     @Inject
     private ContextualLocalizationManager localization;
 
+    @Inject
+    private EntityReferenceSerializer<String> serializer;
+
     /**
      * Try upgrading an extension inside a namespace to the last compatible version.
      * 
@@ -103,27 +108,24 @@ public class UpgradeExtensionHandler
 
         for (Version version : versions) {
             ExtensionId toInstallExtensionId = new ExtensionId(installedExtensionId.getId(), version);
-            Boolean upgradeDone = true;
             try {
                 installExtension(toInstallExtensionId, namespace);
 
-                String doneUpgradeMessage = this.localization.getTranslationPlain("licensor.notifications.event.done",
-                    installedExtension.getName(), installedExtensionId.getVersion().getValue(),
-                    toInstallExtensionId.getVersion().getValue());
+                String doneUpgradeMessage = this.localization.getTranslationPlain(
+                    "licensor.notification.autoUpgrade.done", installedExtension.getName(),
+                    installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
 
                 this.observationManager.notify(new ExtensionAutoUpgradedEvent(), LICENSOR_API_ID, doneUpgradeMessage);
 
-                if (upgradeDone) {
-                    break;
-                }
+                // If the execution gets here, it means that the upgrade was done.
+                break;
             } catch (JobException | InterruptedException e) {
                 String failedUpgradeMessage = this.localization.getTranslationPlain(
-                    "licensor.notifications.event.failed", installedExtension.getName(),
+                    "licensor.notification.autoUpgrade.failed", installedExtension.getName(),
                     installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
 
                 this.observationManager.notify(new ExtensionAutoUpgradedFailedEvent(), LICENSOR_API_ID,
                     failedUpgradeMessage);
-                upgradeDone = false;
             }
         }
     }
@@ -173,7 +175,7 @@ public class UpgradeExtensionHandler
         // We set the string value because the extension repository doesn't know how to serialize/parse an extension
         // property whose value is a DocumentReference.
         installRequest.setExtensionProperty(AbstractExtensionValidator.PROPERTY_USERREFERENCE,
-            this.documentAccessBridge.getCurrentUserReference().toString());
+            this.serializer.serialize(this.documentAccessBridge.getCurrentUserReference()));
         return installRequest;
     }
 
@@ -190,21 +192,18 @@ public class UpgradeExtensionHandler
         try {
             IterableResult<Version> iterableVersions =
                 extensionRepositoryManager.resolveVersions(extensionId.getId(), 0, -1);
-            Boolean found = false;
 
             // Take only versions greater than the already installed one.
             for (Version version : iterableVersions) {
-                if (found) {
+                if (extensionId.getVersion().compareTo(version) < 0) {
                     versions.add(version);
-                }
-                if (extensionId.getVersion().compareTo(version) == 0) {
-                    found = true;
                 }
             }
 
             Collections.reverse(versions);
         } catch (ResolveException e) {
-            logger.error("Failed to resolve versions of extension [{}]", extensionId.getId(), e);
+            logger.warn("Failed to resolve versions of extension [{}]. Root cause is [{}]", extensionId.getId(),
+                ExceptionUtils.getRootCauseMessage(e));
         }
 
         return versions;

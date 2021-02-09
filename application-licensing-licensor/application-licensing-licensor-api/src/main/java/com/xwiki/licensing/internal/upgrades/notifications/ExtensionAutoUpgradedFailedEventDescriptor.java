@@ -52,13 +52,13 @@ public class ExtensionAutoUpgradedFailedEventDescriptor implements RecordableEve
     @Override
     public String getApplicationName()
     {
-        return "licensor.notifications.event.type";
+        return "licensor.notification.autoUpgrade.type";
     }
 
     @Override
     public String getDescription()
     {
-        return "licensor.notifications.event.failed.type.description";
+        return "licensor.notification.autoUpgrade.failed.description";
     }
 
     @Override
