@@ -46,14 +46,12 @@
   #set ($autoUpgradesObj = $licensingConfigDoc.getObject('Licenses.Code.AutomaticUpgradesClass'))
   #set ($blocklist = $autoUpgradesObj.getValue('blocklist'))
   #set ($extensionId = $request.getParameter('extensionId'))
-  #set ($isBlocklisted = $blocklist.contains($extensionId))
-  #set ($jsonResponse = {'extensionId': $extensionId})
-  #if ($isBlocklisted)
-    #set ($discard = $blocklist.remove($extensionId))
-    #set ($jsonResponse.isAutoUpgrade = true)
-  #else
+  #set ($jsonResponse = {
+    'extensionId': $extensionId,
+    'isAutoUpgrade': $blocklist.remove($extensionId)
+  })
+  #if (!$jsonResponse.isAutoUpgrade)
     #set ($discard = $blocklist.add($extensionId))
-    #set ($jsonResponse.isAutoUpgrade = false)
   #end
   #if ($services.csrf.isTokenValid($request.form_token))
     #set ($discard = $autoUpgradesObj.set('blocklist', $blocklist))
