@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing.internal.upgrades;
+package com.xwiki.licensing.internal;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -32,17 +32,13 @@ import org.junit.Test;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
-/**
- * Unit tests for {@link AutomaticUpgradesConfiguration}.
- *
- * @version $Id$
- * @since 1.17
- */
-public class AutomaticUpgradesConfigurationTest
+import com.xwiki.licensing.LicensingConfiguration;
+
+public class DefaultLicensingConfigurationTest
 {
     @Rule
-    public MockitoComponentMockingRule<AutomaticUpgradesConfiguration> mocker =
-        new MockitoComponentMockingRule<>(AutomaticUpgradesConfiguration.class);
+    public MockitoComponentMockingRule<LicensingConfiguration> mocker =
+        new MockitoComponentMockingRule<>(DefaultLicensingConfiguration.class);
 
     private ConfigurationSource autoUpgradesConfig;
 
@@ -62,14 +58,14 @@ public class AutomaticUpgradesConfigurationTest
 
         when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn(blocklist);
 
-        assertEquals(Arrays.asList("1", "2", null), mocker.getComponentUnderTest().getBlocklist());
+        assertEquals(Arrays.asList("1", "2", null), mocker.getComponentUnderTest().getAutoUpgradeBlocklist());
     }
 
     @Test(expected = RuntimeException.class)
     public void getBlocklistWithException() throws Exception
     {
-        when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn("null");
-        mocker.getComponentUnderTest().getBlocklist();
+        when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn("not a list");
+        mocker.getComponentUnderTest().getAutoUpgradeBlocklist();
     }
 
     @Test
@@ -77,6 +73,6 @@ public class AutomaticUpgradesConfigurationTest
     {
         when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn(null);
 
-        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getBlocklist());
+        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getAutoUpgradeBlocklist());
     }
 }

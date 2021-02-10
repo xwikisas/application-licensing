@@ -166,7 +166,8 @@ public class UpgradeExtensionHandler
         // Indicate it's allowed to do modification on root namespace.
         installRequest.setRootModificationsAllowed(true);
 
-        // Make sure the job is not interactive.
+        // Prevent the install job from asking questions because we want the install to be automatic, without user
+        // interaction.
         installRequest.setInteractive(false);
 
         // Set the author to use.

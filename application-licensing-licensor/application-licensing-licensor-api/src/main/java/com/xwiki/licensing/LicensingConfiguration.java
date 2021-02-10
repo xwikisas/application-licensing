@@ -20,6 +20,7 @@
 package com.xwiki.licensing;
 
 import java.io.File;
+import java.util.List;
 
 import org.xwiki.component.annotation.Role;
 
@@ -35,4 +36,11 @@ public interface LicensingConfiguration
      * @return the configured path where to store licenses.
      */
     File getLocalStorePath();
+
+    /**
+     * Get the list of extensions that should not be upgraded automatically.
+     *
+     * @return the list of blocklisted extensions for upgrade
+     */
+    List<String> getAutoUpgradeBlocklist();
 }
