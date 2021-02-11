@@ -17,30 +17,26 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing;
+package com.xwiki.licensing.internal.upgrades.notifications;
 
-import java.io.File;
-import java.util.List;
-
-import org.xwiki.component.annotation.Role;
+import org.xwiki.eventstream.RecordableEvent;
 
 /**
- * Configuration of the licensing module.
- *
+ * The event send when upgrading automatically an extension fails. Used in UpgradeExtensionHandler.
+ * 
  * @version $Id$
+ * @since 1.17
  */
-@Role
-public interface LicensingConfiguration
+public class ExtensionAutoUpgradedFailedEvent implements RecordableEvent
 {
     /**
-     * @return the configured path where to store licenses.
+     * The event type used for this component.
      */
-    File getLocalStorePath();
+    public static final String EVENT_TYPE = "ExtensionAutoUpgradedFailedEvent";
 
-    /**
-     * Get the list of extensions that should not be upgraded automatically.
-     *
-     * @return the list of blocklisted extensions for upgrade
-     */
-    List<String> getAutoUpgradeBlocklist();
+    @Override
+    public boolean matches(Object otherEvent)
+    {
+        return otherEvent instanceof ExtensionAutoUpgradedFailedEvent;
+    }
 }

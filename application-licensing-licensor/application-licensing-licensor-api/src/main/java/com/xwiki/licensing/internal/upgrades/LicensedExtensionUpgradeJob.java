@@ -17,30 +17,29 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing;
+package com.xwiki.licensing.internal.upgrades;
 
-import java.io.File;
-import java.util.List;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
-import org.xwiki.component.annotation.Role;
+import com.xpn.xwiki.plugin.scheduler.AbstractJob;
+import com.xpn.xwiki.web.Utils;
 
 /**
- * Configuration of the licensing module.
- *
+ * Scheduler job that upgrades to the last compatible version the extensions that have a license.
+ * 
+ * @since 1.17
  * @version $Id$
  */
-@Role
-public interface LicensingConfiguration
+public class LicensedExtensionUpgradeJob extends AbstractJob implements Job
 {
-    /**
-     * @return the configured path where to store licenses.
-     */
-    File getLocalStorePath();
-
-    /**
-     * Get the list of extensions that should not be upgraded automatically.
-     *
-     * @return the list of blocklisted extensions for upgrade
-     */
-    List<String> getAutoUpgradeBlocklist();
+    @SuppressWarnings("deprecation")
+    @Override
+    protected void executeJob(JobExecutionContext jobContext) throws JobExecutionException
+    {
+        LicensedExtensionUpgradeManager licensingDependenciesManager =
+            Utils.getComponent(LicensedExtensionUpgradeManager.class);
+        licensingDependenciesManager.upgradeLicensedExtensions();
+    }
 }

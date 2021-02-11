@@ -37,7 +37,7 @@
     <xwiki.extension.category>API</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <checkstyle.suppressions.location>${basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
-    <xwiki.jacoco.instructionRatio>0.30</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.38</xwiki.jacoco.instructionRatio>
   </properties>
   <dependencies>
     <dependency>
@@ -72,6 +72,11 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-extension-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-velocity</artifactId>
       <version>${commons.version}</version>
@@ -91,6 +96,28 @@
       <artifactId>xwiki-platform-instance</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- Needed for scheduling the automatic upgrades of licensed extensions-->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-scheduler-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-configuration-default</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <!-- Needed for notifications send by automatic upgrades events -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-notifications-notifiers-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-notifications-sources</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-crypto-common</artifactId>
@@ -101,11 +128,23 @@
       <artifactId>xwiki-commons-crypto-pkix</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <!-- Remove when https://jira.xwiki.org/browse/XCOMMONS-2064 is fixed and the Licensing starts depending on
+      XWiki >= the version where it's fixed.-->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-classloader-xwiki</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-tool-test-component</artifactId>
       <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

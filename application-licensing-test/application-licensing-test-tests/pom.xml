@@ -47,7 +47,8 @@
       com.xpn.xwiki.plugin.skinx.CssSkinExtensionPlugin,\
       com.xpn.xwiki.plugin.skinx.CssSkinFileExtensionPlugin,\
       com.xpn.xwiki.plugin.skinx.LinkExtensionPlugin,\
-      com.xpn.xwiki.plugin.jodatime.JodaTimePlugin
+      com.xpn.xwiki.plugin.jodatime.JodaTimePlugin,\
+      com.xpn.xwiki.plugin.scheduler.SchedulerPlugin
     </xwikiCfgPlugins>
     <!-- Need to see the instance id in the License UI -->
     <xwikiDbHbmCommonExtraMappings>instance.hbm.xml</xwikiDbHbmCommonExtraMappings>
@@ -122,6 +123,14 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-rendering-wikimacro-store</artifactId>
       <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Needed to trigger the scheduler job -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-scheduler-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
       <scope>runtime</scope>
     </dependency>
     <!-- Test dependencies -->

@@ -43,6 +43,47 @@
   <object>
     <name>Licenses.Code.LicensingConfig</name>
     <number>0</number>
+    <className>Licenses.Code.AutomaticUpgradesClass</className>
+    <guid>f8762aa4-0c85-41e5-b864-f7691164a349</guid>
+    <class>
+      <name>Licenses.Code.AutomaticUpgradesClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <blocklist>
+        <cache>0</cache>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <hint/>
+        <multiSelect>1</multiSelect>
+        <name>blocklist</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>blocklist</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values/>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </blocklist>
+    </class>
+    <property>
+      <blocklist/>
+    </property>
+  </object>
+  <object>
+    <name>Licenses.Code.LicensingConfig</name>
+    <number>0</number>
     <className>Licenses.Code.LicensingOwnerClass</className>
     <guid>aa66d528-6926-410d-b239-8d7203cb466b</guid>
     <class>

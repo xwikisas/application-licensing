@@ -203,6 +203,30 @@
     data-button="$escapetool.xml($jsontool.serialize($jsonData))"&gt;$label&lt;/button&gt;
 #end
 
+#macro (moreActionsButton $extensionId)
+  #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+  #set ($autoUpgradesObj = $licensingConfigDoc.getObject('Licenses.Code.AutomaticUpgradesClass'))
+  #set ($isAutoUpgrade = !$autoUpgradesObj.getValue('blocklist').contains($extensionId))
+  &lt;div class="btn-group"&gt;
+    &lt;a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
+      title="$services.localization.render("licensor.moreActions")" role="button"&gt;
+      &lt;span class="fa fa-ellipsis-v"&gt;&lt;/span&gt;
+    &lt;/a&gt;
+    &lt;ul class="dropdown-menu dropdown-left"&gt;
+      &lt;li class="dropdown-header"&gt;
+        &lt;form target="_blank" class="xform half"&gt;
+            &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
+            &lt;input type="hidden" name="extensionId" value="$extensionId" /&gt;
+            &lt;input type="checkbox" name="autoUpgrade" #if (!$isAutoUpgrade) checked #end /&gt;
+            &lt;label for="autoUpgrade"&gt;
+              $services.localization.render("licensor.moreActions.autoUpgrade.block")
+            &lt;/label&gt;
+        &lt;/form&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+#end
+
 #macro (getLicenseActions $license $extension $actions)
   ## Use the JSON format in order to be parsable in JavaScript.
   #set ($jsonData = {
@@ -222,6 +246,7 @@
   #elseif ($license.type == 'PAID')
     #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'extendPaid' $jsonData)"))
   #end
+  #set ($discard = $actions.add("#moreActionsButton($jsonData.featureId)"))
 #end
 
 #macro (licenseActions $license $extension)

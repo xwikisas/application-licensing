@@ -20,8 +20,13 @@
 package com.xwiki.licensing.internal;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -57,6 +62,10 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Inject
     private Provider<ConfigurationSource> configuration;
 
+    @Inject
+    @Named("LicensedExtensionAutomaticUpgrades")
+    private ConfigurationSource automaticUpgradesConfig;
+
     private File localStorePath;
 
     @Override
@@ -73,6 +82,24 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
         }
 
         return this.localStorePath;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getAutoUpgradeBlocklist()
+    {
+        // Since you cannot pass a default value and a target type to getProperty, the class of defaultValue is used
+        // for converting the result. In this case there is no converter for EmptyList, so we manage the result
+        // manually.
+        Object blocklist = this.automaticUpgradesConfig.getProperty("blocklist");
+        if (blocklist instanceof List) {
+            return ((List<Object>) blocklist).stream().map(item -> Objects.toString(item, null))
+                .collect(Collectors.toList());
+        } else if (blocklist == null) {
+            return Collections.emptyList();
+        } else {
+            throw new RuntimeException(String.format("Cannot convert [%s] to List", blocklist));
+        }
     }
 
 }

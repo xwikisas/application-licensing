@@ -464,6 +464,12 @@
         new XWiki.Document('UpdateOwnerDetails', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
         data
       );
+    },
+    modifyAutoUpgradesBlocklist: function(data) {
+      return $.post(
+        new XWiki.Document('UpdateAutomaticUpgradesBlocklist', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
+        data
+      );
     }
   };
 });
@@ -543,6 +549,18 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
       if (localStorage.getItem(hasTrialsKey) === 'false') {
         // Remove the "Extend Trial" button.
         $(this).remove();
+      }
+    });
+  };
+
+  // An extensionId could have multiple rows in the livetable if is installed on multiple subwikis, but the blocklist
+  // is applied to all namespaces.
+  var updateExtensionOfOtherWikis = function(extensionId, isChecked) {
+    var similarExtensions = $("input[name='extensionId'][value='" + extensionId + "']");
+    similarExtensions.each(function() {
+      var checkbox = $(this).siblings("input[type='checkbox']");
+      if (checkbox.prop('checked') != isChecked) {
+        checkbox.prop('checked', isChecked);
       }
     });
   };
@@ -653,6 +671,20 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
       updateButton.prop('disabled', false);
       // Update the notification message.
       progressNotification.replace(new XWiki.widgets.Notification(result.notification, result.status));
+    });
+  });
+
+  $('input[name=autoUpgrade]').click(function() {
+    var autoUpgradeForm = $(this).parent('form').serializeArray();
+    licensor.modifyAutoUpgradesBlocklist(autoUpgradeForm).success(function(data) {
+      if(data.isAutoUpgrade) {
+        new XWiki.widgets.Notification(
+          $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');
+      } else {
+        new XWiki.widgets.Notification(
+          $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.removed')), 'done');
+      }
+      updateExtensionOfOtherWikis(data.extensionId, !data.isAutoUpgrade);
     });
   });
 
@@ -785,6 +817,12 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+/* .dropleft to be used after moving to Bootstrap 4 */
+.dropdown-left {
+  right: 0;
+  left: auto;
 }</code>
     </property>
     <property>

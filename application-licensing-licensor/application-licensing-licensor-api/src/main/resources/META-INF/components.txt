@@ -12,3 +12,11 @@ com.xwiki.licensing.internal.LicenseManagerEventListener
 com.xwiki.licensing.internal.UserCounter
 com.xwiki.licensing.internal.UserCounter$UserListener
 com.xwiki.licensing.script.LicensorScriptService
+com.xwiki.licensing.internal.upgrades.UpgradeExtensionHandler
+com.xwiki.licensing.internal.upgrades.AutomaticUpgradesConfigurationSource
+com.xwiki.licensing.internal.upgrades.LicensedExtensionUpgradeManager
+com.xwiki.licensing.internal.upgrades.LicensingSchedulerListener
+com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDescriptor
+com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventConverter
+com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDisplayer
+com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEventDescriptor
