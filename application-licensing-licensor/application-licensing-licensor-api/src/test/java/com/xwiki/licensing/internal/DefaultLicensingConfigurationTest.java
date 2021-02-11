@@ -20,16 +20,23 @@
 package com.xwiki.licensing.internal;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Provider;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.xwiki.component.util.DefaultParameterizedType;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.environment.Environment;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 import com.xwiki.licensing.LicensingConfiguration;
@@ -42,11 +49,25 @@ public class DefaultLicensingConfigurationTest
 
     private ConfigurationSource autoUpgradesConfig;
 
+    private ConfigurationSource configurationSource;
+
+    private Environment environment;
+
     @Before
     public void configure() throws Exception
     {
         this.autoUpgradesConfig =
             this.mocker.getInstance(ConfigurationSource.class, "LicensedExtensionAutomaticUpgrades");
+
+        DefaultParameterizedType configurationSourceProviderType =
+            new DefaultParameterizedType(null, Provider.class, ConfigurationSource.class);
+        Provider<ConfigurationSource> configurationSourceProvider =
+            this.mocker.registerMockComponent(configurationSourceProviderType);
+
+        configurationSource = mock(ConfigurationSource.class);
+        when(configurationSourceProvider.get()).thenReturn(configurationSource);
+
+        environment = this.mocker.getInstance(Environment.class);
     }
 
     @Test
@@ -74,5 +95,23 @@ public class DefaultLicensingConfigurationTest
         when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn(null);
 
         assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getAutoUpgradeBlocklist());
+    }
+
+    @Test
+    public void getLocalStorePath() throws Exception
+    {
+        when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn("path");
+        this.mocker.getComponentUnderTest().getLocalStorePath();
+
+        verify(this.environment, never()).getPermanentDirectory();
+    }
+
+    @Test
+    public void getLocalStorePathWithNullProperty() throws Exception
+    {
+        when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn(null);
+        this.mocker.getComponentUnderTest().getLocalStorePath();
+
+        verify(this.environment).getPermanentDirectory();
     }
 }
