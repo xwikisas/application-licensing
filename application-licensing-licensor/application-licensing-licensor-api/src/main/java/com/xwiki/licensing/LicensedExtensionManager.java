@@ -55,4 +55,11 @@ public interface LicensedExtensionManager
      * @return the installed extensions (from all the namespaces) that are covered by the specified licensed feature
      */
     Collection<ExtensionId> getLicensedExtensions(LicensedFeatureId licensedFeatureId);
+
+    /**
+     * Todo.
+     *
+     * @return todo
+     */
+    Collection<ExtensionId> getVisibleLicensedExtensions();
 }

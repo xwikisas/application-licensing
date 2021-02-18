@@ -20,9 +20,11 @@
 package com.xwiki.licensing;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.model.reference.LocalDocumentReference;
 
 /**
  * Configuration of the licensing module.
@@ -32,6 +34,16 @@ import org.xwiki.component.annotation.Role;
 @Role
 public interface LicensingConfiguration
 {
+    /**
+     * Licensing Code space.
+     */
+    List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
+
+    /**
+     * Licensing configuration document.
+     */
+    LocalDocumentReference LICENSING_CONFIG_DOC = new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
+
     /**
      * @return the configured path where to store licenses.
      */
@@ -43,4 +55,39 @@ public interface LicensingConfiguration
      * @return the list of blocklisted extensions for upgrade
      */
     List<String> getAutoUpgradeBlocklist();
+
+    /**
+     * Todo.
+     *
+     * @return todo
+     */
+    String getStoreTrialURL();
+
+    /**
+     * Todo.
+     *
+     * @return todo
+     */
+    String getStoreUpdateURL();
+
+    /**
+     * Todo.
+     *
+     * @return todo
+     */
+    String getOwnerFirstName();
+
+    /**
+     * Todo.
+     *
+     * @return todo
+     */
+    String getOwnerLastName();
+
+    /**
+     * Todo.
+     *
+     * @return todo
+     */
+    String getOwnerEmail();
 }
