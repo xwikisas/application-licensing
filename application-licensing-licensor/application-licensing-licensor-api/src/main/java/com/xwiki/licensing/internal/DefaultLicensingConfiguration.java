@@ -66,6 +66,14 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Named("LicensedExtensionAutomaticUpgrades")
     private ConfigurationSource automaticUpgradesConfig;
 
+    @Inject
+    @Named("LicensingStoreConfigurationSource")
+    private ConfigurationSource storeConfig;
+
+    @Inject
+    @Named("LicensingOwnerConfigurationSource")
+    private ConfigurationSource ownerConfig;
+
     private File localStorePath;
 
     @Override
@@ -100,6 +108,36 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
         } else {
             throw new RuntimeException(String.format("Cannot convert [%s] to List", blocklist));
         }
+    }
+
+    @Override
+    public String getStoreTrialURL()
+    {
+        return this.storeConfig.getProperty("storeTrialURL");
+    }
+
+    @Override
+    public String getStoreUpdateURL()
+    {
+        return this.storeConfig.getProperty("storeUpdateURL");
+    }
+
+    @Override
+    public String getLicensingOwnerFirstName()
+    {
+        return this.ownerConfig.getProperty("firstName");
+    }
+
+    @Override
+    public String getLicensingOwnerLastName()
+    {
+        return this.ownerConfig.getProperty("lastName");
+    }
+
+    @Override
+    public String getLicensingOwnerEmail()
+    {
+        return this.ownerConfig.getProperty("email");
     }
 
 }

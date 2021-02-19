@@ -57,37 +57,27 @@ public interface LicensingConfiguration
     List<String> getAutoUpgradeBlocklist();
 
     /**
-     * Todo.
-     *
-     * @return todo
+     * @return the store trial url
      */
     String getStoreTrialURL();
 
     /**
-     * Todo.
-     *
-     * @return todo
+     * @return the store update url
      */
     String getStoreUpdateURL();
 
     /**
-     * Todo.
-     *
-     * @return todo
+     * @return the first name of the licensing owner
      */
-    String getOwnerFirstName();
+    String getLicensingOwnerFirstName();
 
     /**
-     * Todo.
-     *
-     * @return todo
+     * @return the last name of the licensing owner
      */
-    String getOwnerLastName();
+    String getLicensingOwnerLastName();
 
     /**
-     * Todo.
-     *
-     * @return todo
+     * @return the email of the licensing owner
      */
-    String getOwnerEmail();
+    String getLicensingOwnerEmail();
 }
