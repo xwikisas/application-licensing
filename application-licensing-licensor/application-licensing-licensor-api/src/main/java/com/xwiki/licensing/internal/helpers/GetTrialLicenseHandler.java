@@ -50,12 +50,13 @@ import com.xwiki.licensing.internal.UserCounter;
 
 /**
  * Helper methods for generating a trial license and updating it.
- * 
+ *
+ * @since 1.17
  * @version $Id$
  */
-@Component(roles = GenerateTrialLicenseHandler.class)
+@Component(roles = GetTrialLicenseHandler.class)
 @Singleton
-public class GenerateTrialLicenseHandler
+public class GetTrialLicenseHandler
 {
     private static final String FEATURE_ID = "featureId";
 
@@ -77,10 +78,10 @@ public class GenerateTrialLicenseHandler
     private LicensingConfiguration licensingConfig;
 
     @Inject
-    private Licensor licensor;
+    private Provider<Licensor> licensorProvider;
 
     @Inject
-    private LicenseManager licenseManager;
+    private Provider<LicenseManager> licenseManagerProvider;
 
     @Inject
     @Named("Base64")
@@ -90,7 +91,7 @@ public class GenerateTrialLicenseHandler
     private Converter<License> converter;
 
     /**
-     * Create the URL for getting a trial license for a given extension.
+     * Create the URL for getting a trial license of a given extension.
      *
      * @param extensionId extension for which the trial license is needed
      * @return the url for getting a trial license
@@ -124,7 +125,7 @@ public class GenerateTrialLicenseHandler
 
             List<String> retrivedLicenses = (List<String>) objectMapper.readValue(licensesUpdateResponse, Object.class);
             for (String license : retrivedLicenses) {
-                licenseManager.add(converter.convert(License.class, base64decoder.decode(license)));
+                licenseManagerProvider.get().add(converter.convert(License.class, base64decoder.decode(license)));
             }
         } catch (URISyntaxException | IOException e) {
             logger.warn("Error while updating licenses. Root cause [{}]", ExceptionUtils.getRootCauseMessage(e));
@@ -148,7 +149,7 @@ public class GenerateTrialLicenseHandler
         for (ExtensionId paidExtensionId : licensedExtensionManager.getVisibleLicensedExtensions()) {
             builder.addParameter(FEATURE_ID, paidExtensionId.getId());
 
-            License license = licensor.getLicense(paidExtensionId);
+            License license = licensorProvider.get().getLicense(paidExtensionId);
             if (license != null) {
                 builder.addParameter(String.format("expirationDate:%s", paidExtensionId.getId()),
                     Long.toString(license.getExpirationDate()));
@@ -187,5 +188,15 @@ public class GenerateTrialLicenseHandler
     {
         return licensedExtensionManager.getVisibleLicensedExtensions().stream()
             .filter(o -> o.getId().contentEquals(extensionId.getId())).findFirst().isPresent();
+    }
+
+    /**
+     * @return true if owner information is not complete filled up
+     */
+    public Boolean isOwnerDataIncomplete()
+    {
+        return licensingConfig.getLicensingOwnerLastName().isEmpty()
+            || licensingConfig.getLicensingOwnerFirstName().isEmpty()
+            || licensingConfig.getLicensingOwnerEmail().isEmpty();
     }
 }

@@ -19,8 +19,6 @@
  */
 package com.xwiki.licensing.internal;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.event.ExtensionInstalledEvent;
@@ -35,21 +34,20 @@ import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtensi
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
-import com.xpn.xwiki.XWikiException;
-import com.xwiki.licensing.LicensingConfiguration;
-import com.xwiki.licensing.internal.helpers.GenerateTrialLicenseHandler;
+import com.xwiki.licensing.internal.helpers.GetTrialLicenseHandler;
 
 /**
- * Todo.
- * 
+ * Generate trial license for paid extensions at install step if the data necessary for it is already filled up.
+ *
+ * @since 1.17
  * @version $Id$
  */
 @Component
-@Named(GenerateTrialListener.NAME)
+@Named(GetTrialLicenseListener.NAME)
 @Singleton
-public class GenerateTrialListener implements EventListener
+public class GetTrialLicenseListener implements EventListener
 {
-    protected static final String NAME = "GenerateTrialListener";
+    protected static final String NAME = "GetTrialLicenseListener";
 
     protected static final List<Event> EVENTS = Arrays.asList(new ExtensionInstalledEvent());
 
@@ -57,10 +55,7 @@ public class GenerateTrialListener implements EventListener
     private Logger logger;
 
     @Inject
-    private GenerateTrialLicenseHandler generateTrialHandler;
-
-    @Inject
-    private LicensingConfiguration licensingConfig;
+    private GetTrialLicenseHandler getTrialLicenseHandler;
 
     @Override
     public List<Event> getEvents()
@@ -80,31 +75,21 @@ public class GenerateTrialListener implements EventListener
         DefaultInstalledExtension extension = (DefaultInstalledExtension) source;
 
         try {
-            if (!isOwnerDataIncomplete() && generateTrialHandler.isLicensedExtension(extension.getId())) {
+            if (!getTrialLicenseHandler.isOwnerDataIncomplete()
+                && getTrialLicenseHandler.isLicensedExtension(extension.getId())) {
                 String getTrialResponse =
-                    generateTrialHandler.getURLContent(generateTrialHandler.getTrialURL(extension.getId()));
+                    getTrialLicenseHandler.getURLContent(getTrialLicenseHandler.getTrialURL(extension.getId()));
 
                 if (getTrialResponse.contains("error")) {
-                    logger.warn("Failed to add trial at install step");
+                    logger.info("Failed to add trial license");
                 } else {
-                    logger.info("Added trial for extension at install step");
-                    generateTrialHandler.updateLicenses();
+                    logger.info("Added trial license");
+                    getTrialLicenseHandler.updateLicenses();
                 }
             }
-        } catch (XWikiException | URISyntaxException | IOException e) {
-            logger.warn("Error 1", e);
         } catch (Exception e) {
-            logger.warn("Error 2", e);
+            logger.info("Failed to get trial license for [{}]. Root cause is [{}]", extension.getId(),
+                ExceptionUtils.getRootCause(e));
         }
     }
-
-    /**
-     * @return todo
-     */
-    public Boolean isOwnerDataIncomplete()
-    {
-        return licensingConfig.getLicensingOwnerLastName().isEmpty() || licensingConfig.getLicensingOwnerFirstName().isEmpty()
-            || licensingConfig.getLicensingOwnerEmail().isEmpty();
-    }
-
 }
