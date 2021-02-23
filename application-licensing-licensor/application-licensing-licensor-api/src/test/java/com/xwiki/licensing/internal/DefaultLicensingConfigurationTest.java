@@ -22,9 +22,8 @@ package com.xwiki.licensing.internal;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -100,18 +99,21 @@ public class DefaultLicensingConfigurationTest
     @Test
     public void getLocalStorePath() throws Exception
     {
-        when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn("path");
-        this.mocker.getComponentUnderTest().getLocalStorePath();
+        when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn("storePath");
+        File storeFile = new File("storePath");
 
-        verify(this.environment, never()).getPermanentDirectory();
+        assertEquals(storeFile, this.mocker.getComponentUnderTest().getLocalStorePath());
     }
 
     @Test
     public void getLocalStorePathWithNullProperty() throws Exception
     {
         when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn(null);
-        this.mocker.getComponentUnderTest().getLocalStorePath();
 
-        verify(this.environment).getPermanentDirectory();
+        File permanentDirectoryFile = new File("permanentDirectoryPath");
+        File storeFile = new File(permanentDirectoryFile, "licenses");
+        when(this.environment.getPermanentDirectory()).thenReturn(permanentDirectoryFile);
+
+        assertEquals(storeFile, this.mocker.getComponentUnderTest().getLocalStorePath());
     }
 }
