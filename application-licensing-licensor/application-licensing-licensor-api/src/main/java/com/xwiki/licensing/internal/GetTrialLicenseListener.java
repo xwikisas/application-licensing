@@ -76,7 +76,7 @@ public class GetTrialLicenseListener implements EventListener
 
         try {
             if (getTrialLicenseHandler.isOwnerDataComplete()
-                && getTrialLicenseHandler.isLicensedExtension(extension.getId())) {
+                && getTrialLicenseHandler.isVisibleLicensedExtension(extension.getId())) {
                 String getTrialResponse =
                     getTrialLicenseHandler.getURLContent(getTrialLicenseHandler.getTrialURL(extension.getId()));
 

@@ -58,6 +58,6 @@ public class LicensingStoreConfigurationSource extends AbstractDocumentConfigura
     @Override
     protected String getCacheId()
     {
-        return "licensing.store";
+        return "licensing.configuration.store";
     }
 }

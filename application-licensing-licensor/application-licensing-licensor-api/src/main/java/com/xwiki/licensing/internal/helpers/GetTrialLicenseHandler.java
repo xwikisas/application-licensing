@@ -179,12 +179,12 @@ public class GetTrialLicenseHandler
     }
 
     /**
-     * Check if the given extension is licensed.
+     * Check if the given extension is licensed and it's not dependency of other licensed extension.
      * 
      * @param extensionId the extension to be checked
-     * @return true if the extension is licensed, false otherwise
+     * @return true if is a visible licensed extension, false otherwise
      */
-    public Boolean isLicensedExtension(ExtensionId extensionId)
+    public Boolean isVisibleLicensedExtension(ExtensionId extensionId)
     {
         return licensedExtensionManager.getVisibleLicensedExtensions().stream()
             .filter(o -> o.getId().contentEquals(extensionId.getId())).findFirst().isPresent();

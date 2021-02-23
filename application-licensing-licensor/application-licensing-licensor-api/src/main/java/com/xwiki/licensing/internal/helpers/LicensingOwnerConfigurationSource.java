@@ -58,6 +58,6 @@ public class LicensingOwnerConfigurationSource extends AbstractDocumentConfigura
     @Override
     protected String getCacheId()
     {
-        return "licensing.owner";
+        return "licensing.configuration.owner";
     }
 }

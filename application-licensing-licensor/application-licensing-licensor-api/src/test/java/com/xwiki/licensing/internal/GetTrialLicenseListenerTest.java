@@ -63,7 +63,7 @@ public class GetTrialLicenseListenerTest
 
         this.getTrialLicenseHandler = this.mocker.getInstance(GetTrialLicenseHandler.class);
         when(this.getTrialLicenseHandler.isOwnerDataComplete()).thenReturn(true);
-        when(this.getTrialLicenseHandler.isLicensedExtension(extensionId)).thenReturn(true);
+        when(this.getTrialLicenseHandler.isVisibleLicensedExtension(extensionId)).thenReturn(true);
 
         this.trialUrl = new URL("https://url");
         when(this.getTrialLicenseHandler.getTrialURL(extensionId)).thenReturn(trialUrl);

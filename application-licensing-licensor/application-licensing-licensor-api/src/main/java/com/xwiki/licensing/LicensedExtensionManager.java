@@ -57,9 +57,10 @@ public interface LicensedExtensionManager
     Collection<ExtensionId> getLicensedExtensions(LicensedFeatureId licensedFeatureId);
 
     /**
-     * Todo.
+     * Get paid extensions that are not dependencies of other paid extensions, since the license of a extension will
+     * cover its paid dependencies.
      *
-     * @return todo
+     * @return paid extensions that are not dependencies of other paid extensions
      */
     Collection<ExtensionId> getVisibleLicensedExtensions();
 }

@@ -144,19 +144,19 @@ public class GetTrialLicenseHandlerTest
     }
 
     @Test
-    public void isLicensedExtensionWithLicensedExtension() throws Exception
+    public void isVisibleLicensedExtensionWithLicensedExtension() throws Exception
     {
         when(this.licensedExtensionManager.getVisibleLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
 
-        assertTrue(this.mocker.getComponentUnderTest().isLicensedExtension(extension1));
+        assertTrue(this.mocker.getComponentUnderTest().isVisibleLicensedExtension(extension1));
     }
 
     @Test
-    public void isLicensedExtensionWithoutLicensedExtension() throws Exception
+    public void isVisibleLicensedExtensionWithoutLicensedExtension() throws Exception
     {
         when(this.licensedExtensionManager.getVisibleLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
 
-        assertFalse(this.mocker.getComponentUnderTest().isLicensedExtension(extension2));
+        assertFalse(this.mocker.getComponentUnderTest().isVisibleLicensedExtension(extension2));
     }
 
     @Test
