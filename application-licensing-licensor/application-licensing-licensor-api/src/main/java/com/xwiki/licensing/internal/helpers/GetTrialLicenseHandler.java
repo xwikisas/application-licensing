@@ -106,7 +106,7 @@ public class GetTrialLicenseHandler
         builder.addParameter("email", licensingConfig.getLicensingOwnerEmail());
         builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
         builder.addParameter(FEATURE_ID, extensionId.getId());
-        builder.addParameter("extensionVersion", extensionId.getVersion().toString());
+        builder.addParameter("extensionVersion", extensionId.getVersion().getValue());
         builder.addParameter("licenseType", "TRIAL");
         builder.addParameter("userCount", String.valueOf(userCounter.getUserCount()));
 
@@ -140,7 +140,7 @@ public class GetTrialLicenseHandler
      * @throws URISyntaxException if the url is not valid
      * @throws MalformedURLException if an error occured while constructing the URL
      */
-    private URL getLicensesUpdateURL() throws URISyntaxException, MalformedURLException
+    public URL getLicensesUpdateURL() throws URISyntaxException, MalformedURLException
     {
         URIBuilder builder = new URIBuilder(licensingConfig.getStoreUpdateURL());
         builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
@@ -182,7 +182,7 @@ public class GetTrialLicenseHandler
      * Check if the given extension is licensed.
      * 
      * @param extensionId the extension to be checked
-     * @return true is the extension is licensed, false otherwise
+     * @return true if the extension is licensed, false otherwise
      */
     public Boolean isLicensedExtension(ExtensionId extensionId)
     {
@@ -191,12 +191,12 @@ public class GetTrialLicenseHandler
     }
 
     /**
-     * @return true if owner information is not complete filled up
+     * @return false if owner information is not complete filled up and true otherwise.
      */
-    public Boolean isOwnerDataIncomplete()
+    public Boolean isOwnerDataComplete()
     {
-        return licensingConfig.getLicensingOwnerLastName().isEmpty()
+        return !(licensingConfig.getLicensingOwnerLastName().isEmpty()
             || licensingConfig.getLicensingOwnerFirstName().isEmpty()
-            || licensingConfig.getLicensingOwnerEmail().isEmpty();
+            || licensingConfig.getLicensingOwnerEmail().isEmpty());
     }
 }

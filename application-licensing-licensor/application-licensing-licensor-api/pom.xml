@@ -37,7 +37,7 @@
     <xwiki.extension.category>API</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <checkstyle.suppressions.location>${basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
-    <xwiki.jacoco.instructionRatio>0.38</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.39</xwiki.jacoco.instructionRatio>
   </properties>
   <dependencies>
     <dependency>
@@ -146,6 +146,11 @@
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http</artifactId>
+      <version>4.0.15.Final</version>
     </dependency>
   </dependencies>
   <build>
