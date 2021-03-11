@@ -164,7 +164,8 @@ public class TrialLicenseGeneratorTest
 
         this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1)).info("Failed to add trial license");
+        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to add trial license because the licensor "
+            + "configuration is not complete. Check your store trial URL and owner details.");
     }
 
     @Test
@@ -178,7 +179,7 @@ public class TrialLicenseGeneratorTest
 
         this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1)).info("Failed to add trial license");
+        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to generate trial license on store.");
     }
 
     @Test
@@ -194,13 +195,17 @@ public class TrialLicenseGeneratorTest
 
         this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1)).info("Added trial license");
-        verify(this.mocker.getMockedLogger(), times(1)).warn("Failed to update licenses");
+        verify(this.mocker.getMockedLogger(), times(1))
+            .debug(String.format("Trial license added for %s", extension1.getId()));
+        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to update licenses because the licensor "
+            + "configuration is not complete. Check your store update URL.");
     }
 
     @Test
-    public void canGenerateTrialLicenseWithExtensionAndCompleteData() throws Exception
+    public void canGenerateTrialLicense() throws Exception
     {
+        when(this.licensor.getLicense(this.extension1)).thenReturn(null);
+
         this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
 
         assertTrue(this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1));
@@ -209,6 +214,8 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicenseWithoutCompleteData() throws Exception
     {
+        when(this.licensor.getLicense(this.extension1)).thenReturn(null);
+
         when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn(null);
 
         this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
@@ -219,8 +226,21 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicenseWithoutLicensedExtension() throws Exception
     {
+        when(this.licensor.getLicense(this.extension2)).thenReturn(null);
+
         this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
 
         assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(extension2));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithExistingLicense() throws Exception
+    {
+        License license = mock(License.class);
+        when(this.licensor.getLicense(this.extension1)).thenReturn(license);
+
+        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
+
+        assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1));
     }
 }

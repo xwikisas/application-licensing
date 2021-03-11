@@ -58,8 +58,6 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class TrialLicenseGenerator
 {
-    private static final String FAILED_TO_ADD_TRIAL_LICENSE = "Failed to add trial license";
-
     private static final String FEATURE_ID = "featureId";
 
     private static final String INSTANCE_ID = "instanceId";
@@ -105,7 +103,8 @@ public class TrialLicenseGenerator
         try {
             URL trialURL = getTrialURL(extensionId);
             if (trialURL == null) {
-                logger.info(FAILED_TO_ADD_TRIAL_LICENSE);
+                logger.debug("Failed to add trial license because the licensor configuration is not complete. "
+                    + "Check your store trial URL and owner details.");
                 return;
             }
 
@@ -113,9 +112,9 @@ public class TrialLicenseGenerator
             String getTrialResponse = xcontext.getWiki().getURLContent(trialURL.toString(), xcontext);
 
             if (getTrialResponse.contains("error")) {
-                logger.info(FAILED_TO_ADD_TRIAL_LICENSE);
+                logger.debug("Failed to generate trial license on store.");
             } else {
-                logger.info("Added trial license");
+                logger.debug(String.format("Trial license added for %s", extensionId.getId()));
                 updateLicenses();
             }
         } catch (Exception e) {
@@ -125,14 +124,16 @@ public class TrialLicenseGenerator
     }
 
     /**
-     * Check if the given extension is a mandatory licensed extension and the licensing owner information is complete.
+     * Check if the given extension is a mandatory licensed extension, if there isn't already an active license for it
+     * and the licensing owner information is complete.
      *
      * @param extensionId extension to be checked
      * @return true if a trial license can be generated for the given extension, false otherwise
      */
     public Boolean canGenerateTrialLicense(ExtensionId extensionId)
     {
-        return isOwnerDataComplete() && isMandatoryLicensedExtension(extensionId);
+        return isOwnerDataComplete() && isMandatoryLicensedExtension(extensionId)
+            && licensorProvider.get().getLicense(extensionId) == null;
     }
 
     /**
@@ -173,6 +174,8 @@ public class TrialLicenseGenerator
         try {
             URL licensesUpdateURL = getLicensesUpdateURL();
             if (licensesUpdateURL == null) {
+                logger.debug("Failed to update licenses because the licensor configuration is not complete. "
+                    + "Check your store update URL.");
                 return;
             }
 
@@ -205,7 +208,6 @@ public class TrialLicenseGenerator
         String storeUpdateURL = licensingConfig.getStoreUpdateURL();
         // In case the property has no filled value, the URL cannot be constructed.
         if (storeUpdateURL == null) {
-            logger.warn("Failed to update licenses");
             return null;
         }
 
