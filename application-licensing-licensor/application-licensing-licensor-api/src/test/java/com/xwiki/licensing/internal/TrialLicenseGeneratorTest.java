@@ -86,7 +86,12 @@ public class TrialLicenseGeneratorTest
     public void configure() throws Exception
     {
         this.licensingConfig = this.mocker.getInstance(LicensingConfiguration.class);
+        when(this.licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
+        when(this.licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
+        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
+
         this.licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
+        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
 
         this.instanceId = new InstanceId("7237b65d-e5d6-4249-aa4f-7c732cba27e2");
         InstanceIdManager instanceIdManager = mock(InstanceIdManager.class);
@@ -128,15 +133,11 @@ public class TrialLicenseGeneratorTest
     {
         when(this.licensingConfig.getStoreTrialURL()).thenReturn("https://storeTrial.com");
         when(this.licensingConfig.getStoreUpdateURL()).thenReturn("https://storeUpdate.com");
-        when(this.licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
-        when(this.licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
-        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
 
         String trialUrl =
             "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail.com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion=1.0&licenseType=TRIAL&userCount=5";
         when(this.xwiki.getURLContent(trialUrl, this.xcontext)).thenReturn("success");
 
-        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
         License license = mock(License.class, "oldLicense");
         when(this.licensor.getLicense(this.extension1)).thenReturn(license);
         when(license.getExpirationDate()).thenReturn(Long.valueOf("12"));
@@ -170,9 +171,6 @@ public class TrialLicenseGeneratorTest
     public void generateTrialLicenseWithGetTrialError() throws Exception
     {
         when(this.licensingConfig.getStoreTrialURL()).thenReturn("https://storeTrial.com");
-        when(this.licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
-        when(this.licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
-        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
 
         String trialUrl =
             "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail.com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion=1.0&licenseType=TRIAL&userCount=5";
@@ -187,9 +185,6 @@ public class TrialLicenseGeneratorTest
     public void generateTrialLicenseWithNullUpdateURL() throws Exception
     {
         when(this.licensingConfig.getStoreTrialURL()).thenReturn("https://storeTrial.com");
-        when(this.licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
-        when(this.licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
-        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
 
         String trialUrl =
             "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail.com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion=1.0&licenseType=TRIAL&userCount=5";
@@ -206,10 +201,7 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicenseWithExtensionAndCompleteData() throws Exception
     {
-        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
-        when(this.licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
-        when(this.licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
-        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
+        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
 
         assertTrue(this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1));
     }
@@ -217,10 +209,9 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicenseWithoutCompleteData() throws Exception
     {
-        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
-        when(licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
-        when(licensingConfig.getLicensingOwnerLastName()).thenReturn(null);
-        when(licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
+        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn(null);
+
+        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
 
         assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(extension1));
     }
@@ -228,10 +219,7 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicenseWithoutLicensedExtension() throws Exception
     {
-        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
-        when(licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
-        when(licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
-        when(licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
+        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
 
         assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(extension2));
     }
