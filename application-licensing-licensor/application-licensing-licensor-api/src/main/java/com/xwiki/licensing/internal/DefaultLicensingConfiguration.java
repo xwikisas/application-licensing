@@ -125,19 +125,19 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Override
     public String getLicensingOwnerFirstName()
     {
-        return this.ownerConfig.getProperty("firstName", "");
+        return this.ownerConfig.getProperty("firstName");
     }
 
     @Override
     public String getLicensingOwnerLastName()
     {
-        return this.ownerConfig.getProperty("lastName", "");
+        return this.ownerConfig.getProperty("lastName");
     }
 
     @Override
     public String getLicensingOwnerEmail()
     {
-        return this.ownerConfig.getProperty("email", "");
+        return this.ownerConfig.getProperty("email");
     }
 
 }

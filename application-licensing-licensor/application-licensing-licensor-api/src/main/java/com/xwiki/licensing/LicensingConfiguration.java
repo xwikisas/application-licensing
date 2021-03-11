@@ -20,11 +20,9 @@
 package com.xwiki.licensing;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.model.reference.LocalDocumentReference;
 
 /**
  * Configuration of the licensing module.
@@ -34,16 +32,6 @@ import org.xwiki.model.reference.LocalDocumentReference;
 @Role
 public interface LicensingConfiguration
 {
-    /**
-     * Licensing Code space.
-     */
-    List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
-
-    /**
-     * Licensing configuration document.
-     */
-    LocalDocumentReference LICENSING_CONFIG_DOC = new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
-
     /**
      * @return the configured path where to store licenses.
      */
@@ -57,27 +45,31 @@ public interface LicensingConfiguration
     List<String> getAutoUpgradeBlocklist();
 
     /**
-     * @return the store trial url
+     * Get the URL used in retrieving a trial license of an extension from store.
+     *
+     * @return the URL used in getting a trial license or null if the value of the property is not filled up
      */
     String getStoreTrialURL();
 
     /**
-     * @return the store update url
+     * Get the URL used in updating the licenses.
+     *
+     * @return the store update URL for updating the licenses or null if the value of the property is not filled up
      */
     String getStoreUpdateURL();
 
     /**
-     * @return the first name of the licensing owner
+     * @return the first name of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerFirstName();
 
     /**
-     * @return the last name of the licensing owner
+     * @return the last name of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerLastName();
 
     /**
-     * @return the email of the licensing owner
+     * @return the email of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerEmail();
 }

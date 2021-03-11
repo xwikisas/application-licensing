@@ -116,7 +116,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     }
 
     @Override
-    public Collection<ExtensionId> getVisibleLicensedExtensions()
+    public Collection<ExtensionId> getMandatoryLicensedExtensions()
     {
         Collection<ExtensionId> paidExtensions = getLicensedExtensions();
 
@@ -126,8 +126,8 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
 
             Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
             for (ExtensionId paidExtension : paidExtensions) {
-                if (dependencies.stream().filter(o -> o.getId().contentEquals(paidExtension.getId())).findFirst()
-                    .isPresent()) {
+                if (dependencies.stream().filter(dependency -> dependency.getId().equals(paidExtension.getId()))
+                    .findFirst().isPresent()) {
                     visiblePaidExtensions.remove(paidExtension);
                 }
             }

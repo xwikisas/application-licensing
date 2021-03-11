@@ -57,10 +57,10 @@ public interface LicensedExtensionManager
     Collection<ExtensionId> getLicensedExtensions(LicensedFeatureId licensedFeatureId);
 
     /**
-     * Get paid extensions that are not dependencies of other paid extensions, since the license of a extension will
-     * cover its paid dependencies.
+     * Get the list of installed licensed extensions for which a license is mandatory because they are not covered by
+     * the license of other installed extensions (there aren't any other licensed extensions that depend on them).
      *
-     * @return paid extensions that are not dependencies of other paid extensions
+     * @return licensed extensions that are not dependencies of other licensed extensions
      */
-    Collection<ExtensionId> getVisibleLicensedExtensions();
+    Collection<ExtensionId> getMandatoryLicensedExtensions();
 }

@@ -19,6 +19,9 @@
  */
 package com.xwiki.licensing.internal.helpers;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -26,8 +29,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.internal.AbstractDocumentConfigurationSource;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
-
-import com.xwiki.licensing.LicensingConfiguration;
 
 /**
  * Configuration source for owner information.
@@ -40,13 +41,18 @@ import com.xwiki.licensing.LicensingConfiguration;
 @Singleton
 public class LicensingOwnerConfigurationSource extends AbstractDocumentConfigurationSource
 {
+    protected static final List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
+
+    protected static final LocalDocumentReference LICENSING_CONFIG_DOC =
+        new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
+
     protected static final LocalDocumentReference OWNER_CLASS =
-        new LocalDocumentReference(LicensingConfiguration.CODE_SPACE, "LicensingOwnerClass");
+        new LocalDocumentReference(CODE_SPACE, "LicensingOwnerClass");
 
     @Override
     protected DocumentReference getDocumentReference()
     {
-        return new DocumentReference(LicensingConfiguration.LICENSING_CONFIG_DOC, this.getCurrentWikiReference());
+        return new DocumentReference(LICENSING_CONFIG_DOC, this.getCurrentWikiReference());
     }
 
     @Override

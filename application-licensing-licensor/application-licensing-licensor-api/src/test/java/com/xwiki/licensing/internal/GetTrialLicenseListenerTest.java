@@ -25,7 +25,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.net.URL;
 
 import org.junit.Before;
@@ -34,8 +33,6 @@ import org.junit.Test;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
-
-import com.xwiki.licensing.internal.helpers.GetTrialLicenseHandler;
 
 /**
  * Unit tests for {@link GetTrialLicenseListener}.
@@ -48,9 +45,11 @@ public class GetTrialLicenseListenerTest
     public MockitoComponentMockingRule<GetTrialLicenseListener> mocker =
         new MockitoComponentMockingRule<>(GetTrialLicenseListener.class);
 
-    GetTrialLicenseHandler getTrialLicenseHandler;
+    TrialLicenseGenerator trialLicenseGenerator;
 
     DefaultInstalledExtension extension;
+
+    ExtensionId extensionId;
 
     URL trialUrl;
 
@@ -58,44 +57,29 @@ public class GetTrialLicenseListenerTest
     public void configure() throws Exception
     {
         this.extension = mock(DefaultInstalledExtension.class);
-        ExtensionId extensionId = new ExtensionId("application-test", "1.0");
+        this.extensionId = new ExtensionId("application-test", "1.0");
         when(this.extension.getId()).thenReturn(extensionId);
 
-        this.getTrialLicenseHandler = this.mocker.getInstance(GetTrialLicenseHandler.class);
-        when(this.getTrialLicenseHandler.isOwnerDataComplete()).thenReturn(true);
-        when(this.getTrialLicenseHandler.isVisibleLicensedExtension(extensionId)).thenReturn(true);
-
-        this.trialUrl = new URL("https://url");
-        when(this.getTrialLicenseHandler.getTrialURL(extensionId)).thenReturn(trialUrl);
+        this.trialLicenseGenerator = this.mocker.getInstance(TrialLicenseGenerator.class);
     }
 
     @Test
-    public void onEventWithGetTrialSuccess() throws Exception
+    public void onEventWithCompleteData() throws Exception
     {
-        when(this.getTrialLicenseHandler.getURLContent(trialUrl)).thenReturn("success while getting trial license");
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(true);
 
         this.mocker.getComponentUnderTest().onEvent(null, extension, null);
 
-        verify(this.getTrialLicenseHandler, times(1)).updateLicenses();
+        verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(this.extensionId);
     }
 
     @Test
-    public void onEventWithGetTrialError() throws Exception
+    public void onEventWithoutCompleteData() throws Exception
     {
-        when(this.getTrialLicenseHandler.getURLContent(this.trialUrl)).thenReturn("error while getting trial license");
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
 
         this.mocker.getComponentUnderTest().onEvent(null, this.extension, null);
 
-        verify(this.getTrialLicenseHandler, never()).updateLicenses();
-    }
-
-    @Test
-    public void onEventWithGetTrialException() throws Exception
-    {
-        when(this.getTrialLicenseHandler.getURLContent(this.trialUrl)).thenThrow(new IOException());
-
-        this.mocker.getComponentUnderTest().onEvent(null, this.extension, null);
-
-        verify(this.getTrialLicenseHandler, never()).updateLicenses();
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
     }
 }
