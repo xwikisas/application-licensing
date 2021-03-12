@@ -164,8 +164,9 @@ public class TrialLicenseGeneratorTest
 
         this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to add trial license because the licensor "
-            + "configuration is not complete. Check your store trial URL and owner details.");
+        verify(this.mocker.getMockedLogger(), times(1))
+            .debug("Failed to add trial license for [{}] because the licensor configuration is not complete. Check "
+                + "your store trial URL and owner details.", this.extension1.getId());
     }
 
     @Test
@@ -179,7 +180,8 @@ public class TrialLicenseGeneratorTest
 
         this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to generate trial license on store.");
+        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to generate trial license for [{}] on store.",
+            this.extension1.getId());
     }
 
     @Test
@@ -195,8 +197,7 @@ public class TrialLicenseGeneratorTest
 
         this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1))
-            .debug(String.format("Trial license added for %s", extension1.getId()));
+        verify(this.mocker.getMockedLogger(), times(1)).debug("Trial license added for [{}]", extension1.getId());
         verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to update licenses because the licensor "
             + "configuration is not complete. Check your store update URL.");
     }

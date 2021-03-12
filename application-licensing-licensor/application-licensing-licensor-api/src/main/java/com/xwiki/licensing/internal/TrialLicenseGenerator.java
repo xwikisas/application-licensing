@@ -103,8 +103,8 @@ public class TrialLicenseGenerator
         try {
             URL trialURL = getTrialURL(extensionId);
             if (trialURL == null) {
-                logger.debug("Failed to add trial license because the licensor configuration is not complete. "
-                    + "Check your store trial URL and owner details.");
+                logger.debug("Failed to add trial license for [{}] because the licensor configuration is not complete. "
+                    + "Check your store trial URL and owner details.", extensionId.getId());
                 return;
             }
 
@@ -112,9 +112,9 @@ public class TrialLicenseGenerator
             String getTrialResponse = xcontext.getWiki().getURLContent(trialURL.toString(), xcontext);
 
             if (getTrialResponse.contains("error")) {
-                logger.debug("Failed to generate trial license on store.");
+                logger.debug("Failed to generate trial license for [{}] on store.", extensionId.getId());
             } else {
-                logger.debug(String.format("Trial license added for %s", extensionId.getId()));
+                logger.debug("Trial license added for [{}]", extensionId.getId());
                 updateLicenses();
             }
         } catch (Exception e) {
