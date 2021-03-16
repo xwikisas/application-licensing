@@ -55,4 +55,12 @@ public interface LicensedExtensionManager
      * @return the installed extensions (from all the namespaces) that are covered by the specified licensed feature
      */
     Collection<ExtensionId> getLicensedExtensions(LicensedFeatureId licensedFeatureId);
+
+    /**
+     * Get the list of installed licensed extensions for which a license is mandatory because they are not covered by
+     * the license of other installed extensions (there aren't any other licensed extensions that depend on them).
+     *
+     * @return licensed extensions that are not dependencies of other licensed extensions
+     */
+    Collection<ExtensionId> getMandatoryLicensedExtensions();
 }

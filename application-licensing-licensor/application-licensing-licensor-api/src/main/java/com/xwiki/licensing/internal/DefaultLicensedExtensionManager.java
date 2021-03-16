@@ -22,9 +22,11 @@ package com.xwiki.licensing.internal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -111,5 +113,26 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
         }
 
         return Collections.emptyMap();
+    }
+
+    @Override
+    public Collection<ExtensionId> getMandatoryLicensedExtensions()
+    {
+        Collection<ExtensionId> paidExtensions = getLicensedExtensions();
+
+        Set<ExtensionId> visiblePaidExtensions = new HashSet<ExtensionId>(paidExtensions);
+        for (ExtensionId extensionId : paidExtensions) {
+            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+
+            Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+            for (ExtensionId paidExtension : paidExtensions) {
+                if (dependencies.stream().filter(dependency -> dependency.getId().equals(paidExtension.getId()))
+                    .findFirst().isPresent()) {
+                    visiblePaidExtensions.remove(paidExtension);
+                }
+            }
+        }
+
+        return visiblePaidExtensions;
     }
 }

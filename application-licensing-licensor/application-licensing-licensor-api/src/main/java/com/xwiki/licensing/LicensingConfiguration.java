@@ -43,4 +43,33 @@ public interface LicensingConfiguration
      * @return the list of blocklisted extensions for upgrade
      */
     List<String> getAutoUpgradeBlocklist();
+
+    /**
+     * Get the URL used in retrieving a trial license of an extension from store.
+     *
+     * @return the URL used in getting a trial license or null if the value of the property is not filled up
+     */
+    String getStoreTrialURL();
+
+    /**
+     * Get the URL used in updating the licenses.
+     *
+     * @return the store update URL for updating the licenses or null if the value of the property is not filled up
+     */
+    String getStoreUpdateURL();
+
+    /**
+     * @return the first name of the licensing owner or null if the value of the property is not filled up
+     */
+    String getLicensingOwnerFirstName();
+
+    /**
+     * @return the last name of the licensing owner or null if the value of the property is not filled up
+     */
+    String getLicensingOwnerLastName();
+
+    /**
+     * @return the email of the licensing owner or null if the value of the property is not filled up
+     */
+    String getLicensingOwnerEmail();
 }
