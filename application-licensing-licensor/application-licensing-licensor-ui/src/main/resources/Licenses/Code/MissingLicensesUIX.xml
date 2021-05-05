@@ -40,105 +40,6 @@
   <object>
     <name>Licenses.Code.MissingLicensesUIX</name>
     <number>0</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>2d39adc1-dc39-4f54-a10f-2339f9a47aba</guid>
-    <class>
-      <name>XWiki.JavaScriptExtension</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <cache>
-        <cache>0</cache>
-        <defaultValue>long</defaultValue>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>cache</name>
-        <number>5</number>
-        <prettyName>Caching policy</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>long|short|default|forbid</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </cache>
-      <code>
-        <contenttype>PureText</contenttype>
-        <disabled>0</disabled>
-        <editor>PureText</editor>
-        <name>code</name>
-        <number>2</number>
-        <prettyName>Code</prettyName>
-        <rows>20</rows>
-        <size>50</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </code>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parse>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>parse</name>
-        <number>4</number>
-        <prettyName>Parse content</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </parse>
-      <use>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>0</multiSelect>
-        <name>use</name>
-        <number>3</number>
-        <prettyName>Use this extension</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>currentPage|onDemand|always</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </use>
-    </class>
-    <property>
-      <cache>long</cache>
-    </property>
-    <property>
-      <code>require(['jquery'], function($) {
-  $(document).ready(function() {
-    $('#licenseCheckingExtensionPoint').removeClass('hidden').prependTo('#xwikicontent');
-  });
-});</code>
-    </property>
-    <property>
-      <name/>
-    </property>
-    <property>
-      <parse>0</parse>
-    </property>
-    <property>
-      <use>onDemand</use>
-    </property>
-  </object>
-  <object>
-    <name>Licenses.Code.MissingLicensesUIX</name>
-    <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>19028f31-6d36-46b1-90f7-2035f5894546</guid>
     <class>
@@ -247,13 +148,13 @@
       </scope>
     </class>
     <property>
-      <async_cached/>
+      <async_cached>0</async_cached>
     </property>
     <property>
       <async_context/>
     </property>
     <property>
-      <async_enabled/>
+      <async_enabled>0</async_enabled>
     </property>
     <property>
       <content>{{velocity}}
@@ -282,22 +183,19 @@
     #end
     {{html clean="false"}}
     ## Create a div that will display a warning and the applications that don't have a license.
-    ## Because the "After container header" UIX (org.xwiki.platform.template.content.header.after) is available since
-    ## XWiki 10.4RC1 and we need to support XWiki 9.11+, the created div will be made hidden and moved with JS.
-    &lt;div class="box errormessage hidden" id="licenseCheckingExtensionPoint"&gt;
+    &lt;div class="box errormessage"&gt;
       #if ($extensions.size() &gt; 0)
         $services.localization.render('licensor.wrongDisplayedContent',
         [$stringtool.join($extensions, ', '), "&lt;a href='#getLicensesAdminSectionURL'&gt;", '&lt;/a&gt;'])
       #end
     &lt;/div&gt;
     {{/html}}
-    #set ($discard = $xwiki.jsx.use('Licenses.Code.MissingLicensesUIX'))
   #end
 #end
 {{/velocity}}</content>
     </property>
     <property>
-      <extensionPointId>org.xwiki.platform.template.header.after</extensionPointId>
+      <extensionPointId>org.xwiki.platform.template.content.header.after</extensionPointId>
     </property>
     <property>
       <name>com.xwiki.licensing.application-licensing</name>
