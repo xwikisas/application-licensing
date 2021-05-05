@@ -132,8 +132,7 @@ public class TrialLicenseGenerator
      */
     public Boolean canGenerateTrialLicense(ExtensionId extensionId)
     {
-        return isOwnerDataComplete() && isMandatoryLicensedExtension(extensionId)
-            && licensorProvider.get().getLicense(extensionId) == null;
+        return isOwnerDataComplete() && isMandatoryLicensedExtension(extensionId) && !isLicensed(extensionId);
     }
 
     /**
@@ -249,5 +248,19 @@ public class TrialLicenseGenerator
         return !(StringUtils.isEmpty(licensingConfig.getLicensingOwnerLastName())
             || StringUtils.isEmpty(licensingConfig.getLicensingOwnerFirstName())
             || StringUtils.isEmpty(licensingConfig.getLicensingOwnerEmail()));
+    }
+
+    /**
+     * Check if the given paid extension has already a license. We need to retrieve license updates from the XWiki Store
+     * before, in case there is already an active license of the extension.
+     *
+     * @param extensionId the extension to be checked
+     * @return true if the extension is licensed, false otherwise.
+     */
+    private Boolean isLicensed(ExtensionId extensionId)
+    {
+        updateLicenses();
+
+        return licensorProvider.get().getLicense(extensionId) != null;
     }
 }
