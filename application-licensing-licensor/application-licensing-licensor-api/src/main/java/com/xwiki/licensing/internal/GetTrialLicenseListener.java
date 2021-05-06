@@ -27,13 +27,14 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.extension.event.ExtensionInstalledEvent;
-import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
+import org.xwiki.extension.ExtensionId;
+import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
 /**
- * Generate trial license for paid extensions at install step if the data necessary for it is already filled up.
+ * Generate a trial license for paid extensions after install or upgrade, if the data necessary for it is already filled
+ * up and there isn't already an existing license.
  *
  * @since 1.17
  * @version $Id$
@@ -45,7 +46,7 @@ public class GetTrialLicenseListener implements EventListener
 {
     protected static final String NAME = "GetTrialLicenseListener";
 
-    protected static final List<Event> EVENTS = Arrays.asList(new ExtensionInstalledEvent());
+    protected static final List<Event> EVENTS = Arrays.asList(new JobFinishedEvent("install"));
 
     @Inject
     private TrialLicenseGenerator trialLicenseGenerator;
@@ -65,10 +66,14 @@ public class GetTrialLicenseListener implements EventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        DefaultInstalledExtension extension = (DefaultInstalledExtension) source;
+        List<ExtensionId> extensions = ((JobFinishedEvent) event).getRequest().getProperty("extensions");
+        // Retrieve license updates to be sure that it doesn't override an existing license.
+        trialLicenseGenerator.updateLicenses();
 
-        if (trialLicenseGenerator.canGenerateTrialLicense(extension.getId())) {
-            trialLicenseGenerator.generateTrialLicense(extension.getId());
+        for (ExtensionId extensionId : extensions) {
+            if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
+                trialLicenseGenerator.generateTrialLicense(extensionId);
+            }
         }
     }
 }

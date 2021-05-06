@@ -25,11 +25,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
+import org.xwiki.job.Request;
+import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 /**
@@ -49,12 +54,20 @@ public class GetTrialLicenseListenerTest
 
     ExtensionId extensionId;
 
+    JobFinishedEvent job;
+
     @Before
     public void configure() throws Exception
     {
+        this.job = mock(JobFinishedEvent.class);
         this.extension = mock(DefaultInstalledExtension.class);
         this.extensionId = new ExtensionId("application-test", "1.0");
-        when(this.extension.getId()).thenReturn(extensionId);
+
+        Request request = mock(Request.class);
+        List<ExtensionId> extensions = Arrays.asList(this.extensionId);
+
+        when(request.getProperty("extensions")).thenReturn(extensions);
+        when(this.job.getRequest()).thenReturn(request);
 
         this.trialLicenseGenerator = this.mocker.getInstance(TrialLicenseGenerator.class);
     }
@@ -64,7 +77,7 @@ public class GetTrialLicenseListenerTest
     {
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(true);
 
-        this.mocker.getComponentUnderTest().onEvent(null, extension, null);
+        this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 
         verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(this.extensionId);
     }
@@ -74,7 +87,7 @@ public class GetTrialLicenseListenerTest
     {
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
 
-        this.mocker.getComponentUnderTest().onEvent(null, this.extension, null);
+        this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 
         verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
     }
