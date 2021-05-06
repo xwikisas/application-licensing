@@ -67,7 +67,7 @@ public class GetTrialLicenseListener implements EventListener
     public void onEvent(Event event, Object source, Object data)
     {
         List<ExtensionId> extensions = ((JobFinishedEvent) event).getRequest().getProperty("extensions");
-        // Retrieve license updates to be sure that it doesn't override an existing license.
+        // Retrieve license updates to be sure that we don't override an existing license.
         trialLicenseGenerator.updateLicenses();
 
         for (ExtensionId extensionId : extensions) {
