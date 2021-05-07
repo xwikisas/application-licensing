@@ -219,7 +219,7 @@ public class TrialLicenseGenerator
             builder.addParameter(FEATURE_ID, paidExtensionId.getId());
 
             License license = licensorProvider.get().getLicense(paidExtensionId);
-            if (license != null) {
+            if (license != null && !License.UNLICENSED.equals(license)) {
                 builder.addParameter(String.format("expirationDate:%s", paidExtensionId.getId()),
                     Long.toString(license.getExpirationDate()));
             }

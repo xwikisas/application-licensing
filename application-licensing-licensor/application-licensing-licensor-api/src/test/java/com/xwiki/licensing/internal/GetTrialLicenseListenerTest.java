@@ -26,13 +26,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
+import org.xwiki.extension.version.Version;
+import org.xwiki.extension.version.VersionConstraint;
 import org.xwiki.job.Request;
 import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
@@ -54,7 +60,11 @@ public class GetTrialLicenseListenerTest
 
     ExtensionId extensionId;
 
+    ExtensionId dependencyId;
+
     JobFinishedEvent job;
+
+    InstalledExtensionRepository installedExtensionRepository;
 
     @Before
     public void configure() throws Exception
@@ -62,6 +72,7 @@ public class GetTrialLicenseListenerTest
         this.job = mock(JobFinishedEvent.class);
         this.extension = mock(DefaultInstalledExtension.class);
         this.extensionId = new ExtensionId("application-test", "1.0");
+        this.trialLicenseGenerator = this.mocker.getInstance(TrialLicenseGenerator.class);
 
         Request request = mock(Request.class);
         List<ExtensionId> extensions = Arrays.asList(this.extensionId);
@@ -69,13 +80,28 @@ public class GetTrialLicenseListenerTest
         when(request.getProperty("extensions")).thenReturn(extensions);
         when(this.job.getRequest()).thenReturn(request);
 
-        this.trialLicenseGenerator = this.mocker.getInstance(TrialLicenseGenerator.class);
+        this.installedExtensionRepository = this.mocker.getInstance(InstalledExtensionRepository.class);
+        InstalledExtension installedExtension = mock(InstalledExtension.class);
+        ExtensionDependency dependency = mock(ExtensionDependency.class);
+        Collection<ExtensionDependency> dependencies = Arrays.asList(dependency);
+
+        when(this.installedExtensionRepository.getInstalledExtension(this.extensionId)).thenReturn(installedExtension);
+        when(installedExtension.getDependencies()).thenReturn(dependencies);
+
+        VersionConstraint versionConstraint = mock(VersionConstraint.class);
+        Version version = mock(Version.class);
+        this.dependencyId = new ExtensionId("application-dependency", version);
+
+        when(dependency.getId()).thenReturn("application-dependency");
+        when(dependency.getVersionConstraint()).thenReturn(versionConstraint);
+        when(versionConstraint.getVersion()).thenReturn(version);
     }
 
     @Test
     public void onEventWithCompleteData() throws Exception
     {
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(true);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(false);
 
         this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 
@@ -86,9 +112,22 @@ public class GetTrialLicenseListenerTest
     public void onEventWithoutCompleteData() throws Exception
     {
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(false);
 
         this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 
         verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
+    }
+
+    @Test
+    public void onEventWithPaidAppDependency() throws Exception
+    {
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(true);
+
+        this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
+
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
+        verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(this.dependencyId);
     }
 }

@@ -20,6 +20,7 @@
 package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -27,7 +28,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
@@ -51,6 +55,9 @@ public class GetTrialLicenseListener implements EventListener
     @Inject
     private TrialLicenseGenerator trialLicenseGenerator;
 
+    @Inject
+    private InstalledExtensionRepository installedExtensionRepository;
+
     @Override
     public List<Event> getEvents()
     {
@@ -73,6 +80,19 @@ public class GetTrialLicenseListener implements EventListener
         for (ExtensionId extensionId : extensions) {
             if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
                 trialLicenseGenerator.generateTrialLicense(extensionId);
+            }
+
+            // Since a free extension has no license to cover it's dependencies, check to see if there are any paid
+            // dependencies that need a trial license.
+            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+            Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+
+            for (ExtensionDependency dependency : dependencies) {
+                ExtensionId dependencyId =
+                    new ExtensionId(dependency.getId(), dependency.getVersionConstraint().getVersion());
+                if (trialLicenseGenerator.canGenerateTrialLicense(dependencyId)) {
+                    trialLicenseGenerator.generateTrialLicense(dependencyId);
+                }
             }
         }
     }
