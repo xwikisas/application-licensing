@@ -106,6 +106,7 @@ public class GetTrialLicenseListenerTest
         this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 
         verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(this.extensionId);
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.dependencyId);
     }
 
     @Test
@@ -129,5 +130,36 @@ public class GetTrialLicenseListenerTest
 
         verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
         verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(this.dependencyId);
+    }
+
+    @Test
+    public void onEventWithPaidAppTransitiveDependency() throws Exception
+    {
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(false);
+
+        InstalledExtension installedDependencyExtension = mock(InstalledExtension.class);
+        ExtensionDependency transitiveDependency = mock(ExtensionDependency.class);
+        Collection<ExtensionDependency> transitiveDependencies = Arrays.asList(transitiveDependency);
+
+        when(this.installedExtensionRepository.getInstalledExtension(this.dependencyId))
+            .thenReturn(installedDependencyExtension);
+        when(installedDependencyExtension.getDependencies()).thenReturn(transitiveDependencies);
+
+        VersionConstraint versionConstraint = mock(VersionConstraint.class);
+        Version version = mock(Version.class);
+        ExtensionId transitiveDependencyId = new ExtensionId("application-dependency", version);
+
+        when(transitiveDependency.getId()).thenReturn("application-dependency");
+        when(transitiveDependency.getVersionConstraint()).thenReturn(versionConstraint);
+        when(versionConstraint.getVersion()).thenReturn(version);
+
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(transitiveDependencyId)).thenReturn(true);
+
+        this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
+
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.dependencyId);
+        verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(transitiveDependencyId);
     }
 }

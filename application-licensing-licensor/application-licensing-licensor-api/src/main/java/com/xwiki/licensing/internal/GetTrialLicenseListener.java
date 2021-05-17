@@ -78,20 +78,30 @@ public class GetTrialLicenseListener implements EventListener
         trialLicenseGenerator.updateLicenses();
 
         for (ExtensionId extensionId : extensions) {
-            if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
-                trialLicenseGenerator.generateTrialLicense(extensionId);
-            }
+            tryGenerateTrialLicenseRecursive(extensionId);
+        }
+    }
 
-            // Since a free extension has no license to cover it's dependencies, check to see if there are any paid
-            // dependencies that need a trial license.
+    /**
+     * Try to generate a trial license for the given extension. Since a free extension has no license to cover it's
+     * dependencies, check also to see if there aren't any paid dependencies, direct or transitive, that need a trial
+     * license.
+     *
+     * @param extensionId the extension for which to generate a trial license
+     */
+    public void tryGenerateTrialLicenseRecursive(ExtensionId extensionId)
+    {
+        if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
+            trialLicenseGenerator.generateTrialLicense(extensionId);
+        } else {
             InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
-            Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+            if (installedExtension != null) {
+                Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
 
-            for (ExtensionDependency dependency : dependencies) {
-                ExtensionId dependencyId =
-                    new ExtensionId(dependency.getId(), dependency.getVersionConstraint().getVersion());
-                if (trialLicenseGenerator.canGenerateTrialLicense(dependencyId)) {
-                    trialLicenseGenerator.generateTrialLicense(dependencyId);
+                for (ExtensionDependency dependency : dependencies) {
+                    ExtensionId dependencyId =
+                        new ExtensionId(dependency.getId(), dependency.getVersionConstraint().getVersion());
+                    tryGenerateTrialLicenseRecursive(dependencyId);
                 }
             }
         }
