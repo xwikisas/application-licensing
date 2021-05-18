@@ -27,10 +27,15 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.extension.Extension;
 import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.ResolveException;
+import org.xwiki.extension.repository.ExtensionRepositoryManager;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
@@ -57,6 +62,12 @@ public class GetTrialLicenseListener implements EventListener
 
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
+
+    @Inject
+    private ExtensionRepositoryManager repositoryManager;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public List<Event> getEvents()
@@ -95,13 +106,17 @@ public class GetTrialLicenseListener implements EventListener
             trialLicenseGenerator.generateTrialLicense(extensionId);
         } else {
             InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+
             if (installedExtension != null) {
                 Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
-
                 for (ExtensionDependency dependency : dependencies) {
-                    ExtensionId dependencyId =
-                        new ExtensionId(dependency.getId(), dependency.getVersionConstraint().getVersion());
-                    tryGenerateTrialLicenseRecursive(dependencyId);
+                    try {
+                        Extension extension = repositoryManager.resolve(dependency);
+                        tryGenerateTrialLicenseRecursive(extension.getId());
+                    } catch (ResolveException e) {
+                        logger.warn("Failed to check [{}] for a license. Root cause is [{}]", dependency.getId(),
+                            ExceptionUtils.getRootCauseMessage(e));
+                    }
                 }
             }
         }

@@ -32,13 +32,14 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.xwiki.extension.Extension;
 import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.repository.ExtensionRepositoryManager;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
 import org.xwiki.extension.version.Version;
-import org.xwiki.extension.version.VersionConstraint;
 import org.xwiki.job.Request;
 import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
@@ -66,6 +67,8 @@ public class GetTrialLicenseListenerTest
 
     InstalledExtensionRepository installedExtensionRepository;
 
+    ExtensionRepositoryManager repositoryManager;
+
     @Before
     public void configure() throws Exception
     {
@@ -73,6 +76,7 @@ public class GetTrialLicenseListenerTest
         this.extension = mock(DefaultInstalledExtension.class);
         this.extensionId = new ExtensionId("application-test", "1.0");
         this.trialLicenseGenerator = this.mocker.getInstance(TrialLicenseGenerator.class);
+        this.repositoryManager = this.mocker.getInstance(ExtensionRepositoryManager.class);
 
         Request request = mock(Request.class);
         List<ExtensionId> extensions = Arrays.asList(this.extensionId);
@@ -82,19 +86,17 @@ public class GetTrialLicenseListenerTest
 
         this.installedExtensionRepository = this.mocker.getInstance(InstalledExtensionRepository.class);
         InstalledExtension installedExtension = mock(InstalledExtension.class);
-        ExtensionDependency dependency = mock(ExtensionDependency.class);
-        Collection<ExtensionDependency> dependencies = Arrays.asList(dependency);
 
         when(this.installedExtensionRepository.getInstalledExtension(this.extensionId)).thenReturn(installedExtension);
+
+        Extension dependencyExtension = mock(Extension.class);
+        ExtensionDependency dependency = mock(ExtensionDependency.class);
+        Collection<ExtensionDependency> dependencies = Arrays.asList(dependency);
+        this.dependencyId = new ExtensionId("application-dependency", mock(Version.class));
+
         when(installedExtension.getDependencies()).thenReturn(dependencies);
-
-        VersionConstraint versionConstraint = mock(VersionConstraint.class);
-        Version version = mock(Version.class);
-        this.dependencyId = new ExtensionId("application-dependency", version);
-
-        when(dependency.getId()).thenReturn("application-dependency");
-        when(dependency.getVersionConstraint()).thenReturn(versionConstraint);
-        when(versionConstraint.getVersion()).thenReturn(version);
+        when(this.repositoryManager.resolve(dependency)).thenReturn(dependencyExtension);
+        when(dependencyExtension.getId()).thenReturn(dependencyId);
     }
 
     @Test
@@ -139,20 +141,18 @@ public class GetTrialLicenseListenerTest
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(false);
 
         InstalledExtension installedDependencyExtension = mock(InstalledExtension.class);
-        ExtensionDependency transitiveDependency = mock(ExtensionDependency.class);
-        Collection<ExtensionDependency> transitiveDependencies = Arrays.asList(transitiveDependency);
 
         when(this.installedExtensionRepository.getInstalledExtension(this.dependencyId))
             .thenReturn(installedDependencyExtension);
+
+        Extension transitiveExtension = mock(Extension.class);
+        ExtensionDependency transitiveDependency = mock(ExtensionDependency.class);
+        Collection<ExtensionDependency> transitiveDependencies = Arrays.asList(transitiveDependency);
+        ExtensionId transitiveDependencyId = new ExtensionId("application-dependency", mock(Version.class));
+
         when(installedDependencyExtension.getDependencies()).thenReturn(transitiveDependencies);
-
-        VersionConstraint versionConstraint = mock(VersionConstraint.class);
-        Version version = mock(Version.class);
-        ExtensionId transitiveDependencyId = new ExtensionId("application-dependency", version);
-
-        when(transitiveDependency.getId()).thenReturn("application-dependency");
-        when(transitiveDependency.getVersionConstraint()).thenReturn(versionConstraint);
-        when(versionConstraint.getVersion()).thenReturn(version);
+        when(this.repositoryManager.resolve(transitiveDependency)).thenReturn(transitiveExtension);
+        when(transitiveExtension.getId()).thenReturn(transitiveDependencyId);
 
         when(this.trialLicenseGenerator.canGenerateTrialLicense(transitiveDependencyId)).thenReturn(true);
 
