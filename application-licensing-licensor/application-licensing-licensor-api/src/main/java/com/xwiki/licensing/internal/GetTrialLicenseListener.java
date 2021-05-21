@@ -20,20 +20,28 @@
 package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.extension.event.ExtensionInstalledEvent;
-import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtension;
+import org.xwiki.extension.ExtensionDependency;
+import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.ResolveException;
+import org.xwiki.extension.repository.InstalledExtensionRepository;
+import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
 /**
- * Generate trial license for paid extensions at install step if the data necessary for it is already filled up.
+ * Generate a trial license for paid extensions after install or upgrade, if the data necessary for it is already filled
+ * up and there isn't already an existing license.
  *
  * @since 1.17
  * @version $Id$
@@ -45,10 +53,16 @@ public class GetTrialLicenseListener implements EventListener
 {
     protected static final String NAME = "GetTrialLicenseListener";
 
-    protected static final List<Event> EVENTS = Arrays.asList(new ExtensionInstalledEvent());
+    protected static final List<Event> EVENTS = Arrays.asList(new JobFinishedEvent("install"));
 
     @Inject
     private TrialLicenseGenerator trialLicenseGenerator;
+
+    @Inject
+    private InstalledExtensionRepository installedExtensionRepository;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public List<Event> getEvents()
@@ -65,10 +79,41 @@ public class GetTrialLicenseListener implements EventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        DefaultInstalledExtension extension = (DefaultInstalledExtension) source;
+        List<ExtensionId> extensions = ((JobFinishedEvent) event).getRequest().getProperty("extensions");
+        // Retrieve license updates to be sure that we don't override an existing license.
+        trialLicenseGenerator.updateLicenses();
 
-        if (trialLicenseGenerator.canGenerateTrialLicense(extension.getId())) {
-            trialLicenseGenerator.generateTrialLicense(extension.getId());
+        for (ExtensionId extensionId : extensions) {
+            tryGenerateTrialLicenseRecursive(extensionId);
+        }
+    }
+
+    /**
+     * Try to generate a trial license for the given extension. Since a free extension has no license to cover it's
+     * dependencies, check also to see if there aren't any paid dependencies, direct or transitive, that need a trial
+     * license.
+     *
+     * @param extensionId the extension for which to generate a trial license
+     */
+    public void tryGenerateTrialLicenseRecursive(ExtensionId extensionId)
+    {
+        if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
+            trialLicenseGenerator.generateTrialLicense(extensionId);
+        } else {
+            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+
+            if (installedExtension != null) {
+                Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+                for (ExtensionDependency dependency : dependencies) {
+                    try {
+                        InstalledExtension installedDependency = installedExtensionRepository.resolve(dependency);
+                        tryGenerateTrialLicenseRecursive(installedDependency.getId());
+                    } catch (ResolveException e) {
+                        logger.warn("Failed to check [{}] for a license. Root cause is [{}]", dependency.getId(),
+                            ExceptionUtils.getRootCauseMessage(e));
+                    }
+                }
+            }
         }
     }
 }

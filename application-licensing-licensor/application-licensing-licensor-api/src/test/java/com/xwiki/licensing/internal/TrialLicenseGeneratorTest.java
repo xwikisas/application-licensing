@@ -205,7 +205,7 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicense() throws Exception
     {
-        when(this.licensor.getLicense(this.extension1)).thenReturn(null);
+        when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
 
         this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
 

@@ -133,7 +133,7 @@ public class TrialLicenseGenerator
     public Boolean canGenerateTrialLicense(ExtensionId extensionId)
     {
         return isOwnerDataComplete() && isMandatoryLicensedExtension(extensionId)
-            && licensorProvider.get().getLicense(extensionId) == null;
+            && License.UNLICENSED.equals(licensorProvider.get().getLicense(extensionId));
     }
 
     /**
@@ -169,7 +169,7 @@ public class TrialLicenseGenerator
      * Retrieve license updates from the XWiki Store.
      */
     @SuppressWarnings("unchecked")
-    private void updateLicenses()
+    public void updateLicenses()
     {
         try {
             URL licensesUpdateURL = getLicensesUpdateURL();
@@ -219,7 +219,7 @@ public class TrialLicenseGenerator
             builder.addParameter(FEATURE_ID, paidExtensionId.getId());
 
             License license = licensorProvider.get().getLicense(paidExtensionId);
-            if (license != null) {
+            if (license != null && !License.UNLICENSED.equals(license)) {
                 builder.addParameter(String.format("expirationDate:%s", paidExtensionId.getId()),
                     Long.toString(license.getExpirationDate()));
             }
