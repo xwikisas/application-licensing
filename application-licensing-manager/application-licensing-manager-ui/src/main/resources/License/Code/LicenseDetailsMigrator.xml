@@ -50,7 +50,7 @@
       &lt;/dt&gt;
       &lt;dd&gt;
         &lt;select name="migration"&gt;
-          &lt;option value="dependentFeatureIdsAsList"&gt;Convert dependentFeatureIds to StaticList)&lt;/option&gt;
+          &lt;option value="dependentFeatureIdsAsList"&gt;Convert dependentFeatureIds to StaticList&lt;/option&gt;
         &lt;/select&gt;
       &lt;/dd&gt;
     &lt;/dl&gt;
