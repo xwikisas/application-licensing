@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>10.11</version>
+    <version>11.10</version>
   </parent>
   <groupId>com.xwiki.licensing</groupId>
   <artifactId>application-licensing</artifactId>
@@ -78,17 +78,23 @@
               "revapi": {
                 "ignore" : [
                   {
-                    "code": "java.class.nonFinalClassInheritsFromNewClass",
-                    "old": "class org.xwiki.model.reference.DocumentReference",
-                    "new": "class org.xwiki.model.reference.DocumentReference",
-                    "superClass": "org.xwiki.model.reference.AbstractLocalizedEntityReference",
+                    "code": "java.method.addedToInterface",
+                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createResourceURL(java.lang.String, boolean, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
                     "justification": "Not a breakage"
                   },
                   {
-                    "code": "java.class.nonFinalClassInheritsFromNewClass",
-                    "old": "class org.xwiki.model.reference.LocalDocumentReference",
-                    "new": "class org.xwiki.model.reference.LocalDocumentReference",
-                    "superClass": "org.xwiki.model.reference.AbstractLocalizedEntityReference",
+                    "code": "java.method.addedToInterface",
+                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
+                    "justification": "Not a breakage"
+                  },
+                  {
+                    "code": "java.method.addedToInterface",
+                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
+                    "justification": "Not a breakage"
+                  },
+                  {
+                    "code": "java.method.addedToInterface",
+                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
                     "justification": "Not a breakage"
                   }
                 ]
