@@ -96,6 +96,18 @@
                     "code": "java.method.addedToInterface",
                     "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
                     "justification": "Not a breakage"
+                  },
+                  {
+                    "code": "java.field.serialVersionUIDChanged",
+                    "new": "field com.xpn.xwiki.objects.BaseObject.serialVersionUID",
+                    "oldSerialVersionUID": "-6939304097846704545",
+                    "newSerialVersionUID": "1",
+                    "justification": "Not a breakage"
+                  },
+                  {
+                    "code": "java.method.addedToInterface",
+                    "new": "method int com.xpn.xwiki.store.XWikiStoreInterface::getLimitSize(com.xpn.xwiki.XWikiContext, java.lang.Class<?>, java.lang.String)",
+                    "justification": "Not a breakage"
                   }
                 ]
               }

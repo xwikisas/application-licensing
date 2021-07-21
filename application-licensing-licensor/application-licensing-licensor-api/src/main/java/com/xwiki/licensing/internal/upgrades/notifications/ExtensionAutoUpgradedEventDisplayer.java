@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -35,18 +36,14 @@ import org.xwiki.notifications.CompositeEvent;
 import org.xwiki.notifications.NotificationException;
 import org.xwiki.notifications.notifiers.NotificationDisplayer;
 import org.xwiki.rendering.block.Block;
+import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.Template;
 import org.xwiki.template.TemplateManager;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 
 /**
- * Displaying a custom template for ExtensionAutoUpgradedEvent or ExtensionAutoUpgradedFailedEvent. The
- * NotificationDisplayerClass XObject should work independently of this class, but it is unstable on older versions and
- * sometimes the default template is rendered. After upgrading to 10.x XWiki parent only the XObject should be used and
- * this class removed.
+ * Display a custom template for ExtensionAutoUpgradedEvent or ExtensionAutoUpgradedFailedEvent.
  * 
  * @version $Id$
  * @since 1.17
@@ -56,18 +53,14 @@ import com.xpn.xwiki.objects.BaseObject;
 @Named(ExtensionAutoUpgradedEventDisplayer.NAME)
 public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplayer
 {
-    protected static final String CODE_SPACE = "Code";
-
     protected static final String NAME = "ExtensionAutoUpgradedEventDisplayer";
 
     protected static final List<String> EVENTS = Arrays.asList(ExtensionAutoUpgradedEvent.class.getCanonicalName(),
         ExtensionAutoUpgradedFailedEvent.class.getCanonicalName());
 
-    protected static final LocalDocumentReference DISPLAYER_DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", CODE_SPACE), NAME);
+    protected static final LocalDocumentReference LICENSOR_DOC = new LocalDocumentReference("Licenses", "WebHome");
 
-    protected static final LocalDocumentReference DISPLAYER_OBJ =
-        new LocalDocumentReference(Arrays.asList("XWiki", "Notifications", CODE_SPACE), "NotificationDisplayerClass");
+    protected static final String EVENT_BINDING_NAME = "event";
 
     @Inject
     private TemplateManager templateManager;
@@ -76,24 +69,29 @@ public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplaye
     private Provider<XWikiContext> contextProvider;
 
     @Inject
+    private ScriptContextManager scriptContextManager;
+
+    @Inject
     private Logger logger;
 
     @Override
     public Block renderNotification(CompositeEvent eventNotification) throws NotificationException
     {
         XWikiContext xcontext = contextProvider.get();
+        ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
+        Template customTemplate = this.templateManager.getTemplate("extensionAutoUpgraded/extensionAutoUpgraded.vm");
 
         try {
-            XWikiDocument displayerDoc = xcontext.getWiki().getDocument(DISPLAYER_DOC, xcontext);
-            BaseObject displayerObj = displayerDoc.getXObject(DISPLAYER_OBJ, 0);
+            // Set a document in the context to act as the current document when the template is rendered.
+            xcontext.setDoc(xcontext.getWiki().getDocument(LICENSOR_DOC, xcontext));
 
-            Template customTemplate = templateManager.createStringTemplate(
-                displayerObj.getStringValue("notificationTemplate"), displayerDoc.getAuthorReference());
+            // Bind the event to some variable in the velocity context.
+            scriptContext.setAttribute(EVENT_BINDING_NAME, eventNotification, ScriptContext.ENGINE_SCOPE);
+
             return (customTemplate != null) ? this.templateManager.execute(customTemplate)
                 : this.templateManager.execute("notification/default.vm");
         } catch (Exception e) {
-            logger.warn("Failed to render custom template. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
         return null;
     }

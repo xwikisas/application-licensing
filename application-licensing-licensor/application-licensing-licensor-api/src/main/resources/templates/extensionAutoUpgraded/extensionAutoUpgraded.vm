@@ -1,0 +1,53 @@
+#template('notification/macros.vm')
+
+#includeMacros('Licenses.Code.VelocityMacros')
+
+#set ($mainIcon = "bell")
+#set ($smallIcon = "arrow_up")
+#set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
+
+#macro (displayEventDetails $event)
+  #set ($userName = $event.user.name)
+  <tr>
+    <td>
+      <span class="notification-event-user">$userName</span>
+    </td>
+    <td class="description">$event.getBody()</td>
+    <td class="text-right text-muted">$escapetool.xml($datetool.whenIs($event.date))</td>
+</tr>
+#end
+
+#define ($content)
+  #set ($document = $xwiki.getDocument($event.document))
+  <div class="notification-page">
+    <a href="#getLicensesAdminSectionURL">
+      $escapetool.xml($services.localization.render('admin.licenses'))
+    </a>
+    ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+    ## to actually know where the request comes from.
+    #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
+      <span class="text-muted">($services.wiki.getById($event.document.wikiReference.name).prettyName)</span>
+    #end
+  </div>
+  <div class="notification-description">
+    <div class="activity-summary">
+      #if ($event.events.size() == 1)
+        $services.localization.render("licensor.notification.autoUpgrade.singular")
+      #else
+        $services.localization.render("licensor.notification.autoUpgrade.plural")
+      #end
+    </div>
+    <div><small class="text-muted">$compositeEventDate</small></div>
+  </div>
+#end
+
+#define ($details)
+  #define($rows)
+    #foreach($thisEvent in $event.events)
+      #displayEventDetails($thisEvent)
+    #end
+  #end
+  #displayNotificationEventDetailsSkeletons($events.size(), $rows)
+#end
+
+#displayNotificationEventSkeleton($mainIcon $smallIcon $content $details)
