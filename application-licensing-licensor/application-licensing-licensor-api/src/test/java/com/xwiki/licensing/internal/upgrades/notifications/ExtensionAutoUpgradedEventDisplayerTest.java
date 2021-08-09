@@ -102,18 +102,6 @@ public class ExtensionAutoUpgradedEventDisplayerTest
     }
 
     @Test
-    public void renderNotificationWithDefaultTemplate() throws Exception
-    {
-        XDOM defaultTemplateXDOM = mock(XDOM.class);
-
-        when(this.templateManager.getTemplate("extensionAutoUpgraded/extensionAutoUpgraded.vm")).thenReturn(null);
-        when(this.templateManager.execute("notification/default.vm")).thenReturn(defaultTemplateXDOM);
-
-        assertEquals(defaultTemplateXDOM,
-            this.mocker.getComponentUnderTest().renderNotification(this.eventNotification));
-    }
-
-    @Test
     public void renderNotificationWithNull() throws Exception
     {
         Template customTemplate = mock(Template.class);

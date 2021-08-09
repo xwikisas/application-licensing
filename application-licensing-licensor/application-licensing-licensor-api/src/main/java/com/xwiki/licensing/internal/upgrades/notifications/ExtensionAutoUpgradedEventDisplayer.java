@@ -88,8 +88,7 @@ public class ExtensionAutoUpgradedEventDisplayer implements NotificationDisplaye
             // Bind the event to some variable in the velocity context.
             scriptContext.setAttribute(EVENT_BINDING_NAME, eventNotification, ScriptContext.ENGINE_SCOPE);
 
-            return (customTemplate != null) ? this.templateManager.execute(customTemplate)
-                : this.templateManager.execute("notification/default.vm");
+            return this.templateManager.execute(customTemplate);
         } catch (Exception e) {
             logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }

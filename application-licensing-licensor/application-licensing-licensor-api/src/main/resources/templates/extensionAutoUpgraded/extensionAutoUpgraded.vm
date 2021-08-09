@@ -7,14 +7,14 @@
 #set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
 
 #macro (displayEventDetails $event)
-  #set ($userName = $event.user.name)
   <tr>
     <td>
-      <span class="notification-event-user">$userName</span>
+      <span class="notification-event-user">$escapetool.xml($event.user.name)</span>
     </td>
+    ## The notification message is stored directly on the event body.
     <td class="description">$event.getBody()</td>
     <td class="text-right text-muted">$escapetool.xml($datetool.whenIs($event.date))</td>
-</tr>
+  </tr>
 #end
 
 #define ($content)
