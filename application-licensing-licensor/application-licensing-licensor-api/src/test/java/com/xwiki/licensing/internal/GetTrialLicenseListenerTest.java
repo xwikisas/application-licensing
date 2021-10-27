@@ -99,8 +99,8 @@ public class GetTrialLicenseListenerTest
 
         when(dependency.getId()).thenReturn("dependencyId");
         when(this.installedExtension.getDependencies()).thenReturn(dependencies);
-        when(this.installedExtension.getNamespaces()).thenReturn(namespaces);
-        when(this.installedExtensionRepository.getInstalledExtension("dependencyId", namespaces.get(0)))
+        when(this.installedExtension.getNamespaces()).thenReturn(this.namespaces);
+        when(this.installedExtensionRepository.getInstalledExtension("dependencyId", this.namespaces.get(0)))
             .thenReturn(this.installedDependency);
         when(this.installedDependency.getId()).thenReturn(this.dependencyId);
     }
@@ -159,8 +159,8 @@ public class GetTrialLicenseListenerTest
 
         when(installedDependencyExtension.getDependencies()).thenReturn(transitiveDependencies);
         when(transitiveDependency.getId()).thenReturn(transitiveDependencyId.getId());
-        when(this.installedExtensionRepository.getInstalledExtension(transitiveDependencyId.getId(), namespaces.get(0)))
-            .thenReturn(installedTransitiveDependency);
+        when(this.installedExtensionRepository.getInstalledExtension(transitiveDependencyId.getId(),
+            this.namespaces.get(0))).thenReturn(installedTransitiveDependency);
         when(installedTransitiveDependency.getId()).thenReturn(transitiveDependencyId);
 
         when(this.trialLicenseGenerator.canGenerateTrialLicense(transitiveDependencyId)).thenReturn(true);
@@ -178,7 +178,6 @@ public class GetTrialLicenseListenerTest
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
         when(this.installedExtension.getNamespaces()).thenReturn(null);
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(true);
-
         when(this.installedExtensionRepository.getInstalledExtension("dependencyId", null))
             .thenReturn(this.installedDependency);
 
