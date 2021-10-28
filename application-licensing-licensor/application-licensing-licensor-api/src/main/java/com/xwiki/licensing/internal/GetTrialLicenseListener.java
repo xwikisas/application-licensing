@@ -27,13 +27,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
-import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
@@ -60,9 +57,6 @@ public class GetTrialLicenseListener implements EventListener
 
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
-
-    @Inject
-    private Logger logger;
 
     @Override
     public List<Event> getEvents()
@@ -102,17 +96,28 @@ public class GetTrialLicenseListener implements EventListener
         } else {
             InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
 
-            if (installedExtension != null) {
-                Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
-                for (ExtensionDependency dependency : dependencies) {
-                    try {
-                        InstalledExtension installedDependency = installedExtensionRepository.resolve(dependency);
-                        tryGenerateTrialLicenseRecursive(installedDependency.getId());
-                    } catch (ResolveException e) {
-                        logger.warn("Failed to check [{}] for a license. Root cause is [{}]", dependency.getId(),
-                            ExceptionUtils.getRootCauseMessage(e));
-                    }
+            if (installedExtension == null) {
+                return;
+            }
+            Collection<String> namespaces = installedExtension.getNamespaces();
+            if (namespaces == null) {
+                checkDependenciesForTrialLicense(installedExtension, null);
+            } else {
+                for (String namespace : namespaces) {
+                    checkDependenciesForTrialLicense(installedExtension, namespace);
                 }
+            }
+        }
+    }
+
+    private void checkDependenciesForTrialLicense(InstalledExtension installedExtension, String namespace)
+    {
+        Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+        for (ExtensionDependency dependency : dependencies) {
+            InstalledExtension installedDependency =
+                installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
+            if (installedDependency != null) {
+                tryGenerateTrialLicenseRecursive(installedDependency.getId());
             }
         }
     }
