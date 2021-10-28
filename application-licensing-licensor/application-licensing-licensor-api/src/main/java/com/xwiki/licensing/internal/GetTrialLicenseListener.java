@@ -116,10 +116,9 @@ public class GetTrialLicenseListener implements EventListener
         for (ExtensionDependency dependency : dependencies) {
             InstalledExtension installedDependency =
                 installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
-            if (installedDependency == null) {
-                continue;
+            if (installedDependency != null) {
+                tryGenerateTrialLicenseRecursive(installedDependency.getId());
             }
-            tryGenerateTrialLicenseRecursive(installedDependency.getId());
         }
     }
 }
