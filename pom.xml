@@ -54,6 +54,18 @@
     </developer>
   </developers>
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.revapi</groupId>
+          <artifactId>revapi-maven-plugin</artifactId>
+          <configuration>
+            <!-- Almost all dependecies are XWiki modules which are checked separately for API breakages. -->
+            <checkDependencies>false</checkDependencies>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <!-- Needed to add support for the XAR packaging -->
     <extensions>
       <extension>
@@ -68,52 +80,6 @@
         <groupId>org.xwiki.commons</groupId>
         <artifactId>xwiki-commons-tool-xar-plugin</artifactId>
         <version>${commons.version}</version>
-      </plugin>
-      <plugin>
-        <groupId>org.revapi</groupId>
-        <artifactId>revapi-maven-plugin</artifactId>
-        <configuration>
-          <analysisConfiguration><![CDATA[
-            {
-              "revapi": {
-                "ignore" : [
-                  {
-                    "code": "java.method.addedToInterface",
-                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createResourceURL(java.lang.String, boolean, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
-                    "justification": "Not a breakage"
-                  },
-                  {
-                    "code": "java.method.addedToInterface",
-                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
-                    "justification": "Not a breakage"
-                  },
-                  {
-                    "code": "java.method.addedToInterface",
-                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
-                    "justification": "Not a breakage"
-                  },
-                  {
-                    "code": "java.method.addedToInterface",
-                    "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
-                    "justification": "Not a breakage"
-                  },
-                  {
-                    "code": "java.field.serialVersionUIDChanged",
-                    "new": "field com.xpn.xwiki.objects.BaseObject.serialVersionUID",
-                    "oldSerialVersionUID": "-6939304097846704545",
-                    "newSerialVersionUID": "1",
-                    "justification": "Not a breakage"
-                  },
-                  {
-                    "code": "java.method.addedToInterface",
-                    "new": "method int com.xpn.xwiki.store.XWikiStoreInterface::getLimitSize(com.xpn.xwiki.XWikiContext, java.lang.Class<?>, java.lang.String)",
-                    "justification": "Not a breakage"
-                  }
-                ]
-              }
-            }
-          ]]></analysisConfiguration>
-        </configuration>
       </plugin>
     </plugins>
   </build>

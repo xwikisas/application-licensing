@@ -33,7 +33,7 @@
   <description>API for licenses issuance and centralized management</description>
   <properties>
     <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>License manager API</xwiki.extension.name>
+    <xwiki.extension.name>License Manager API</xwiki.extension.name>
     <xwiki.extension.category>API</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <xwiki.jacoco.instructionRatio>0.47</xwiki.jacoco.instructionRatio>
