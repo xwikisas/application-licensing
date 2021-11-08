@@ -22,9 +22,9 @@ package com.xwiki.licensing.test.po;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.FindBys;
 import org.xwiki.test.ui.po.BaseElement;
 
 /**
@@ -39,9 +39,6 @@ public class LicenseNotificationPane extends BaseElement
     @FindBy(css = ".notifications-missingLicenses a")
     private WebElement licensesSectionLink;
 
-    @FindBys({@FindBy(css = ".notifications-missingLicenses li")})
-    private List<WebElement> extensionListItems;
-
     public LicensesAdminPage clickLicensesSectionLink()
     {
         this.licensesSectionLink.click();
@@ -51,7 +48,9 @@ public class LicenseNotificationPane extends BaseElement
     public List<String> getExtensions()
     {
         List<String> extensions = new ArrayList<>();
-        for (WebElement extensionListItem : this.extensionListItems) {
+        List<WebElement> extensionListItems =
+            getDriver().findElementsWithoutWaiting(By.cssSelector(".notifications-missingLicenses li"));
+        for (WebElement extensionListItem : extensionListItems) {
             extensions.add(extensionListItem.getText());
         }
         return extensions;

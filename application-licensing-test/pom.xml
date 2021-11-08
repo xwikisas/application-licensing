@@ -41,6 +41,13 @@
     <module>application-licensing-test-example</module>
     <module>application-licensing-test-pageobjects</module>
     <module>application-licensing-test-script</module>
-    <module>application-licensing-test-tests</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <modules>
+        <module>application-licensing-test-docker</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

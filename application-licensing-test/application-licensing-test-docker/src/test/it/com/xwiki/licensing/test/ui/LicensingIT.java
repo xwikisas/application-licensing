@@ -27,15 +27,13 @@ import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebElement;
-import org.xwiki.extension.ExtensionId;
-import org.xwiki.extension.test.ExtensionTestUtils;
 import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.test.ui.AbstractTest;
-import org.xwiki.test.ui.SuperAdminAuthenticationRule;
+import org.xwiki.test.docker.junit5.TestReference;
+import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.LiveTableElement;
 import org.xwiki.test.ui.po.ViewPage;
 import org.xwiki.test.ui.po.editor.WikiEditPage;
@@ -55,89 +53,81 @@ import static org.junit.Assert.assertEquals;
  *
  * @version $Id$
  */
-public class LicensingTest extends AbstractTest
+@UITest
+class LicensingIT
 {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
-    @Rule
-    public SuperAdminAuthenticationRule superAdminAuthenticationRule = new SuperAdminAuthenticationRule(getUtil());
-
     private String instanceId;
 
-    @Before
-    public void configure() throws Exception
+    @BeforeEach
+    void configure(TestUtils setup) throws Exception
     {
-        // Install the example application.
-
-        if (!getUtil().pageExists("Example", "WebHome")) {
-            ExtensionTestUtils extensionTestUtils = new ExtensionTestUtils(getUtil());
-            extensionTestUtils.install(new ExtensionId("com.xwiki.licensing:application-licensing-test-example",
-                System.getProperty("licensing.version")));
-        }
+        setup.loginAsSuperAdmin();
 
         // Generate Certificates and Keys.
 
         LocalDocumentReference generateCertificatesAndKeys =
             new LocalDocumentReference(Arrays.asList("License", "Code"), "GenerateCertificatesAndKeys");
-        if (!getUtil().rest().exists(generateCertificatesAndKeys)) {
+        if (!setup.rest().exists(generateCertificatesAndKeys)) {
             try (InputStream content = getClass().getResourceAsStream("/GenerateCertificatesAndKeys.wiki")) {
-                getUtil().rest().savePage(generateCertificatesAndKeys,
+                setup.rest().savePage(generateCertificatesAndKeys,
                     IOUtils.toString(content, StandardCharsets.UTF_8), "");
             }
 
-            getUtil().gotoPage(generateCertificatesAndKeys, "view", "proceed=1");
+            setup.gotoPage(generateCertificatesAndKeys, "view", "proceed=1");
         }
 
         // Use the generated certificates.
 
         LocalDocumentReference useCertificates =
             new LocalDocumentReference(Arrays.asList("License", "Code"), "UseCertificates");
-        if (!getUtil().rest().exists(useCertificates)) {
+        if (!setup.rest().exists(useCertificates)) {
             try (InputStream content = getClass().getResourceAsStream("/UseCertificates.wiki")) {
-                getUtil().rest().savePage(useCertificates, IOUtils.toString(content, StandardCharsets.UTF_8), "");
+                setup.rest().savePage(useCertificates, IOUtils.toString(content, StandardCharsets.UTF_8), "");
             }
         }
 
-        getUtil().gotoPage(useCertificates, "view", "proceed=1");
+        setup.gotoPage(useCertificates, "view", "proceed=1");
         assertEquals("OK", new ViewPage().getContent());
 
         // Configure the store URLs (buy and trial) to point to the current wiki.
 
-        getUtil().updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
+        setup.updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
             "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
             "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense", "storeBuyURL",
             "http://localhost:8080/xwiki/bin/view/Store/BuyLicense");
     }
 
     @Test
-    public void generateLicense() throws Exception
+    void generateLicense(TestReference testReference, TestUtils setup) throws Exception
     {
         // Verify that there's no license for Example.WebHome
-        ViewPage viewPage = getUtil().gotoPage("Example", "WebHome");
+        ViewPage viewPage = setup.gotoPage("Example", "WebHome");
         // The superadmin user can still see the page.
         assertEquals("Missing license", viewPage.getContent());
         // The rest of the users are not allowed view it.
-        getUtil().createUserAndLoginWithRedirect("alice", "test", getUtil().getURL("Example", "WebHome"));
+        setup.createUserAndLoginWithRedirect("alice", "test", setup.getURL("Example", "WebHome"));
         assertEquals("You are not allowed to view this page or perform this action.",
-            getDriver().findElementByCssSelector("p.xwikimessage").getText());
+            setup.getDriver().findElementByCssSelector("p.xwikimessage").getText());
 
         // Verify that the public page is accessible without a license.
-        getUtil().gotoPage("Example", "ApplicationsPanelEntry");
+        setup.gotoPage("Example", "ApplicationsPanelEntry");
         assertEquals("No license is needed to view this page.", viewPage.getContent());
 
         // Verify that the excluded page is editable without a license.
-        getUtil().gotoPage("Example", "Config", "edit", "editor=wiki");
+        setup.gotoPage("Example", "Config", "edit", "editor=wiki&force=true");
         assertEquals("No license is needed to edit this page.", new WikiEditPage().getContent());
 
         // Verify the notification for the missing license.
         LicenseNotificationPane notification = new LicenseNotificationPane();
         // The simple users should not see the notification.
-        getUtil().gotoPage(getTestClassName(), getTestMethodName());
+        setup.gotoPage(testReference);
         viewPage.toggleNotificationsMenu();
         assertEquals(0, notification.getExtensions().size());
 
         // Users with administration rights should see it though.
-        getUtil().loginAsSuperAdminAndGotoPage(getUtil().getURL(getTestClassName(), getTestMethodName()));
+        setup.loginAsSuperAdminAndGotoPage(setup.getURL(testReference, "view", null));
         viewPage.toggleNotificationsMenu();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
@@ -165,7 +155,7 @@ public class LicensingTest extends AbstractTest
         this.instanceId = licensesAdminSection.getInstanceId();
 
         // Generate and import an expired license with gold support and unspecified number of users.
-        addLicense(LicenseType.FREE, "21/06/2017", "gold", "");
+        addLicense(LicenseType.FREE, "21/06/2017", "gold", "", setup);
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
@@ -176,12 +166,12 @@ public class LicensingTest extends AbstractTest
 
         // Check the license notification message.
         // We need to refresh the page in order for the notification menu to be updated.
-        getDriver().navigate().refresh();
+        setup.getDriver().navigate().refresh();
         licensesAdminSection.toggleNotificationsMenu();
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
         // Generate and import a license for 0 users and unspecified support level.
-        addLicense(LicenseType.TRIAL, null, "", "0");
+        addLicense(LicenseType.TRIAL, null, "", "0", setup);
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
@@ -197,7 +187,7 @@ public class LicensingTest extends AbstractTest
         assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
 
         // Generate and import a license for unlimited users
-        addLicense(LicenseType.PAID, null, "silver", "-1");
+        addLicense(LicenseType.PAID, null, "silver", "-1", setup);
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
@@ -208,7 +198,7 @@ public class LicensingTest extends AbstractTest
         assertEquals("Unlimited", liveTable.getCell(firstRow, 5).getText());
 
         // Verify that the Example page now has a license.
-        viewPage = getUtil().gotoPage("Example", "WebHome");
+        viewPage = setup.gotoPage("Example", "WebHome");
         assertEquals("Hello", viewPage.getContent());
 
         // Check the license notification message.
@@ -216,11 +206,11 @@ public class LicensingTest extends AbstractTest
         assertEquals(0, notification.getExtensions().size());
 
         // Try also with a simple user.
-        getUtil().loginAndGotoPage("alice", "test", getUtil().getURL("Example", "WebHome"));
+        setup.loginAndGotoPage("alice", "test", setup.getURL("Example", "WebHome"));
         assertEquals("Hello", viewPage.getContent());
     }
 
-    private void addLicense(LicenseType type, String expirationDate, String support, String userLimit)
+    private void addLicense(LicenseType type, String expirationDate, String support, String userLimit, TestUtils setup)
     {
         LicenseDetailsEditPage licenseDetails = LicensesHomePage.gotoPage().clickAddLicenseDetails();
         licenseDetails.setLicenseeFirstName("John").setLicenseeLastName("Doe").setLicenseeEmail("john@acme.com")
@@ -229,7 +219,7 @@ public class LicensingTest extends AbstractTest
         LicenseDetailsViewPage licenseDetailsView = licenseDetails.clickSaveAndView();
         if (!StringUtils.isEmpty(expirationDate)) {
             String licenseId = licenseDetailsView.getHTMLMetaDataValue("page");
-            getUtil().updateObject(Arrays.asList("License", "Data"), licenseId, "License.Code.LicenseDetailsClass", 0,
+            setup.updateObject(Arrays.asList("License", "Data"), licenseId, "License.Code.LicenseDetailsClass", 0,
                 "expirationDate", expirationDate);
         }
         String license = licenseDetailsView.generateLicense();
