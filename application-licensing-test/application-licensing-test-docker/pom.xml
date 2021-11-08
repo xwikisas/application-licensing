@@ -88,11 +88,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <licensing.version>${project.version}</licensing.version>
-          </systemPropertyVariables>
-        </configuration>
       </plugin>
     </plugins>
   </build>
