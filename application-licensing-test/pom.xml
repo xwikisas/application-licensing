@@ -38,9 +38,9 @@
     <xwiki.checkstyle.skip>true</xwiki.checkstyle.skip>
   </properties>
   <modules>
+    <module>application-licensing-test-api</module>
     <module>application-licensing-test-example</module>
     <module>application-licensing-test-pageobjects</module>
-    <module>application-licensing-test-script</module>
   </modules>
   <profiles>
     <profile>

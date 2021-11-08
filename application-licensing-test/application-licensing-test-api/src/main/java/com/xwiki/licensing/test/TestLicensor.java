@@ -17,36 +17,34 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing.test.script;
+package com.xwiki.licensing.test;
 
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.reference.EntityReference;
-import org.xwiki.script.service.ScriptService;
-import org.xwiki.stability.Unstable;
+
+import com.xwiki.licensing.Licensor;
 
 /**
- * Script service for the licensor, to be used when running functional tests of the licensed applications.
- *
+ * Licensor implementation used when running the functional tests.
+ * 
  * @version $Id$
- * @since 1.8
+ * @since 1.21
  */
 @Component
-@Named("licensing.licensor")
 @Singleton
-@Unstable
-public class LicensorScriptService implements ScriptService
+public class TestLicensor implements Licensor
 {
-    /**
-     * Check if the given entity is covered by a valid license. Equivalent to licensor.hasLicensure(EntityReference)
-     * call.
-     *
-     * @param reference the reference of the entity for which licensure should be checked
-     * @return true if the given reference has a valid license or is not subject to licensing
-     */
-    public boolean hasLicensureForEntity(EntityReference reference)
+    @Override
+    public boolean hasLicensure(EntityReference reference)
+    {
+        return true;
+    }
+
+    @Override
+    public boolean hasLicensure(ExtensionId extensionId)
     {
         return true;
     }

@@ -29,13 +29,13 @@
   </parent>
   <artifactId>application-licensing-test-example</artifactId>
   <packaging>xar</packaging>
-  <name>Licensing Application - Tests - Paying Application Example</name>
-  <description>Example of a paying app for the functional tests</description>
+  <name>Licensing Application - Tests - Licensed Application Example</name>
+  <description>Example of a licensed application to be used in functional tests.</description>
   <properties>
     <!-- Don't run CLIRR here since there's no Java code. -->
     <xwiki.clirr.skip>true</xwiki.clirr.skip>
     <!-- Name to display by the Extension Manager -->
-    <xwiki.extension.name>Paid Application Example</xwiki.extension.name>
+    <xwiki.extension.name>Licensed Application Example</xwiki.extension.name>
     <!-- The list of documents that have an implicit unlimited free license. The users can view these documents without
       buying a license or getting a trial license, but they cannot edit or delete them. -->
     <xwiki.extension.licensing.publicDocuments>
@@ -48,7 +48,7 @@
     </xwiki.extension.licensing.excludedDocuments>
   </properties>
   <dependencies>
-    <!-- This is what makes it a paying app that requires a license -->
+    <!-- This is what makes it a licensed application (requiring a license) -->
     <dependency>
       <groupId>com.xwiki.licensing</groupId>
       <artifactId>application-licensing-licensor-api</artifactId>

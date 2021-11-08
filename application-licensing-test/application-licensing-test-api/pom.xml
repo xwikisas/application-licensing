@@ -27,19 +27,19 @@
     <artifactId>application-licensing-test</artifactId>
     <version>1.21-SNAPSHOT</version>
   </parent>
-  <artifactId>application-licensing-test-script</artifactId>
-  <name>Licensing Application - Tests - Script Service</name>
+  <artifactId>application-licensing-test-api</artifactId>
+  <name>Licensing Application - Tests - API</name>
   <packaging>jar</packaging>
   <properties>
-    <!-- Prevent the original licensor-api from being installed when running functional tests -->
+    <!-- Prevent the original licensor-api from being installed when running functional tests. -->
     <xwiki.extension.features>com.xwiki.licensing:application-licensing-licensor-api</xwiki.extension.features>
     <!-- Force the installation on the root namespace to match the original licensor. -->
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
   </properties>
-  <description>The licensing script service to be used when running the functional tests of a licensed applications</description>
+  <description>The licensing API to be used when running the functional tests of a licensed applications</description>
   <dependencies>
     <dependency>
-      <groupId>com.xwiki.licensing</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>application-licensing-script</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -47,6 +47,11 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-model</artifactId>
       <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-extension-api</artifactId>
+      <version>${commons.version}</version>
     </dependency>
   </dependencies>
 </project>
