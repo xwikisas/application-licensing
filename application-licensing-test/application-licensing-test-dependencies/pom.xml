@@ -31,6 +31,9 @@
   <name>Licensing Application - Tests - Dependencies</name>
   <packaging>pom</packaging>
   <description>Common dependencies requried to run the functional docker-based tests of a licensed application.</description>
+  <properties>
+    <testcontainers.version>1.16.2</testcontainers.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -42,7 +45,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>selenium</artifactId>
-      <version>1.16.2</version>
+      <version>${testcontainers.version}</version>
       <!-- Silence the RequireUpperBoundDeps enforcer: the version of TestContainers we're forcing requires more
         recent versions for some of the JARs that are used in XWiki. We exclude them here and use instead the version
         that comes from XWiki. -->
@@ -68,6 +71,26 @@
           <artifactId>junit</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mysql</artifactId>
+      <version>${testcontainers.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>mariadb</artifactId>
+      <version>${testcontainers.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${testcontainers.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>oracle-xe</artifactId>
+      <version>${testcontainers.version}</version>
     </dependency>
     <!-- We need this for some deprecated APIs used by xwiki-platform-test-docker
       (e.g. com.github.dockerjava.core.command.PullImageResultCallback) -->
