@@ -129,7 +129,7 @@ class LicensingIT
         // Users with administration rights should see it though.
         setup.loginAsSuperAdminAndGotoPage(setup.getURL(testReference, "view", null));
         viewPage.toggleNotificationsMenu();
-        assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
+        assertEquals(Collections.singletonList("Licensed Application Example"), notification.getExtensions());
 
         // Navigate to the Licenses administration section.
         LicensesAdminPage licensesAdminSection = notification.clickLicensesSectionLink();
@@ -168,7 +168,7 @@ class LicensingIT
         // We need to refresh the page in order for the notification menu to be updated.
         setup.getDriver().navigate().refresh();
         licensesAdminSection.toggleNotificationsMenu();
-        assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
+        assertEquals(Collections.singletonList("Licensed Application Example"), notification.getExtensions());
 
         // Generate and import a license for 0 users and unspecified support level.
         addLicense(LicenseType.TRIAL, null, "", "0", setup);
@@ -184,7 +184,7 @@ class LicensingIT
         // Check the license notification message.
         // We need to refresh the page in order for the notification menu to be updated.
         licensesAdminSection.toggleNotificationsMenu();
-        assertEquals(Collections.singletonList("Paid Application Example"), notification.getExtensions());
+        assertEquals(Collections.singletonList("Licensed Application Example"), notification.getExtensions());
 
         // Generate and import a license for unlimited users
         addLicense(LicenseType.PAID, null, "silver", "-1", setup);

@@ -69,9 +69,10 @@
     </dependency>
     <!-- Test dependencies -->
     <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-test-docker</artifactId>
-      <version>${platform.version}</version>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>application-licensing-test-dependencies</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
       <scope>test</scope>
     </dependency>
     <dependency>
