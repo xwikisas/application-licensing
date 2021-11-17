@@ -25,5 +25,4 @@
 // See https://github.com/jenkinsci/workflow-cps-global-lib-plugin for details.
 
 xwikisasModule {
-  properties = '-Dxwiki.test.ui.verbose=true'
 }
