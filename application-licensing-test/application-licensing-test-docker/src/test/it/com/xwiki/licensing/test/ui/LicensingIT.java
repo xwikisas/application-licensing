@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.platform.notifications.test.po.NotificationsTrayPage;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
@@ -120,15 +121,15 @@ class LicensingIT
         assertEquals("No license is needed to edit this page.", new WikiEditPage().getContent());
 
         // Verify the notification for the missing license.
-        LicenseNotificationPane notification = new LicenseNotificationPane();
         // The simple users should not see the notification.
         setup.gotoPage(testReference);
-        viewPage.toggleNotificationsMenu();
-        assertEquals(0, notification.getExtensions().size());
+        new NotificationsTrayPage().showNotificationTray();
+        assertEquals(0, new LicenseNotificationPane().getExtensions().size());
 
         // Users with administration rights should see it though.
         setup.loginAsSuperAdminAndGotoPage(setup.getURL(testReference, "view", null));
-        viewPage.toggleNotificationsMenu();
+        new NotificationsTrayPage().showNotificationTray();
+        LicenseNotificationPane notification = new LicenseNotificationPane();
         assertEquals(Collections.singletonList("Licensed Application Example"), notification.getExtensions());
 
         // Navigate to the Licenses administration section.
