@@ -151,6 +151,19 @@ public class UpgradeExtensionHandlerTest
     }
 
     @Test
+    public void getInstallableVersionsWithoutBetaVersion() throws Exception
+    {
+        Version betaVersion = new DefaultVersion("3.0-rc-1");
+        Collection<Version> allVersions = Arrays.asList(this.installedVersion, betaVersion);
+
+        when(extensionRepositoryManager.resolveVersions(this.installedExtensionId.getId(), 0, -1))
+            .thenReturn(new CollectionIterableResult<>(-1, 0, allVersions));
+
+        assertEquals(Collections.emptyList(),
+            this.mocker.getComponentUnderTest().getInstallableVersions(this.installedExtensionId));
+    }
+
+    @Test
     public void getInstallRequest() throws Exception
     {
         InstallRequest installRequest =

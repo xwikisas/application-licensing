@@ -41,6 +41,7 @@ import org.xwiki.extension.job.internal.InstallJob;
 import org.xwiki.extension.repository.ExtensionRepositoryManager;
 import org.xwiki.extension.repository.result.IterableResult;
 import org.xwiki.extension.version.Version;
+import org.xwiki.extension.version.Version.Type;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
@@ -194,9 +195,9 @@ public class UpgradeExtensionHandler
             IterableResult<Version> iterableVersions =
                 extensionRepositoryManager.resolveVersions(extensionId.getId(), 0, -1);
 
-            // Take only versions greater than the already installed one.
+            // Take only stable versions greater than the already installed one.
             for (Version version : iterableVersions) {
-                if (extensionId.getVersion().compareTo(version) < 0) {
+                if (extensionId.getVersion().compareTo(version) < 0 && version.getType() == Type.STABLE) {
                     versions.add(version);
                 }
             }
