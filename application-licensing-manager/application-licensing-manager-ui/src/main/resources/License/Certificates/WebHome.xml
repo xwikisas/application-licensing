@@ -39,6 +39,7 @@
   <content>{{include reference="License.Code.LicenseDetailsMacros" /}}
 
 {{velocity output="false"}}
+#set ($discard = $xwiki.jsx.use('License.Certificates.WebHome'))
 #set ($certificateStore = $services.crypto.store.getX509SpaceCertificateStore(
   $services.model.resolveSpace('License.Certificates')))
 
@@ -63,14 +64,93 @@
 #end
 
 #macro (certificatesTable $certificates)
-  |=Name|=Expires|=Issued
+  #set ($base64Encoder = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Base64'))
+  |=Name|=Expires|=Issued|=Active Licenses
   #foreach ($certificate in $certificates)
-    |$certificate.subject.name|$certificate.notAfter|$certificate.notBefore
+    |$certificate.subject.name|$certificate.notAfter|$certificate.notBefore|[[$services.icon.render('eye') Count&gt;&gt;||anchor="activeLicenseCount" data-certificate="$base64Encoder.encode($certificate.subjectKeyIdentifier)"]]
+  #end
+#end
+
+#macro (getCertificate $certificateKey)
+  #set ($certificateReference = $services.model.createDocumentReference(null, ['License', 'Certificates'], $certificateKey))
+  #set ($certificateDoc = $xwiki.getDocument($certificateReference))
+  #set ($certificateStore = $services.crypto.store.getX509SpaceCertificateStore($certificateReference.lastSpaceReference))
+  #set ($base64Encoder = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Base64'))
+  #set ($certificate = $certificateStore.certificateProvider.getCertificate($base64Encoder.decode($certificateKey)))
+#end
+
+#macro (getActiveLicensesForCertificate $certificate)
+  #set ($issuedYear = $datetool.getYear($certificate.notBefore))
+  #getActiveLicenses($issuedYear $certificate.notBefore)
+  #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
+  #set ($activeLicensesForCertificate = [])
+  #foreach ($activeLicenseId in $activeLicenses)
+    #set ($activeLicense = $licenseStore.retrieve($activeLicenseId))
+    #if ($activeLicense.certificates.contains($certificate))
+      #set ($discard = $activeLicensesForCertificate.add($activeLicense))
+    #end
+  #end
+#end
+
+#macro (displayCertificate $certificate)
+  #set ($certificateKey = $base64Encoder.encode($certificate.subjectKeyIdentifier))
+  ; Name
+  : $certificate.subject.name
+  ; Key
+  : $certificateKey
+  ; Issued
+  : $certificate.notBefore
+  ; Expires
+  : $certificate.notAfter
+  ; Active licenses
+
+  #getActiveLicensesForCertificate($certificate)
+  #set ($hasLicensesToRegenerate = !$activeLicensesForCertificate.isEmpty() &amp;&amp; $datetool.getYear($certificate.notAfter) == $datetool.year)
+  #if ($hasLicensesToRegenerate)
+    {{warning}}
+    This certificate is about to expire soon and there are still active licenses that were signed with it. You should [[$services.icon.render('refresh') regenerate&gt;&gt;||queryString="$escapetool.url({'certificate': $certificateKey, 'action': 'regenerateLicenses', 'form_token': $services.csrf.token})"]] them.
+    {{/warning}}
+
+  #end
+  |=License Id|=Expires|=Licensee
+  #foreach ($license in $activeLicensesForCertificate)
+    #set ($licenseReference = $services.model.createDocumentReference(null, ['License', 'Data'], $license.id))
+    |[[$license.id&gt;&gt;$licenseReference]]|$datetool.toDate($license.expirationDate)|$license.licensee
+  #end
+#end
+
+#macro (regenerateActiveLicenses $certificate)
+  #set ($certificateKey = $base64Encoder.encode($certificate.subjectKeyIdentifier))
+  The following active licenses of [[$certificate.subject.name&gt;&gt;||queryString="$escapetool.url({'certificate': $certificateKey})"]] have been regenerated:
+
+  #getActiveLicensesForCertificate($certificate)
+  |=Old License|=New License|=Licensee
+  #foreach ($license in $activeLicensesForCertificate)
+    #if ($foreach.index &gt; 30)
+      #break
+    #end
+    #set ($oldLicense = $license)
+    #set ($oldLicenseReference = $services.model.createDocumentReference(null, ['License', 'Data'], $oldLicense.id))
+    #regenerateLicense($license.id)
+    #set ($newLicenseReference = $services.model.createDocumentReference(null, ['License', 'Data'], $license.id))
+    |[[$oldLicense.id&gt;&gt;$oldLicenseReference]]|[[$license.id&gt;&gt;$newLicenseReference]]|$oldLicense.licensee
   #end
 #end
 {{/velocity}}
 
 {{velocity}}
+#if ("$!request.certificate" != '')
+  #getCertificate($request.certificate)
+  #if ($request.data == 'activeLicenseCount')
+    #getActiveLicensesForCertificate($certificate)
+    #jsonResponse($activeLicensesForCertificate.size())
+  #elseif ($request.action == 'regenerateLicenses' &amp;&amp; $request.form_token == $services.csrf.token)
+    #regenerateActiveLicenses($certificate)
+  #else
+    #displayCertificate($certificate)
+  #end
+  #stop
+#end
 = Valid Certificates =
 
 The following certificates are valid:
@@ -103,18 +183,134 @@ The following certificates are expired:
 
 = All Certificates =
 
-#set($columns = ['doc.name', 'subject', 'keyid', 'issuer', 'serial'])
-#set($columnsProperties = {
-  'doc.name' : { 'type' : 'text', 'link' : 'view' },
-  'subject' : { 'type' : 'text' },
-  'keyid' : { 'type' : 'text' },
-  'issuer' : { 'type' : 'text' },
-  'serial' : { 'type' : 'text' }
+#set ($columns = ['doc.name', 'subject', 'keyid', 'issuer', 'serial'])
+#set ($columnsProperties = {
+  'doc.name': {'type':'text', 'link': 'view'},
+  'subject': {'type': 'text'},
+  'keyid': {'type': 'text'},
+  'issuer': {'type': 'text'},
+  'serial': {'type': 'text'}
 })
-#set($options = { 
-   'className' : 'Crypto.CertificateClass',
-   'translationPrefix' : 'certificates.'
+#set ($options = {
+  'className': 'Crypto.CertificateClass',
+  'translationPrefix': 'certificates.'
 })
 #livetable('certificates' $columns $columnsProperties $options)
 {{/velocity}}</content>
+  <object>
+    <name>License.Certificates.WebHome</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>ab838549-8e8b-4876-9f52-6dddddd2d6b7</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function($) {
+  $(document).on('click', 'a[href="#activeLicenseCount"][data-certificate]', function(event) {
+    event.preventDefault();
+    var link = $(this);
+    link.closest('td').addClass('loading');
+    $.getJSON(XWiki.currentDocument.getURL('get'), {
+      data: 'activeLicenseCount',
+      certificate: link.attr('data-certificate')
+    }).done(function(activeLicenseCount) {
+      link.text(activeLicenseCount);
+      link.attr('href', XWiki.currentDocument.getURL('view', $.param({
+        certificate: link.attr('data-certificate')
+      })));
+    }).always(function() {
+      link.closest('td').removeClass('loading');
+    });
+  });
+});</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
 </xwikidoc>

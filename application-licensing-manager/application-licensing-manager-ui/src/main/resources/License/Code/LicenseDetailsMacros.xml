@@ -353,7 +353,7 @@
  * Computes the list of licenses that are currently in use (the license with the best expiration date for an instance id
  * and feature id wins).
  *#
-#macro (getActiveLicenses $issuedBeforeYear)
+#macro (getActiveLicenses $issuedBeforeYear $issuedAfterDate)
   ## Collect the best expiration date per instance id and feature id.
   #set ($statement = "select instanceId.value, featureId.value, max(expirationDate.value)"
     + " from XWikiDocument as doc, BaseObject as licenseObj, StringProperty as instanceId, StringProperty as featureId"
@@ -387,9 +387,15 @@
     + " and licenseObj.id = email.id.id and email.id.name = 'email'"
     + " and expirationDate.value &gt; :now and year(issueDate.value) &lt;= :issuedBeforeYear"
       + " and hasLicense.value = 1 and email.value not like '%@xwiki.com'")
+  #if ($issuedAfterDate)
+    #set ($statement = "$statement and issueDate.value &gt;= :issuedAfterDate")
+  #end
   #set ($query = $services.query.hql($statement))
   #set ($query = $query.bindValue('now', $datetool.date))
   #set ($query = $query.bindValue('issuedBeforeYear', $issuedBeforeYear))
+  #if ($issuedAfterDate)
+    #set ($query = $query.bindValue('issuedAfterDate', $issuedAfterDate))
+  #end
   #foreach ($result in $query.execute())
     #set ($licenseDetailsDocument = $xwiki.getDocument($result))
     #readLicenseDetailsFromDocument($licenseDetailsDocument)
