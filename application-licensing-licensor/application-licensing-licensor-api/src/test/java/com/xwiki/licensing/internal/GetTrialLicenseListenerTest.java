@@ -63,13 +63,17 @@ public class GetTrialLicenseListenerTest
 
     JobFinishedEvent job;
 
-    InstalledExtensionRepository installedExtensionRepository;
-
     List<String> namespaces;
 
     InstalledExtension installedExtension;
 
+    ExtensionDependency dependency;
+
     InstalledExtension installedDependency;
+
+    ExtensionId transitiveDependencyId;
+
+    InstalledExtension installedTransitiveDependency;
 
     @Before
     public void configure() throws Exception
@@ -85,24 +89,41 @@ public class GetTrialLicenseListenerTest
         when(request.getProperty("extensions")).thenReturn(extensions);
         when(this.job.getRequest()).thenReturn(request);
 
-        this.installedExtensionRepository = this.mocker.getInstance(InstalledExtensionRepository.class);
+        InstalledExtensionRepository installedExtensionRepository =
+            this.mocker.getInstance(InstalledExtensionRepository.class);
         this.installedExtension = mock(InstalledExtension.class);
+        this.namespaces = Arrays.asList("main", null);
 
-        when(this.installedExtensionRepository.getInstalledExtension(this.extensionId))
+        when(installedExtensionRepository.getInstalledExtension(this.extensionId)).thenReturn(this.installedExtension);
+        when(installedExtensionRepository.getInstalledExtension(this.extensionId.getId(), this.namespaces.get(0)))
+            .thenReturn(this.installedExtension);
+        when(installedExtensionRepository.getInstalledExtension(this.extensionId.getId(), null))
             .thenReturn(this.installedExtension);
 
-        this.installedDependency = mock(InstalledExtension.class);
-        ExtensionDependency dependency = mock(ExtensionDependency.class);
+        this.installedDependency = mock(DefaultInstalledExtension.class);
+        this.dependency = mock(ExtensionDependency.class);
         Collection<ExtensionDependency> dependencies = Arrays.asList(dependency);
-        this.dependencyId = new ExtensionId("application-dependency", mock(Version.class));
-        this.namespaces = Arrays.asList("main");
+        this.dependencyId = new ExtensionId("application-dependency", "1.1");
 
-        when(dependency.getId()).thenReturn("dependencyId");
+        when(this.dependency.getId()).thenReturn(this.dependencyId.getId());
         when(this.installedExtension.getDependencies()).thenReturn(dependencies);
         when(this.installedExtension.getNamespaces()).thenReturn(this.namespaces);
-        when(this.installedExtensionRepository.getInstalledExtension("dependencyId", this.namespaces.get(0)))
+        when(installedExtensionRepository.getInstalledExtension(this.dependency.getId(), this.namespaces.get(0)))
+            .thenReturn(this.installedDependency);
+        when(installedExtensionRepository.getInstalledExtension(this.dependency.getId(), null))
             .thenReturn(this.installedDependency);
         when(this.installedDependency.getId()).thenReturn(this.dependencyId);
+
+        this.installedTransitiveDependency = mock(InstalledExtension.class);
+        ExtensionDependency transitiveDependency = mock(ExtensionDependency.class);
+        Collection<ExtensionDependency> transitiveDependencies = Arrays.asList(transitiveDependency);
+        this.transitiveDependencyId = new ExtensionId("application-transitive-dependency", mock(Version.class));
+
+        when(installedDependency.getDependencies()).thenReturn(transitiveDependencies);
+        when(transitiveDependency.getId()).thenReturn(this.transitiveDependencyId.getId());
+        when(installedExtensionRepository.getInstalledExtension(this.transitiveDependencyId.getId(),
+            this.namespaces.get(0))).thenReturn(this.installedTransitiveDependency);
+        when(this.installedTransitiveDependency.getId()).thenReturn(this.transitiveDependencyId);
     }
 
     @Test
@@ -145,31 +166,31 @@ public class GetTrialLicenseListenerTest
     {
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(false);
-
-        InstalledExtension installedDependencyExtension = mock(InstalledExtension.class);
-
-        when(this.installedExtensionRepository.getInstalledExtension(this.dependencyId))
-            .thenReturn(installedDependencyExtension);
-        when(installedDependencyExtension.getNamespaces()).thenReturn(this.namespaces);
-
-        InstalledExtension installedTransitiveDependency = mock(InstalledExtension.class);
-        ExtensionDependency transitiveDependency = mock(ExtensionDependency.class);
-        Collection<ExtensionDependency> transitiveDependencies = Arrays.asList(transitiveDependency);
-        ExtensionId transitiveDependencyId = new ExtensionId("application-dependency", mock(Version.class));
-
-        when(installedDependencyExtension.getDependencies()).thenReturn(transitiveDependencies);
-        when(transitiveDependency.getId()).thenReturn(transitiveDependencyId.getId());
-        when(this.installedExtensionRepository.getInstalledExtension(transitiveDependencyId.getId(),
-            this.namespaces.get(0))).thenReturn(installedTransitiveDependency);
-        when(installedTransitiveDependency.getId()).thenReturn(transitiveDependencyId);
-
-        when(this.trialLicenseGenerator.canGenerateTrialLicense(transitiveDependencyId)).thenReturn(true);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.transitiveDependencyId)).thenReturn(true);
 
         this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 
         verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
         verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.dependencyId);
-        verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(transitiveDependencyId);
+        verify(this.trialLicenseGenerator, times(1)).generateTrialLicense(this.transitiveDependencyId);
+    }
+
+    @Test
+    public void onEventWithRepetitivePaidAppDependency() throws Exception
+    {
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(false);
+        when(this.trialLicenseGenerator.canGenerateTrialLicense(this.transitiveDependencyId)).thenReturn(false);
+
+        when(this.installedTransitiveDependency.getDependencies()).thenReturn(Arrays.asList(this.dependency));
+
+        this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
+
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.extensionId);
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.dependencyId);
+        verify(this.trialLicenseGenerator, never()).generateTrialLicense(this.transitiveDependencyId);
+        verify(this.trialLicenseGenerator, times(1)).canGenerateTrialLicense(this.transitiveDependencyId);
+        verify(this.trialLicenseGenerator, times(1)).canGenerateTrialLicense(this.dependencyId);
     }
 
     @Test
@@ -178,8 +199,6 @@ public class GetTrialLicenseListenerTest
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.extensionId)).thenReturn(false);
         when(this.installedExtension.getNamespaces()).thenReturn(null);
         when(this.trialLicenseGenerator.canGenerateTrialLicense(this.dependencyId)).thenReturn(true);
-        when(this.installedExtensionRepository.getInstalledExtension("dependencyId", null))
-            .thenReturn(this.installedDependency);
 
         this.mocker.getComponentUnderTest().onEvent(this.job, null, null);
 

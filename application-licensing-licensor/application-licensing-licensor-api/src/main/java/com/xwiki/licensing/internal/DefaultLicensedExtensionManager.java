@@ -60,6 +60,11 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
      */
     public static final String LICENSOR_EXTENSION_ID = "com.xwiki.licensing:application-licensing-licensor-api";
 
+    /**
+     * Cache the list of installed licensed extensions that are not covered by the license of another extension.
+     */
+    private Set<ExtensionId> cachedMandatoryLicensedExtensions;
+
     @Inject
     private Logger logger;
 
@@ -116,23 +121,63 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     }
 
     @Override
-    public Collection<ExtensionId> getMandatoryLicensedExtensions()
+    public Set<ExtensionId> getMandatoryLicensedExtensions()
     {
-        Collection<ExtensionId> paidExtensions = getLicensedExtensions();
+        if (this.cachedMandatoryLicensedExtensions != null) {
+            return this.cachedMandatoryLicensedExtensions;
+        }
 
-        Set<ExtensionId> visiblePaidExtensions = new HashSet<ExtensionId>(paidExtensions);
-        for (ExtensionId extensionId : paidExtensions) {
-            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+        Collection<ExtensionId> allLicensedExtensions = getLicensedExtensions();
+        // Extensions for which it was verified if the dependencies contain licensed extensions.
+        Collection<ExtensionId> verifiedExtensions = new ArrayList<ExtensionId>();
+        this.cachedMandatoryLicensedExtensions = new HashSet<ExtensionId>(allLicensedExtensions);
 
-            Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
-            for (ExtensionId paidExtension : paidExtensions) {
-                if (dependencies.stream().filter(dependency -> dependency.getId().equals(paidExtension.getId()))
-                    .findFirst().isPresent()) {
-                    visiblePaidExtensions.remove(paidExtension);
-                }
+        for (ExtensionId extensionId : allLicensedExtensions) {
+            InstalledExtension installedExtension =
+                this.installedExtensionRepository.getInstalledExtension(extensionId);
+            if (installedExtension == null) {
+                continue;
+            }
+
+            verifiedExtensions.add(extensionId);
+            for (String namespace : installedExtension.getNamespaces()) {
+                searchLicensedDependenciesRecursive(
+                    this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace), namespace,
+                    verifiedExtensions);
             }
         }
 
-        return visiblePaidExtensions;
+        return this.cachedMandatoryLicensedExtensions;
+    }
+
+    private void searchLicensedDependenciesRecursive(InstalledExtension installedExtension, String namespace,
+        Collection<ExtensionId> verifiedExtensions)
+    {
+        Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+        for (ExtensionDependency dependency : dependencies) {
+            InstalledExtension installedDependency =
+                this.installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
+            if (installedDependency == null) {
+                return;
+            }
+
+            ExtensionId dependencyId = installedDependency.getId();
+            if (this.cachedMandatoryLicensedExtensions.stream()
+                .anyMatch(mandatoryExtensionId -> mandatoryExtensionId.equals(dependencyId))) {
+                this.cachedMandatoryLicensedExtensions.remove(dependencyId);
+            }
+
+            if (verifiedExtensions.contains(installedDependency.getId())) {
+                return;
+            }
+            verifiedExtensions.add(dependencyId);
+            searchLicensedDependenciesRecursive(installedDependency, namespace, verifiedExtensions);
+        }
+    }
+
+    @Override
+    public void invalidateMandatoryLicensedExtensionsCache()
+    {
+        this.cachedMandatoryLicensedExtensions = null;
     }
 }

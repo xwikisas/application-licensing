@@ -22,6 +22,7 @@ package com.xwiki.licensing.internal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Stack;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,6 +36,8 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
+
+import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
  * Generate a trial license for paid extensions after install or upgrade, if the data necessary for it is already filled
@@ -58,6 +61,9 @@ public class GetTrialLicenseListener implements EventListener
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
 
+    @Inject
+    private LicensedExtensionManager licensedExtensionManager;
+
     @Override
     public List<Event> getEvents()
     {
@@ -78,8 +84,13 @@ public class GetTrialLicenseListener implements EventListener
         trialLicenseGenerator.updateLicenses();
 
         for (ExtensionId extensionId : extensions) {
-            tryGenerateTrialLicenseRecursive(extensionId);
+            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+            Stack<ExtensionId> extensionIds = new Stack<>();
+            extensionIds.push(extensionId);
+            tryGenerateTrialLicenseRecursive(extensionIds, installedExtension.getNamespaces());
         }
+
+        licensedExtensionManager.invalidateMandatoryLicensedExtensionsCache();
     }
 
     /**
@@ -87,37 +98,44 @@ public class GetTrialLicenseListener implements EventListener
      * dependencies, check also to see if there aren't any paid dependencies, direct or transitive, that need a trial
      * license.
      *
-     * @param extensionId the extension for which to generate a trial license
+     * @param extensionIds the extensions for which to generate a trial license
+     * @param extensionNamespaces the namespaces where this extension is installed
      */
-    public void tryGenerateTrialLicenseRecursive(ExtensionId extensionId)
+    public void tryGenerateTrialLicenseRecursive(Stack<ExtensionId> extensionIds,
+        Collection<String> extensionNamespaces)
     {
+        ExtensionId extensionId = extensionIds.peek();
         if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
             trialLicenseGenerator.generateTrialLicense(extensionId);
         } else {
-            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
-
-            if (installedExtension == null) {
-                return;
-            }
-            Collection<String> namespaces = installedExtension.getNamespaces();
-            if (namespaces == null) {
-                checkDependenciesForTrialLicense(installedExtension, null);
+            if (extensionNamespaces == null) {
+                checkDependenciesForTrialLicense(extensionId, null, extensionIds);
             } else {
-                for (String namespace : namespaces) {
-                    checkDependenciesForTrialLicense(installedExtension, namespace);
+                for (String namespace : extensionNamespaces) {
+                    checkDependenciesForTrialLicense(extensionId, namespace, extensionIds);
                 }
             }
         }
     }
 
-    private void checkDependenciesForTrialLicense(InstalledExtension installedExtension, String namespace)
+    private void checkDependenciesForTrialLicense(ExtensionId extensionId, String namespace,
+        Stack<ExtensionId> verifiedExtensions)
     {
+        InstalledExtension installedExtension =
+            installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace);
+        if (installedExtension == null) {
+            return;
+        }
+
         Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+
         for (ExtensionDependency dependency : dependencies) {
             InstalledExtension installedDependency =
                 installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
-            if (installedDependency != null) {
-                tryGenerateTrialLicenseRecursive(installedDependency.getId());
+            if (installedDependency != null && verifiedExtensions.search(installedDependency.getId()) == -1) {
+                verifiedExtensions.push(installedDependency.getId());
+                tryGenerateTrialLicenseRecursive(verifiedExtensions,
+                    namespace != null ? Arrays.asList(namespace) : null);
             }
         }
     }
