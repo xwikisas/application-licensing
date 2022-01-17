@@ -123,9 +123,9 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     @Override
     public Set<ExtensionId> getMandatoryLicensedExtensions()
     {
-        Set<ExtensionId> cache = computeMandatoryLicensedExtensions();
-        this.cachedMandatoryLicensedExtensions = cache;
-        return cache;
+        Set<ExtensionId> mandatoryLicensedExtensions = computeMandatoryLicensedExtensions();
+        this.cachedMandatoryLicensedExtensions = mandatoryLicensedExtensions;
+        return mandatoryLicensedExtensions;
     }
 
     private synchronized Set<ExtensionId> computeMandatoryLicensedExtensions()
