@@ -123,14 +123,22 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     @Override
     public Set<ExtensionId> getMandatoryLicensedExtensions()
     {
+        Set<ExtensionId> cache = computeMandatoryLicensedExtensions();
+        this.cachedMandatoryLicensedExtensions = cache;
+        return cache;
+    }
+
+    private synchronized Set<ExtensionId> computeMandatoryLicensedExtensions()
+    {
         if (this.cachedMandatoryLicensedExtensions != null) {
             return this.cachedMandatoryLicensedExtensions;
         }
 
+        Set<ExtensionId> mandatoryLicensedExtensions = new HashSet<ExtensionId>();
         Collection<ExtensionId> allLicensedExtensions = getLicensedExtensions();
         // Extensions for which it was verified if the dependencies contain licensed extensions.
-        Collection<ExtensionId> verifiedExtensions = new ArrayList<ExtensionId>();
-        this.cachedMandatoryLicensedExtensions = new HashSet<ExtensionId>(allLicensedExtensions);
+        Set<ExtensionId> verifiedExtensions = new HashSet<ExtensionId>();
+        mandatoryLicensedExtensions = new HashSet<ExtensionId>(allLicensedExtensions);
 
         for (ExtensionId extensionId : allLicensedExtensions) {
             InstalledExtension installedExtension =
@@ -143,35 +151,33 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             for (String namespace : installedExtension.getNamespaces()) {
                 searchLicensedDependenciesRecursive(
                     this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace), namespace,
-                    verifiedExtensions);
+                    verifiedExtensions, mandatoryLicensedExtensions);
             }
         }
 
-        return this.cachedMandatoryLicensedExtensions;
+        return mandatoryLicensedExtensions;
     }
 
     private void searchLicensedDependenciesRecursive(InstalledExtension installedExtension, String namespace,
-        Collection<ExtensionId> verifiedExtensions)
+        Collection<ExtensionId> verifiedExtensions, Set<ExtensionId> mandatoryLicensedExtensions)
     {
         Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
         for (ExtensionDependency dependency : dependencies) {
             InstalledExtension installedDependency =
                 this.installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
             if (installedDependency == null) {
-                return;
+                continue;
             }
 
             ExtensionId dependencyId = installedDependency.getId();
-            if (this.cachedMandatoryLicensedExtensions.stream()
-                .anyMatch(mandatoryExtensionId -> mandatoryExtensionId.equals(dependencyId))) {
-                this.cachedMandatoryLicensedExtensions.remove(dependencyId);
-            }
+            mandatoryLicensedExtensions.remove(dependencyId);
 
             if (verifiedExtensions.contains(installedDependency.getId())) {
-                return;
+                continue;
             }
             verifiedExtensions.add(dependencyId);
-            searchLicensedDependenciesRecursive(installedDependency, namespace, verifiedExtensions);
+            searchLicensedDependenciesRecursive(installedDependency, namespace, verifiedExtensions,
+                mandatoryLicensedExtensions);
         }
     }
 

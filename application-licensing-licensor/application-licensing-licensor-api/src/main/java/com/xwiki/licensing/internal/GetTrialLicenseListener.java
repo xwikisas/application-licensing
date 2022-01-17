@@ -85,9 +85,9 @@ public class GetTrialLicenseListener implements EventListener
 
         for (ExtensionId extensionId : extensions) {
             InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
-            Stack<ExtensionId> extensionIds = new Stack<>();
-            extensionIds.push(extensionId);
-            tryGenerateTrialLicenseRecursive(extensionIds, installedExtension.getNamespaces());
+            Stack<ExtensionId> dependencyPath = new Stack<>();
+            dependencyPath.push(extensionId);
+            tryGenerateTrialLicenseRecursive(dependencyPath, installedExtension.getNamespaces());
         }
 
         licensedExtensionManager.invalidateMandatoryLicensedExtensionsCache();
@@ -98,28 +98,28 @@ public class GetTrialLicenseListener implements EventListener
      * dependencies, check also to see if there aren't any paid dependencies, direct or transitive, that need a trial
      * license.
      *
-     * @param extensionIds the extensions for which to generate a trial license
+     * @param dependencyPath the extensions for which to generate a trial license
      * @param extensionNamespaces the namespaces where this extension is installed
      */
-    public void tryGenerateTrialLicenseRecursive(Stack<ExtensionId> extensionIds,
+    private void tryGenerateTrialLicenseRecursive(Stack<ExtensionId> dependencyPath,
         Collection<String> extensionNamespaces)
     {
-        ExtensionId extensionId = extensionIds.peek();
+        ExtensionId extensionId = dependencyPath.peek();
         if (trialLicenseGenerator.canGenerateTrialLicense(extensionId)) {
             trialLicenseGenerator.generateTrialLicense(extensionId);
         } else {
             if (extensionNamespaces == null) {
-                checkDependenciesForTrialLicense(extensionId, null, extensionIds);
+                checkDependenciesForTrialLicense(extensionId, null, dependencyPath);
             } else {
                 for (String namespace : extensionNamespaces) {
-                    checkDependenciesForTrialLicense(extensionId, namespace, extensionIds);
+                    checkDependenciesForTrialLicense(extensionId, namespace, dependencyPath);
                 }
             }
         }
     }
 
     private void checkDependenciesForTrialLicense(ExtensionId extensionId, String namespace,
-        Stack<ExtensionId> verifiedExtensions)
+        Stack<ExtensionId> dependencyPath)
     {
         InstalledExtension installedExtension =
             installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace);
@@ -132,9 +132,9 @@ public class GetTrialLicenseListener implements EventListener
         for (ExtensionDependency dependency : dependencies) {
             InstalledExtension installedDependency =
                 installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
-            if (installedDependency != null && verifiedExtensions.search(installedDependency.getId()) == -1) {
-                verifiedExtensions.push(installedDependency.getId());
-                tryGenerateTrialLicenseRecursive(verifiedExtensions,
+            if (installedDependency != null && dependencyPath.search(installedDependency.getId()) == -1) {
+                dependencyPath.push(installedDependency.getId());
+                tryGenerateTrialLicenseRecursive(dependencyPath,
                     namespace != null ? Arrays.asList(namespace) : null);
             }
         }

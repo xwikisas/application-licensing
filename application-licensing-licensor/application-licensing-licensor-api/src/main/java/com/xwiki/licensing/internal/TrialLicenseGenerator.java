@@ -237,8 +237,7 @@ public class TrialLicenseGenerator
      */
     private Boolean isMandatoryLicensedExtension(ExtensionId extensionId)
     {
-        return licensedExtensionManager.getMandatoryLicensedExtensions().stream()
-            .anyMatch(mandatoryExtensionId -> mandatoryExtensionId.equals(extensionId));
+        return licensedExtensionManager.getMandatoryLicensedExtensions().contains(extensionId);
     }
 
     /**

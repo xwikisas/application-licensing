@@ -19,8 +19,7 @@
  */
 package com.xwiki.licensing.internal;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,72 +33,82 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.test.mockito.MockitoComponentManager;
 
 /**
  * Unit tests for {@link DefaultLicensedExtensionManager}.
  * 
  * @version $Id$
  */
+@ComponentTest
 public class DefaultLicensedExtensionManagerTest
 {
-    @Rule
-    public MockitoComponentMockingRule<DefaultLicensedExtensionManager> mocker =
-        new MockitoComponentMockingRule<>(DefaultLicensedExtensionManager.class);
 
+    @InjectMockComponents
+    DefaultLicensedExtensionManager licensedExtensionManager;
+
+    @MockComponent
     InstalledExtensionRepository installedExtensionRepository;
 
-    Map<String, Collection<InstalledExtension>> licensorDependencies;
-
+    @MockComponent
     InstalledExtension licensorExtension;
 
+    @MockComponent
     InstalledExtension pollsExtension;
 
+    @MockComponent
     InstalledExtension flashV1Extension;
 
+    @MockComponent
     ExtensionDependency flashV1Dependency;
 
+    @MockComponent
     InstalledExtension flashV2Extension;
+
+    @MockComponent
+    ExtensionDependency flashV2Dependency;
+
+    @MockComponent
+    InstalledExtension freeExtension;
+
+    @MockComponent
+    ExtensionDependency freeExtensionDependency;
+
+    Map<String, Collection<InstalledExtension>> licensorDependencies;
 
     ExtensionId flashV2ExtensionId;
 
     List<String> pollsNamespaces;
 
-    @Before
-    public void configure() throws Exception
+    @BeforeEach
+    public void configure(MockitoComponentManager componentManager)
     {
-        this.installedExtensionRepository = this.mocker.getInstance(InstalledExtensionRepository.class);
-
         this.licensorDependencies = new HashMap<>();
-        this.licensorExtension = mock(InstalledExtension.class);
         when(this.installedExtensionRepository
             .getInstalledExtension(DefaultLicensedExtensionManager.LICENSOR_EXTENSION_ID, null))
                 .thenReturn(this.licensorExtension);
 
-        this.pollsExtension = mock(InstalledExtension.class);
         ExtensionId pollsExtensionId = new ExtensionId("application-xpoll", "1.0");
         when(this.pollsExtension.getId()).thenReturn(pollsExtensionId);
         this.pollsNamespaces = Arrays.asList("main");
         when(this.pollsExtension.getNamespaces()).thenReturn(this.pollsNamespaces);
 
-        this.flashV1Extension = mock(InstalledExtension.class);
         ExtensionId flashV1ExtensionId = new ExtensionId("application-flash", "1.1");
         when(this.flashV1Extension.getId()).thenReturn(flashV1ExtensionId);
-        this.flashV1Dependency = mock(ExtensionDependency.class);
         when(this.flashV1Dependency.getId()).thenReturn(flashV1ExtensionId.getId());
         when(this.flashV1Extension.getNamespaces()).thenReturn(this.pollsNamespaces);
 
-        this.flashV2Extension = mock(InstalledExtension.class);
         this.flashV2ExtensionId = new ExtensionId("application-flash", "2.1");
         when(this.flashV2Extension.getId()).thenReturn(this.flashV2ExtensionId);
-        ExtensionDependency flashV2Dependency = mock(ExtensionDependency.class);
         when(flashV2Dependency.getId()).thenReturn(this.flashV2ExtensionId.getId());
 
         when(this.installedExtensionRepository.getInstalledExtension(pollsExtensionId)).thenReturn(this.pollsExtension);
@@ -127,7 +136,7 @@ public class DefaultLicensedExtensionManagerTest
         Set<ExtensionId> expected = new HashSet<>();
         expected.add(this.pollsExtension.getId());
 
-        Set<ExtensionId> result = this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions();
+        Set<ExtensionId> result = this.licensedExtensionManager.getMandatoryLicensedExtensions();
 
         assertEquals(expected, result);
     }
@@ -142,6 +151,8 @@ public class DefaultLicensedExtensionManagerTest
 
         List<String> flashV2Namespaces = Arrays.asList("wiki2");
         when(this.flashV2Extension.getNamespaces()).thenReturn(flashV2Namespaces);
+        when(this.installedExtensionRepository.getInstalledExtension(this.flashV2ExtensionId))
+            .thenReturn(this.flashV2Extension);
         when(this.installedExtensionRepository.getInstalledExtension(this.flashV2ExtensionId.getId(),
             flashV2Namespaces.get(0))).thenReturn(this.flashV2Extension);
 
@@ -149,7 +160,7 @@ public class DefaultLicensedExtensionManagerTest
         expected.add(this.pollsExtension.getId());
         expected.add(this.flashV2ExtensionId);
 
-        Set<ExtensionId> result = this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions();
+        Set<ExtensionId> result = this.licensedExtensionManager.getMandatoryLicensedExtensions();
 
         assertEquals(expected, result);
     }
@@ -161,10 +172,8 @@ public class DefaultLicensedExtensionManagerTest
         when(this.installedExtensionRepository.getBackwardDependencies(this.licensorExtension.getId()))
             .thenReturn(this.licensorDependencies);
 
-        InstalledExtension freeExtension = mock(InstalledExtension.class);
         ExtensionId freeExtensionId = new ExtensionId("application-free", "1.1");
         when(freeExtension.getId()).thenReturn(freeExtensionId);
-        ExtensionDependency freeExtensionDependency = mock(ExtensionDependency.class);
         when(freeExtensionDependency.getId()).thenReturn(freeExtensionId.getId());
         when(this.installedExtensionRepository.getInstalledExtension(freeExtensionDependency.getId(),
             this.pollsNamespaces.get(0))).thenReturn(freeExtension);
@@ -175,7 +184,7 @@ public class DefaultLicensedExtensionManagerTest
         Set<ExtensionId> expected = new HashSet<>();
         expected.add(this.pollsExtension.getId());
 
-        Set<ExtensionId> result = this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions();
+        Set<ExtensionId> result = this.licensedExtensionManager.getMandatoryLicensedExtensions();
 
         assertEquals(expected, result);
     }
@@ -191,8 +200,8 @@ public class DefaultLicensedExtensionManagerTest
         Set<ExtensionId> expected = new HashSet<>();
         expected.add(this.pollsExtension.getId());
 
-        assertEquals(expected, this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions());
-        assertEquals(expected, this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions());
+        assertEquals(expected, this.licensedExtensionManager.getMandatoryLicensedExtensions());
+        assertEquals(expected, this.licensedExtensionManager.getMandatoryLicensedExtensions());
 
         verify(this.installedExtensionRepository, times(1))
             .getInstalledExtension(DefaultLicensedExtensionManager.LICENSOR_EXTENSION_ID, null);
@@ -209,9 +218,9 @@ public class DefaultLicensedExtensionManagerTest
         Set<ExtensionId> expected = new HashSet<>();
         expected.add(this.pollsExtension.getId());
 
-        assertEquals(expected, this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions());
-        this.mocker.getComponentUnderTest().invalidateMandatoryLicensedExtensionsCache();
-        assertEquals(expected, this.mocker.getComponentUnderTest().getMandatoryLicensedExtensions());
+        assertEquals(expected, this.licensedExtensionManager.getMandatoryLicensedExtensions());
+        this.licensedExtensionManager.invalidateMandatoryLicensedExtensionsCache();
+        assertEquals(expected, this.licensedExtensionManager.getMandatoryLicensedExtensions());
 
         verify(this.installedExtensionRepository, times(2))
             .getInstalledExtension(DefaultLicensedExtensionManager.LICENSOR_EXTENSION_ID, null);
