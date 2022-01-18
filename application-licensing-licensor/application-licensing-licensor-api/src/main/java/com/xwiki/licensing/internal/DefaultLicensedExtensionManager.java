@@ -123,18 +123,21 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     @Override
     public Set<ExtensionId> getMandatoryLicensedExtensions()
     {
-        Set<ExtensionId> mandatoryLicensedExtensions = computeMandatoryLicensedExtensions();
-        this.cachedMandatoryLicensedExtensions = mandatoryLicensedExtensions;
-        return mandatoryLicensedExtensions;
+        Set<ExtensionId> mandatoryLicensedExtensions = this.cachedMandatoryLicensedExtensions;
+        if (mandatoryLicensedExtensions == null) {
+            mandatoryLicensedExtensions = computeMandatoryLicensedExtensions();
+            this.cachedMandatoryLicensedExtensions = mandatoryLicensedExtensions;
+        }
+        return Collections.unmodifiableSet(mandatoryLicensedExtensions);
     }
 
     private synchronized Set<ExtensionId> computeMandatoryLicensedExtensions()
     {
-        if (this.cachedMandatoryLicensedExtensions != null) {
-            return this.cachedMandatoryLicensedExtensions;
+        Set<ExtensionId> mandatoryLicensedExtensions = this.cachedMandatoryLicensedExtensions;
+        if (mandatoryLicensedExtensions != null) {
+            return mandatoryLicensedExtensions;
         }
 
-        Set<ExtensionId> mandatoryLicensedExtensions = new HashSet<ExtensionId>();
         Collection<ExtensionId> allLicensedExtensions = getLicensedExtensions();
         // Extensions for which it was verified if the dependencies contain licensed extensions.
         Set<ExtensionId> verifiedExtensions = new HashSet<ExtensionId>();
@@ -172,7 +175,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             ExtensionId dependencyId = installedDependency.getId();
             mandatoryLicensedExtensions.remove(dependencyId);
 
-            if (verifiedExtensions.contains(installedDependency.getId())) {
+            if (verifiedExtensions.contains(dependencyId)) {
                 continue;
             }
             verifiedExtensions.add(dependencyId);
