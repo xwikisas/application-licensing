@@ -80,6 +80,8 @@ public class GetTrialLicenseListener implements EventListener
     public void onEvent(Event event, Object source, Object data)
     {
         List<ExtensionId> extensions = ((JobFinishedEvent) event).getRequest().getProperty("extensions");
+
+        licensedExtensionManager.invalidateMandatoryLicensedExtensionsCache();
         // Retrieve license updates to be sure that we don't override an existing license.
         trialLicenseGenerator.updateLicenses();
 
@@ -89,8 +91,6 @@ public class GetTrialLicenseListener implements EventListener
             dependencyPath.push(extensionId);
             tryGenerateTrialLicenseRecursive(dependencyPath, installedExtension.getNamespaces());
         }
-
-        licensedExtensionManager.invalidateMandatoryLicensedExtensionsCache();
     }
 
     /**
