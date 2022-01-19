@@ -61,6 +61,13 @@ public interface LicensedExtensionManager
      * the license of other installed extensions (there aren't any other licensed extensions that depend on them).
      *
      * @return licensed extensions that are not dependencies of other licensed extensions
+     * @since 1.17
      */
     Collection<ExtensionId> getMandatoryLicensedExtensions();
+
+    /**
+     * Invalidate the cached list of mandatory licensed extensions.
+     * @since 1.21.1
+     */
+    void invalidateMandatoryLicensedExtensionsCache();
 }

@@ -132,8 +132,8 @@ public class TrialLicenseGenerator
      */
     public Boolean canGenerateTrialLicense(ExtensionId extensionId)
     {
-        return isOwnerDataComplete() && isMandatoryLicensedExtension(extensionId)
-            && License.UNLICENSED.equals(licensorProvider.get().getLicense(extensionId));
+        return License.UNLICENSED.equals(licensorProvider.get().getLicense(extensionId)) && isOwnerDataComplete()
+            && isMandatoryLicensedExtension(extensionId);
     }
 
     /**
@@ -237,8 +237,7 @@ public class TrialLicenseGenerator
      */
     private Boolean isMandatoryLicensedExtension(ExtensionId extensionId)
     {
-        return licensedExtensionManager.getMandatoryLicensedExtensions().stream()
-            .filter(extension -> extension.getId().contentEquals(extensionId.getId())).findFirst().isPresent();
+        return licensedExtensionManager.getMandatoryLicensedExtensions().contains(extensionId);
     }
 
     /**

@@ -60,6 +60,11 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
      */
     public static final String LICENSOR_EXTENSION_ID = "com.xwiki.licensing:application-licensing-licensor-api";
 
+    /**
+     * Cache the list of installed licensed extensions that are not covered by the license of another extension.
+     */
+    private Set<ExtensionId> cachedMandatoryLicensedExtensions;
+
     @Inject
     private Logger logger;
 
@@ -116,23 +121,72 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     }
 
     @Override
-    public Collection<ExtensionId> getMandatoryLicensedExtensions()
+    public Set<ExtensionId> getMandatoryLicensedExtensions()
     {
-        Collection<ExtensionId> paidExtensions = getLicensedExtensions();
+        Set<ExtensionId> mandatoryLicensedExtensions = this.cachedMandatoryLicensedExtensions;
+        if (mandatoryLicensedExtensions == null) {
+            mandatoryLicensedExtensions = computeMandatoryLicensedExtensions();
+            this.cachedMandatoryLicensedExtensions = mandatoryLicensedExtensions;
+        }
+        return Collections.unmodifiableSet(mandatoryLicensedExtensions);
+    }
 
-        Set<ExtensionId> visiblePaidExtensions = new HashSet<ExtensionId>(paidExtensions);
-        for (ExtensionId extensionId : paidExtensions) {
-            InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);
+    private synchronized Set<ExtensionId> computeMandatoryLicensedExtensions()
+    {
+        Set<ExtensionId> mandatoryLicensedExtensions = this.cachedMandatoryLicensedExtensions;
+        if (mandatoryLicensedExtensions != null) {
+            return mandatoryLicensedExtensions;
+        }
 
-            Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
-            for (ExtensionId paidExtension : paidExtensions) {
-                if (dependencies.stream().filter(dependency -> dependency.getId().equals(paidExtension.getId()))
-                    .findFirst().isPresent()) {
-                    visiblePaidExtensions.remove(paidExtension);
-                }
+        Collection<ExtensionId> allLicensedExtensions = getLicensedExtensions();
+        // Extensions for which it was verified if the dependencies contain licensed extensions.
+        Set<ExtensionId> verifiedExtensions = new HashSet<ExtensionId>();
+        mandatoryLicensedExtensions = new HashSet<ExtensionId>(allLicensedExtensions);
+
+        for (ExtensionId extensionId : allLicensedExtensions) {
+            InstalledExtension installedExtension =
+                this.installedExtensionRepository.getInstalledExtension(extensionId);
+            if (installedExtension == null) {
+                continue;
+            }
+
+            verifiedExtensions.add(extensionId);
+            for (String namespace : installedExtension.getNamespaces()) {
+                searchLicensedDependenciesRecursive(
+                    this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace), namespace,
+                    verifiedExtensions, mandatoryLicensedExtensions);
             }
         }
 
-        return visiblePaidExtensions;
+        return mandatoryLicensedExtensions;
+    }
+
+    private void searchLicensedDependenciesRecursive(InstalledExtension installedExtension, String namespace,
+        Collection<ExtensionId> verifiedExtensions, Set<ExtensionId> mandatoryLicensedExtensions)
+    {
+        Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+        for (ExtensionDependency dependency : dependencies) {
+            InstalledExtension installedDependency =
+                this.installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
+            if (installedDependency == null) {
+                continue;
+            }
+
+            ExtensionId dependencyId = installedDependency.getId();
+            mandatoryLicensedExtensions.remove(dependencyId);
+
+            if (verifiedExtensions.contains(dependencyId)) {
+                continue;
+            }
+            verifiedExtensions.add(dependencyId);
+            searchLicensedDependenciesRecursive(installedDependency, namespace, verifiedExtensions,
+                mandatoryLicensedExtensions);
+        }
+    }
+
+    @Override
+    public void invalidateMandatoryLicensedExtensionsCache()
+    {
+        this.cachedMandatoryLicensedExtensions = null;
     }
 }
