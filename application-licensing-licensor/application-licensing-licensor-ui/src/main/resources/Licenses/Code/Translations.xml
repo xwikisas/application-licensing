@@ -37,6 +37,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>admin.licenses=Licenses
+admin.licenses.description=View the list of installed extensions that require a license. Set the license owner. Buy licenses for paid extensions or get trial licenses to test them. Check for license updates. Configure automatic upgrades for licensed extensions.
 licensor.name=Extension Name
 licensor.version=Version
 licensor.status=Expiration Date
