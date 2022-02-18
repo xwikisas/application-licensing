@@ -94,19 +94,19 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getAutoUpgradeBlocklist()
+    public List<String> getAutoUpgradeAllowlist()
     {
         // Since you cannot pass a default value and a target type to getProperty, the class of defaultValue is used
         // for converting the result. In this case there is no converter for EmptyList, so we manage the result
         // manually.
-        Object blocklist = this.automaticUpgradesConfig.getProperty("blocklist");
-        if (blocklist instanceof List) {
-            return ((List<Object>) blocklist).stream().map(item -> Objects.toString(item, null))
+        Object allowlist = this.automaticUpgradesConfig.getProperty("allowlist");
+        if (allowlist instanceof List) {
+            return ((List<Object>) allowlist).stream().map(item -> Objects.toString(item, null))
                 .collect(Collectors.toList());
-        } else if (blocklist == null) {
+        } else if (allowlist == null) {
             return Collections.emptyList();
         } else {
-            throw new RuntimeException(String.format("Cannot convert [%s] to List", blocklist));
+            throw new RuntimeException(String.format("Cannot convert [%s] to List", allowlist));
         }
     }
 

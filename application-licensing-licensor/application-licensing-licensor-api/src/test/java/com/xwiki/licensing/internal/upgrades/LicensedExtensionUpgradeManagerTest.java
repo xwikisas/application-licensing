@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,10 +80,10 @@ public class LicensedExtensionUpgradeManagerTest
     }
 
     @Test
-    public void upgradeLicensedExtensionsOnNamespaceWithoutBlocklist() throws Exception
+    public void upgradeLicensedExtensionsOnNamespaceWithAllowlist() throws Exception
     {
         String namespace = "wiki:test";
-        when(this.licensingConfig.getAutoUpgradeBlocklist()).thenReturn(Collections.emptyList());
+        when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
 
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
@@ -97,15 +98,17 @@ public class LicensedExtensionUpgradeManagerTest
 
         mocker.getComponentUnderTest().upgradeLicensedExtensions();
 
-        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension1), eq(namespace));
-        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension2), eq(namespace));
+        verify(this.upgradeExtensionHandler, times(1)).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
+            eq(namespace));
+        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension2),
+            eq(namespace));
     }
 
     @Test
-    public void upgradeLicensedExtensionsWithBlocklist() throws Exception
+    public void upgradeLicensedExtensionsWithoutAllowlist() throws Exception
     {
         String namespace = "wiki:test";
-        when(this.licensingConfig.getAutoUpgradeBlocklist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
+        when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Collections.emptyList());
 
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
@@ -115,13 +118,15 @@ public class LicensedExtensionUpgradeManagerTest
         when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(installedExtension1);
         when(this.installedRepository.getInstalledExtension(this.extensionId2)).thenReturn(installedExtension2);
 
+        when(installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
         when(installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
 
         mocker.getComponentUnderTest().upgradeLicensedExtensions();
 
-        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension2), eq(namespace));
-
         verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
+            eq(namespace));
+
+        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension2),
             eq(namespace));
 
     }
@@ -129,7 +134,7 @@ public class LicensedExtensionUpgradeManagerTest
     @Test
     public void upgradeLicensedExtensionsOnRootNamespace() throws Exception
     {
-        when(this.licensingConfig.getAutoUpgradeBlocklist()).thenReturn(Collections.emptyList());
+        when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
         when(this.licensedExtensionManager.getLicensedExtensions()).thenReturn(Arrays.asList(this.extensionId1));
 
         InstalledExtension installedExtension1 = mock(InstalledExtension.class);
@@ -139,6 +144,7 @@ public class LicensedExtensionUpgradeManagerTest
 
         mocker.getComponentUnderTest().upgradeLicensedExtensions();
 
-        verify(this.upgradeExtensionHandler).tryUpgradeExtensionToLastVersion(eq(installedExtension1), isNull());
+        verify(this.upgradeExtensionHandler, times(1)).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
+            isNull());
     }
 }

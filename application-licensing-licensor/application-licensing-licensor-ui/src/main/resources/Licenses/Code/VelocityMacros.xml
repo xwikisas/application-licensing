@@ -203,7 +203,7 @@
 #macro (moreActionsButton $extensionId)
   #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
   #set ($autoUpgradesObj = $licensingConfigDoc.getObject('Licenses.Code.AutomaticUpgradesClass'))
-  #set ($isAutoUpgrade = !$autoUpgradesObj.getValue('blocklist').contains($extensionId))
+  #set ($isAutoUpgrade = $autoUpgradesObj.getValue('allowlist').contains($extensionId))
   &lt;div class="btn-group"&gt;
     &lt;a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
       title="$services.localization.render("licensor.moreActions")" role="button"&gt;
@@ -214,9 +214,9 @@
         &lt;form target="_blank" class="xform half"&gt;
             &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
             &lt;input type="hidden" name="extensionId" value="$extensionId" /&gt;
-            &lt;input type="checkbox" name="autoUpgrade" #if (!$isAutoUpgrade) checked #end /&gt;
+            &lt;input type="checkbox" name="autoUpgrade" #if ($isAutoUpgrade) checked #end /&gt;
             &lt;label for="autoUpgrade"&gt;
-              $services.localization.render("licensor.moreActions.autoUpgrade.block")
+              $services.localization.render("licensor.moreActions.autoUpgrade.allow")
             &lt;/label&gt;
         &lt;/form&gt;
       &lt;/li&gt;

@@ -70,30 +70,30 @@ public class DefaultLicensingConfigurationTest
     }
 
     @Test
-    public void getBlocklist() throws Exception
+    public void getAllowlist() throws Exception
     {
         // Since getProperty method returns a list of objects, we check also that the conversion to string is done
         // correctly.
-        List<Object> blocklist = Arrays.asList(1, 2, null);
+        List<Object> allowlist = Arrays.asList(1, 2, null);
 
-        when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn(blocklist);
+        when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(allowlist);
 
-        assertEquals(Arrays.asList("1", "2", null), mocker.getComponentUnderTest().getAutoUpgradeBlocklist());
+        assertEquals(Arrays.asList("1", "2", null), mocker.getComponentUnderTest().getAutoUpgradeAllowlist());
     }
 
     @Test(expected = RuntimeException.class)
-    public void getBlocklistWithException() throws Exception
+    public void getAllowlistWithException() throws Exception
     {
-        when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn("not a list");
-        mocker.getComponentUnderTest().getAutoUpgradeBlocklist();
+        when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn("not a list");
+        mocker.getComponentUnderTest().getAutoUpgradeAllowlist();
     }
 
     @Test
-    public void getBlocklistWithEmptyList() throws Exception
+    public void getAllowlistWithEmptyList() throws Exception
     {
-        when(this.autoUpgradesConfig.getProperty("blocklist")).thenReturn(null);
+        when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(null);
 
-        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getAutoUpgradeBlocklist());
+        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getAutoUpgradeAllowlist());
     }
 
     @Test
