@@ -57,7 +57,7 @@
       <largeStorage>0</largeStorage>
       <multiSelect>1</multiSelect>
       <name>allowlist</name>
-      <number>2</number>
+      <number>1</number>
       <picker>0</picker>
       <prettyName>allowlist</prettyName>
       <relationalStorage>1</relationalStorage>

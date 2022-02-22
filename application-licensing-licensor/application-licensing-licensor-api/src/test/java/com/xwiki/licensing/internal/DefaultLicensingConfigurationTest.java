@@ -20,7 +20,6 @@
 package com.xwiki.licensing.internal;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -28,45 +27,41 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Named;
 import javax.inject.Provider;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.xwiki.component.util.DefaultParameterizedType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.xwiki.licensing.LicensingConfiguration;
-
+@ComponentTest
 public class DefaultLicensingConfigurationTest
 {
-    @Rule
-    public MockitoComponentMockingRule<LicensingConfiguration> mocker =
-        new MockitoComponentMockingRule<>(DefaultLicensingConfiguration.class);
+    @InjectMockComponents
+    private DefaultLicensingConfiguration licensingConfiguration;
 
+    @MockComponent
+    @Named("LicensedExtensionAutomaticUpgrades")
     private ConfigurationSource autoUpgradesConfig;
 
-    private ConfigurationSource configurationSource;
-
+    @MockComponent
     private Environment environment;
 
-    @Before
-    public void configure() throws Exception
+    @MockComponent
+    private Provider<ConfigurationSource> configurationSourceProvider;
+
+    @Mock
+    private ConfigurationSource configurationSource;
+
+    @BeforeEach
+    void configure()
     {
-        this.autoUpgradesConfig =
-            this.mocker.getInstance(ConfigurationSource.class, "LicensedExtensionAutomaticUpgrades");
-
-        DefaultParameterizedType configurationSourceProviderType =
-            new DefaultParameterizedType(null, Provider.class, ConfigurationSource.class);
-        Provider<ConfigurationSource> configurationSourceProvider =
-            this.mocker.registerMockComponent(configurationSourceProviderType);
-
-        configurationSource = mock(ConfigurationSource.class);
-        when(configurationSourceProvider.get()).thenReturn(configurationSource);
-
-        environment = this.mocker.getInstance(Environment.class);
+        when(this.configurationSourceProvider.get()).thenReturn(this.configurationSource);
     }
 
     @Test
@@ -78,14 +73,18 @@ public class DefaultLicensingConfigurationTest
 
         when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(allowlist);
 
-        assertEquals(Arrays.asList("1", "2", null), mocker.getComponentUnderTest().getAutoUpgradeAllowlist());
+        assertEquals(Arrays.asList("1", "2", null), this.licensingConfiguration.getAutoUpgradeAllowlist());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void getAllowlistWithException() throws Exception
     {
-        when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn("not a list");
-        mocker.getComponentUnderTest().getAutoUpgradeAllowlist();
+        try {
+            when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn("not a list");
+            this.licensingConfiguration.getAutoUpgradeAllowlist();
+        } catch (RuntimeException expected) {
+            assertEquals("Cannot convert [not a list] to List", expected.getMessage());
+        }
     }
 
     @Test
@@ -93,7 +92,7 @@ public class DefaultLicensingConfigurationTest
     {
         when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(null);
 
-        assertEquals(Collections.emptyList(), mocker.getComponentUnderTest().getAutoUpgradeAllowlist());
+        assertEquals(Collections.emptyList(), this.licensingConfiguration.getAutoUpgradeAllowlist());
     }
 
     @Test
@@ -102,7 +101,7 @@ public class DefaultLicensingConfigurationTest
         when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn("storePath");
         File storeFile = new File("storePath");
 
-        assertEquals(storeFile, this.mocker.getComponentUnderTest().getLocalStorePath());
+        assertEquals(storeFile, this.licensingConfiguration.getLocalStorePath());
     }
 
     @Test
@@ -114,6 +113,6 @@ public class DefaultLicensingConfigurationTest
         File storeFile = new File(permanentDirectoryFile, "licenses");
         when(this.environment.getPermanentDirectory()).thenReturn(permanentDirectoryFile);
 
-        assertEquals(storeFile, this.mocker.getComponentUnderTest().getLocalStorePath());
+        assertEquals(storeFile, this.licensingConfiguration.getLocalStorePath());
     }
 }

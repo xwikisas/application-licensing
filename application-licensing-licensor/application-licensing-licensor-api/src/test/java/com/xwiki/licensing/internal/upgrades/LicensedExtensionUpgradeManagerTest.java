@@ -21,23 +21,24 @@ package com.xwiki.licensing.internal.upgrades;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.version.internal.DefaultVersion;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
@@ -48,35 +49,39 @@ import com.xwiki.licensing.LicensingConfiguration;
  * @version $Id$
  * @since 1.17
  */
+@ComponentTest
 public class LicensedExtensionUpgradeManagerTest
 {
-    @Rule
-    public MockitoComponentMockingRule<LicensedExtensionUpgradeManager> mocker =
-        new MockitoComponentMockingRule<>(LicensedExtensionUpgradeManager.class);
+    @InjectMockComponents
+    private LicensedExtensionUpgradeManager licensedExtensionUpgradeManager;
 
+    @MockComponent
     private InstalledExtensionRepository installedRepository;
 
+    @MockComponent
     private UpgradeExtensionHandler upgradeExtensionHandler;
 
+    @MockComponent
     private LicensedExtensionManager licensedExtensionManager;
 
+    @MockComponent
     private LicensingConfiguration licensingConfig;
+
+    @Mock
+    private InstalledExtension installedExtension1;
+
+    @Mock
+    private InstalledExtension installedExtension2;
 
     private ExtensionId extensionId1;
 
     private ExtensionId extensionId2;
 
-    @Before
+    @BeforeEach
     public void configure() throws Exception
     {
-        this.installedRepository = this.mocker.getInstance(InstalledExtensionRepository.class);
-        this.upgradeExtensionHandler = this.mocker.getInstance(UpgradeExtensionHandler.class);
-        this.licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
-        this.licensingConfig = this.mocker.getInstance(LicensingConfiguration.class);
-
         this.extensionId1 = new ExtensionId("extensionId1", new DefaultVersion("1.0"));
         this.extensionId2 = new ExtensionId("extensionId2", new DefaultVersion("2.0"));
-
     }
 
     @Test
@@ -88,19 +93,17 @@ public class LicensedExtensionUpgradeManagerTest
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
 
-        InstalledExtension installedExtension1 = mock(InstalledExtension.class);
-        InstalledExtension installedExtension2 = mock(InstalledExtension.class);
-        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(installedExtension1);
-        when(this.installedRepository.getInstalledExtension(this.extensionId2)).thenReturn(installedExtension2);
+        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(this.installedExtension1);
+        when(this.installedRepository.getInstalledExtension(this.extensionId2)).thenReturn(this.installedExtension2);
 
-        when(installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
-        when(installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
 
-        mocker.getComponentUnderTest().upgradeLicensedExtensions();
+        this.licensedExtensionUpgradeManager.upgradeLicensedExtensions();
 
-        verify(this.upgradeExtensionHandler, times(1)).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
+        verify(this.upgradeExtensionHandler, times(1)).tryUpgradeExtensionToLastVersion(eq(this.installedExtension1),
             eq(namespace));
-        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension2),
+        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(this.installedExtension2),
             eq(namespace));
     }
 
@@ -113,20 +116,18 @@ public class LicensedExtensionUpgradeManagerTest
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
 
-        InstalledExtension installedExtension1 = mock(InstalledExtension.class);
-        InstalledExtension installedExtension2 = mock(InstalledExtension.class);
-        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(installedExtension1);
-        when(this.installedRepository.getInstalledExtension(this.extensionId2)).thenReturn(installedExtension2);
+        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(this.installedExtension1);
+        when(this.installedRepository.getInstalledExtension(this.extensionId2)).thenReturn(this.installedExtension2);
 
-        when(installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
-        when(installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension2.getNamespaces()).thenReturn(Arrays.asList(namespace));
 
-        mocker.getComponentUnderTest().upgradeLicensedExtensions();
+        this.licensedExtensionUpgradeManager.upgradeLicensedExtensions();
 
-        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
+        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(this.installedExtension1),
             eq(namespace));
 
-        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(installedExtension2),
+        verify(this.upgradeExtensionHandler, never()).tryUpgradeExtensionToLastVersion(eq(this.installedExtension2),
             eq(namespace));
 
     }
@@ -137,14 +138,13 @@ public class LicensedExtensionUpgradeManagerTest
         when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
         when(this.licensedExtensionManager.getLicensedExtensions()).thenReturn(Arrays.asList(this.extensionId1));
 
-        InstalledExtension installedExtension1 = mock(InstalledExtension.class);
-        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(installedExtension1);
+        when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(this.installedExtension1);
 
-        when(installedExtension1.getNamespaces()).thenReturn(null);
+        when(this.installedExtension1.getNamespaces()).thenReturn(null);
 
-        mocker.getComponentUnderTest().upgradeLicensedExtensions();
+        this.licensedExtensionUpgradeManager.upgradeLicensedExtensions();
 
-        verify(this.upgradeExtensionHandler, times(1)).tryUpgradeExtensionToLastVersion(eq(installedExtension1),
+        verify(this.upgradeExtensionHandler, times(1)).tryUpgradeExtensionToLastVersion(eq(this.installedExtension1),
             isNull());
     }
 }
