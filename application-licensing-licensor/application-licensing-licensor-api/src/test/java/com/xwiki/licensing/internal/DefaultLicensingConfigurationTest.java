@@ -40,7 +40,7 @@ import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 @ComponentTest
-public class DefaultLicensingConfigurationTest
+class DefaultLicensingConfigurationTest
 {
     @InjectMockComponents
     private DefaultLicensingConfiguration licensingConfiguration;
