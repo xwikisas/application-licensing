@@ -50,7 +50,7 @@ import com.xwiki.licensing.LicensingConfiguration;
  * @since 1.17
  */
 @ComponentTest
-public class LicensedExtensionUpgradeManagerTest
+class LicensedExtensionUpgradeManagerTest
 {
     @InjectMockComponents
     private LicensedExtensionUpgradeManager licensedExtensionUpgradeManager;
