@@ -65,7 +65,7 @@ public class DefaultLicensingConfigurationTest
     }
 
     @Test
-    public void getAllowlist() throws Exception
+    void getAllowList() throws Exception
     {
         // Since getProperty method returns a list of objects, we check also that the conversion to string is done
         // correctly.
@@ -73,30 +73,30 @@ public class DefaultLicensingConfigurationTest
 
         when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(allowlist);
 
-        assertEquals(Arrays.asList("1", "2", null), this.licensingConfiguration.getAutoUpgradeAllowlist());
+        assertEquals(Arrays.asList("1", "2", null), this.licensingConfiguration.getAutoUpgradeAllowList());
     }
 
     @Test
-    public void getAllowlistWithException() throws Exception
+    void getAllowListWithException() throws Exception
     {
         try {
             when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn("not a list");
-            this.licensingConfiguration.getAutoUpgradeAllowlist();
+            this.licensingConfiguration.getAutoUpgradeAllowList();
         } catch (RuntimeException expected) {
             assertEquals("Cannot convert [not a list] to List", expected.getMessage());
         }
     }
 
     @Test
-    public void getAllowlistWithEmptyList() throws Exception
+    void getAllowListWithEmptyList() throws Exception
     {
         when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(null);
 
-        assertEquals(Collections.emptyList(), this.licensingConfiguration.getAutoUpgradeAllowlist());
+        assertEquals(Collections.emptyList(), this.licensingConfiguration.getAutoUpgradeAllowList());
     }
 
     @Test
-    public void getLocalStorePath() throws Exception
+    void getLocalStorePath() throws Exception
     {
         when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn("storePath");
         File storeFile = new File("storePath");
@@ -105,7 +105,7 @@ public class DefaultLicensingConfigurationTest
     }
 
     @Test
-    public void getLocalStorePathWithNullProperty() throws Exception
+    void getLocalStorePathWithNullProperty() throws Exception
     {
         when(this.configurationSource.getProperty("licensing.localStorePath")).thenReturn(null);
 

@@ -85,10 +85,10 @@ public class LicensedExtensionUpgradeManagerTest
     }
 
     @Test
-    public void upgradeLicensedExtensionsOnNamespaceWithAllowlist() throws Exception
+    void upgradeLicensedExtensionsOnNamespaceWithAllowList() throws Exception
     {
         String namespace = "wiki:test";
-        when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
+        when(this.licensingConfig.getAutoUpgradeAllowList()).thenReturn(Arrays.asList(this.extensionId1.getId()));
 
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
@@ -108,10 +108,10 @@ public class LicensedExtensionUpgradeManagerTest
     }
 
     @Test
-    public void upgradeLicensedExtensionsWithoutAllowlist() throws Exception
+    void upgradeLicensedExtensionsWithoutAllowList() throws Exception
     {
         String namespace = "wiki:test";
-        when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Collections.emptyList());
+        when(this.licensingConfig.getAutoUpgradeAllowList()).thenReturn(Collections.emptyList());
 
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
@@ -133,9 +133,9 @@ public class LicensedExtensionUpgradeManagerTest
     }
 
     @Test
-    public void upgradeLicensedExtensionsOnRootNamespace() throws Exception
+    void upgradeLicensedExtensionsOnRootNamespace() throws Exception
     {
-        when(this.licensingConfig.getAutoUpgradeAllowlist()).thenReturn(Arrays.asList(this.extensionId1.getId()));
+        when(this.licensingConfig.getAutoUpgradeAllowList()).thenReturn(Arrays.asList(this.extensionId1.getId()));
         when(this.licensedExtensionManager.getLicensedExtensions()).thenReturn(Arrays.asList(this.extensionId1));
 
         when(this.installedRepository.getInstalledExtension(this.extensionId1)).thenReturn(this.installedExtension1);

@@ -94,7 +94,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getAutoUpgradeAllowlist()
+    public List<String> getAutoUpgradeAllowList()
     {
         // Since you cannot pass a default value and a target type to getProperty, the class of defaultValue is used
         // for converting the result. In this case there is no converter for EmptyList, so we manage the result

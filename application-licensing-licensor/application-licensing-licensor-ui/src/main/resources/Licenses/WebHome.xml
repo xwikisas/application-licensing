@@ -475,9 +475,9 @@
         data
       );
     },
-    modifyAutoUpgradesAllowlist: function(data) {
+    modifyAutoUpgradesAllowList: function(data) {
       return $.post(
-        new XWiki.Document('UpdateAutomaticUpgradesAllowlist', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
+        new XWiki.Document('UpdateAutomaticUpgradesAllowList', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
         data
       );
     }
@@ -686,7 +686,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
 
   $(document).on('click', 'input[name=autoUpgrade]', function() {
     var autoUpgradeForm = $(this).parent('form').serializeArray();
-    licensor.modifyAutoUpgradesAllowlist(autoUpgradeForm).success(function(data) {
+    licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).success(function(data) {
       if(data.isAutoUpgrade) {
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');

@@ -42,7 +42,7 @@ public interface LicensingConfiguration
      *
      * @return the list of extensions to be upgraded
      */
-    List<String> getAutoUpgradeAllowlist();
+    List<String> getAutoUpgradeAllowList();
 
     /**
      * Get the URL used in retrieving a trial license of an extension from store.
