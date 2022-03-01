@@ -50,7 +50,7 @@ import org.xwiki.test.mockito.MockitoComponentManager;
  * @version $Id$
  */
 @ComponentTest
-public class DefaultLicensedExtensionManagerTest
+class DefaultLicensedExtensionManagerTest
 {
 
     @InjectMockComponents

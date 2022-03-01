@@ -51,17 +51,20 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
-      <blocklist>
+      <allowlist>
         <cache>0</cache>
         <customDisplay/>
+        <defaultValue/>
         <disabled>0</disabled>
         <displayType>input</displayType>
+        <freeText/>
         <hint/>
+        <largeStorage>0</largeStorage>
         <multiSelect>1</multiSelect>
-        <name>blocklist</name>
+        <name>allowlist</name>
         <number>1</number>
         <picker>0</picker>
-        <prettyName>blocklist</prettyName>
+        <prettyName>allowlist</prettyName>
         <relationalStorage>1</relationalStorage>
         <separator> </separator>
         <separators>|, </separators>
@@ -72,10 +75,10 @@
         <validationRegExp/>
         <values/>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </blocklist>
+      </allowlist>
     </class>
     <property>
-      <blocklist/>
+      <allowlist/>
     </property>
   </object>
   <object>

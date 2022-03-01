@@ -38,11 +38,11 @@ public interface LicensingConfiguration
     File getLocalStorePath();
 
     /**
-     * Get the list of extensions that should not be upgraded automatically.
+     * Get the list of extensions that should be upgraded automatically.
      *
-     * @return the list of blocklisted extensions for upgrade
+     * @return the list of extensions to be upgraded
      */
-    List<String> getAutoUpgradeBlocklist();
+    List<String> getAutoUpgradeAllowList();
 
     /**
      * Get the URL used in retrieving a trial license of an extension from store.

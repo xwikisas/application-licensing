@@ -475,9 +475,9 @@
         data
       );
     },
-    modifyAutoUpgradesBlocklist: function(data) {
+    modifyAutoUpgradesAllowList: function(data) {
       return $.post(
-        new XWiki.Document('UpdateAutomaticUpgradesBlocklist', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
+        new XWiki.Document('UpdateAutomaticUpgradesAllowList', 'Licenses.Code').getURL('get', 'outputSyntax=plain'),
         data
       );
     }
@@ -563,7 +563,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     });
   };
 
-  // An extensionId could have multiple rows in the livetable if is installed on multiple subwikis, but the blocklist
+  // An extensionId could have multiple rows in the livetable if is installed on multiple subwikis, but the allowlist
   // is applied to all namespaces.
   var updateExtensionOfOtherWikis = function(extensionId, isChecked) {
     var similarExtensions = $("input[name='extensionId'][value='" + extensionId + "']");
@@ -684,9 +684,9 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     });
   });
 
-  $('input[name=autoUpgrade]').click(function() {
+  $(document).on('click', 'input[name=autoUpgrade]', function() {
     var autoUpgradeForm = $(this).parent('form').serializeArray();
-    licensor.modifyAutoUpgradesBlocklist(autoUpgradeForm).success(function(data) {
+    licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).success(function(data) {
       if(data.isAutoUpgrade) {
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');
@@ -694,7 +694,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.removed')), 'done');
       }
-      updateExtensionOfOtherWikis(data.extensionId, !data.isAutoUpgrade);
+      updateExtensionOfOtherWikis(data.extensionId, data.isAutoUpgrade);
     });
   });
 
