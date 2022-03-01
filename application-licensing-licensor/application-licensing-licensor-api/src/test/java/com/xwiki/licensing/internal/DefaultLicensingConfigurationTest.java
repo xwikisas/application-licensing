@@ -19,7 +19,8 @@
  */
 package com.xwiki.licensing.internal;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -82,6 +83,7 @@ class DefaultLicensingConfigurationTest
         try {
             when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn("not a list");
             this.licensingConfiguration.getAutoUpgradeAllowList();
+            fail("Should have thrown an exception.");
         } catch (RuntimeException expected) {
             assertEquals("Cannot convert [not a list] to List", expected.getMessage());
         }
