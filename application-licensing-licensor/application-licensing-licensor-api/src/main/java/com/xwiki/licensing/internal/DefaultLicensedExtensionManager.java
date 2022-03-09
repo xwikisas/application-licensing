@@ -151,10 +151,17 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             }
 
             verifiedExtensions.add(extensionId);
-            for (String namespace : installedExtension.getNamespaces()) {
+            Collection<String> namespaces = installedExtension.getNamespaces();
+            if (namespaces == null) {
                 searchLicensedDependenciesRecursive(
-                    this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace), namespace,
+                    this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), null), null,
                     verifiedExtensions, mandatoryLicensedExtensions);
+            } else {
+                for (String namespace : namespaces) {
+                    searchLicensedDependenciesRecursive(
+                        this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace),
+                        namespace, verifiedExtensions, mandatoryLicensedExtensions);
+                }
             }
         }
 
