@@ -142,6 +142,29 @@ class DefaultLicensedExtensionManagerTest
     }
 
     @Test
+    public void getMandatoryLicensedExtensionsOnRootNamespace() throws Exception
+    {
+        this.licensorDependencies.put(null, Arrays.asList(this.pollsExtension, this.flashV1Extension));
+        when(this.installedExtensionRepository.getBackwardDependencies(this.licensorExtension.getId()))
+            .thenReturn(this.licensorDependencies);
+
+        when(this.pollsExtension.getNamespaces()).thenReturn(null);
+        when(this.installedExtensionRepository.getInstalledExtension(this.pollsExtension.getId().getId(), null))
+            .thenReturn(this.pollsExtension);
+
+        when(this.flashV1Extension.getNamespaces()).thenReturn(null);
+        when(this.installedExtensionRepository.getInstalledExtension(this.flashV1Extension.getId().getId(), null))
+            .thenReturn(this.flashV1Extension);
+
+        Set<ExtensionId> expected = new HashSet<>();
+        expected.add(this.pollsExtension.getId());
+
+        Set<ExtensionId> result = this.licensedExtensionManager.getMandatoryLicensedExtensions();
+
+        assertEquals(expected, result);
+    }
+
+    @Test
     public void getMandatoryLicensedExtensionsWithDifferentVersionOnNamespaces() throws Exception
     {
         this.licensorDependencies.put(null,
