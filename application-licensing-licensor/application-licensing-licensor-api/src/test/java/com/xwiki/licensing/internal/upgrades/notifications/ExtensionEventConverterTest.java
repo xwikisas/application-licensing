@@ -19,39 +19,33 @@
  */
 package com.xwiki.licensing.internal.upgrades.notifications;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.eventstream.RecordableEventConverter;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
 
 /**
- * Unit tests for {@link ExtensionAutoUpgradedEventConverter}.
+ * Unit tests for {@link ExtensionEventConverter}.
  *
  * @version $Id$
  * @since 1.17
  */
-public class ExtensionAutoUpgradedEventConverterTest
+@ComponentTest
+class ExtensionEventConverterTest
 {
-    @Rule
-    public MockitoComponentMockingRule<ExtensionAutoUpgradedEventConverter> mocker =
-        new MockitoComponentMockingRule<>(ExtensionAutoUpgradedEventConverter.class);
+    @InjectMockComponents
+    ExtensionEventConverter extensionEventConverter;
 
+    @MockComponent
     private RecordableEventConverter defaultConverter;
-
-
-    @Before
-    public void configure() throws Exception
-    {
-        this.defaultConverter = this.mocker.getInstance(RecordableEventConverter.class);
-    }
 
     @Test
     public void convert() throws Exception
@@ -62,7 +56,7 @@ public class ExtensionAutoUpgradedEventConverterTest
 
         when(this.defaultConverter.convert(event, null, message)).thenReturn(convertedEvent);
 
-        assertEquals(convertedEvent, this.mocker.getComponentUnderTest().convert(event, null, message));
+        assertEquals(convertedEvent, this.extensionEventConverter.convert(event, null, message));
 
         verify(convertedEvent).setBody(message);
     }
