@@ -43,7 +43,7 @@ import org.xwiki.template.TemplateManager;
 import com.xpn.xwiki.XWikiContext;
 
 /**
- * Display a custom template for NewExtensionVersionAvailableEvent.
+ * Display a custom template for {@link NewExtensionVersionAvailableEvent}.
  *
  * @since 1.23
  * @version $Id$
@@ -79,7 +79,7 @@ public class NewExtensionVersionAvailableEventDisplayer implements NotificationD
     {
         XWikiContext xcontext = contextProvider.get();
         ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
-        Template customTemplate = this.templateManager.getTemplate("newVersionAvailable/newVersionAvailable.vm");
+        Template customTemplate = this.templateManager.getTemplate("newVersionAvailable.vm");
 
         try {
             // Set a document in the context to act as the current document when the template is rendered.
@@ -89,7 +89,8 @@ public class NewExtensionVersionAvailableEventDisplayer implements NotificationD
 
             return this.templateManager.execute(customTemplate);
         } catch (Exception e) {
-            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to render template for NewExtensionVersionAvailableEvent. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
         }
         return null;
     }

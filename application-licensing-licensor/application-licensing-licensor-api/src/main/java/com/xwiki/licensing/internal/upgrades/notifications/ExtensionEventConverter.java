@@ -34,8 +34,8 @@ import org.xwiki.eventstream.RecordableEventConverter;
 import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEvent;
 
 /**
- * Add additional information to ExtensionAutoUpgradedEvent, ExtensionAutoUpgradedFailedEvent or
- * NewExtensionVersionAvailableEvent.
+ * Add additional information to {@link ExtensionAutoUpgradedEvent}, {@link ExtensionAutoUpgradedFailedEvent} or
+ * {@link NewExtensionVersionAvailableEvent}.
  *
  * @version $Id$
  * @since 1.17

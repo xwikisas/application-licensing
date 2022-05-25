@@ -30,11 +30,18 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.LicensingConfiguration;
+import com.xwiki.licensing.internal.upgrades.AutomaticUpgradesConfigurationSource;
 
 /**
  * Default implementation of {@link LicensingConfiguration}.
@@ -45,6 +52,8 @@ import com.xwiki.licensing.LicensingConfiguration;
 @Singleton
 public class DefaultLicensingConfiguration implements LicensingConfiguration
 {
+    private static final String NEW_VERSION_NOTIFIED_EXTENSIONS = "newVersionNotifiedExtensions";
+
     /**
      * The prefix of all the extension related properties.
      */
@@ -61,6 +70,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
      */
     @Inject
     private Provider<ConfigurationSource> configuration;
+
+    @Inject
+    private Provider<XWikiContext> xcontextProvider;
+
+    @Inject
+    private Logger logger;
 
     @Inject
     @Named("LicensedExtensionAutomaticUpgrades")
@@ -93,21 +108,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> getAutoUpgradeAllowList()
     {
         // Since you cannot pass a default value and a target type to getProperty, the class of defaultValue is used
         // for converting the result. In this case there is no converter for EmptyList, so we manage the result
         // manually.
-        Object allowlist = this.automaticUpgradesConfig.getProperty("allowlist");
-        if (allowlist instanceof List) {
-            return ((List<Object>) allowlist).stream().map(item -> Objects.toString(item, null))
-                .collect(Collectors.toList());
-        } else if (allowlist == null) {
-            return Collections.emptyList();
-        } else {
-            throw new RuntimeException(String.format("Cannot convert [%s] to List", allowlist));
-        }
+        return convertObjectToStringList(this.automaticUpgradesConfig.getProperty("allowlist"));
     }
 
     @Override
@@ -140,4 +146,46 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
         return this.ownerConfig.getProperty("email");
     }
 
+    @Override
+    public List<String> getNewVersionNotifiedExtensions()
+    {
+        // Since you cannot pass a default value and a target type to getProperty, the class of defaultValue is used
+        // for converting the result. In this case there is no converter for EmptyList, so we manage the result
+        // manually.
+        return convertObjectToStringList(this.automaticUpgradesConfig.getProperty(NEW_VERSION_NOTIFIED_EXTENSIONS));
+    }
+
+    @Override
+    public void setNewVersionNotifiedExtensions(List<String> value)
+    {
+        // Use {@link org.xwiki.configuration.internal.AbstractDocumentConfigurationSource#setProperties(Map<String,
+        // Object>)} once Licensing starts depending on a XWiki version >= 12.4, to include the fix from XCOMMONS-1934:
+        // Add ability to modify configuration source properties.
+        XWikiContext context = xcontextProvider.get();
+        XWiki xwiki = context.getWiki();
+        try {
+            XWikiDocument licensingConfigDoc =
+                xwiki.getDocument(AutomaticUpgradesConfigurationSource.LICENSING_CONFIG_DOC, context);
+            licensingConfigDoc.getXObject(AutomaticUpgradesConfigurationSource.AUTO_UPGRADES_CLASS)
+                .set(NEW_VERSION_NOTIFIED_EXTENSIONS, String.join(",", value), context);
+            xwiki.saveDocument(licensingConfigDoc,
+                "Updated the list of new available extensions versions that users have been notified of.", context);
+        } catch (XWikiException e) {
+            logger.warn("Failed to save the list of new available extensions versions. Root cause is [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> convertObjectToStringList(Object list)
+    {
+        if (list instanceof List) {
+            return ((List<Object>) list).stream().map(item -> Objects.toString(item, null))
+                .collect(Collectors.toList());
+        } else if (list == null) {
+            return Collections.emptyList();
+        } else {
+            throw new RuntimeException(String.format("Cannot convert [%s] to List", list));
+        }
+    }
 }

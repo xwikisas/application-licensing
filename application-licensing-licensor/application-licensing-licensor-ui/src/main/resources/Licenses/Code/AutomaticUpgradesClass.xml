@@ -71,6 +71,31 @@
       <values/>
       <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
     </allowlist>
+    <newVersionNotifiedExtensions>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>input</displayType>
+      <freeText/>
+      <hint/>
+      <largeStorage>1</largeStorage>
+      <multiSelect>1</multiSelect>
+      <name>newVersionNotifiedExtensions</name>
+      <number>2</number>
+      <picker>0</picker>
+      <prettyName>newVersionNotifiedExtensions</prettyName>
+      <relationalStorage>1</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values/>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </newVersionNotifiedExtensions>
   </class>
   <object>
     <name>Licenses.Code.AutomaticUpgradesClass</name>

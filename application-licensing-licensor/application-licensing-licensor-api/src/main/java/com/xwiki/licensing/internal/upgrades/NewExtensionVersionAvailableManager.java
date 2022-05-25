@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.internal.upgrades;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,7 +38,8 @@ import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEvent;
 
 /**
- * Check licensed extensions for new available versions and send a notification.
+ * Check licensed extensions for new available versions and send a notification, without sending multiple notifications
+ * for the same version.
  *
  * @since 1.23
  * @version $Id$
@@ -77,26 +79,38 @@ public class NewExtensionVersionAvailableManager
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);
             Collection<String> namespaces = installedExtension.getNamespaces();
             if (namespaces == null) {
-                notifyExtensionAvailableVersions(installedExtension.getId(), null);
+                notifyExtensionAvailableVersion(installedExtension.getId(), null);
             } else {
                 for (String namespace : installedExtension.getNamespaces()) {
-                    notifyExtensionAvailableVersions(installedExtension.getId(), namespace);
+                    notifyExtensionAvailableVersion(installedExtension.getId(), namespace);
                 }
             }
         }
 
     }
 
-    private void notifyExtensionAvailableVersions(ExtensionId extensionId, String namespace)
+    private void notifyExtensionAvailableVersion(ExtensionId extensionId, String namespace)
     {
         InstalledExtension installedExtension =
             installedRepository.getInstalledExtension(extensionId.getId(), namespace);
-        List<Version> versions = upgradeExtensionHandler.getInstallableVersions(installedExtension.getId());
-        if (versions.size() > 0) {
-            String message = String.format("%s - %s - %s", installedExtension.getName(),
-                namespace != null ? namespace : "root", versions.get(0));
+        List<Version> installableVersions = upgradeExtensionHandler.getInstallableVersions(installedExtension.getId());
+        if (installableVersions.size() <= 0) {
+            return;
+        }
+
+        List<String> newVersionNotifiedExtensions = new ArrayList<>(licensingConfig.getNewVersionNotifiedExtensions());
+        String namespaceName = namespace != null ? namespace : "root";
+        // Create an identified for the extension, by consider also the version and namespace.
+        String verifiedExtensionId =
+            String.format("%s-%s-%s", extensionId.getId(), namespaceName, installableVersions.get(0));
+
+        if (!newVersionNotifiedExtensions.contains(verifiedExtensionId)) {
+            newVersionNotifiedExtensions.add(verifiedExtensionId);
+            licensingConfig.setNewVersionNotifiedExtensions(newVersionNotifiedExtensions);
+
+            String message =
+                String.format("%s - %s - %s", installedExtension.getName(), namespaceName, installableVersions.get(0));
             this.observationManager.notify(new NewExtensionVersionAvailableEvent(), extensionId.getId(), message);
         }
     }
-
 }

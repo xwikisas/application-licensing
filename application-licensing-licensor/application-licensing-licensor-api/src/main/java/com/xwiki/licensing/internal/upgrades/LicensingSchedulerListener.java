@@ -49,10 +49,11 @@ import com.xpn.xwiki.plugin.scheduler.JobState;
 import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 
 /**
- * Ensure that LicensedExtensionUpgradeJob and NewExtensionVersionAvailableJob is scheduled after licensing install.
- * Reschedule LicensedExtensionUpgradeJob and NewExtensionVersionAvailableJob to work around
- * https://jira.xwiki.org/browse/XWIKI-14494. The unschedule / schedule process should be removed once the issue is
- * fixed and licensing depends on a version of XWiki >= the version where is fixed.
+ * Ensure that {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} are scheduled after
+ * licensing install. Reschedule {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} to work
+ * around XWIKI-14494: Java scheduler job coming from an extension is not rescheduled when the extension is upgraded.
+ * The unschedule / schedule process should be removed once the issue is fixed and licensing depends on a version of
+ * XWiki >= the version where is fixed.
  * 
  * @since 1.17
  * @version $Id$

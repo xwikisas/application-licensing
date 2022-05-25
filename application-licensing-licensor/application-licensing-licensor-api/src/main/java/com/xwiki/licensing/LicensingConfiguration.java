@@ -72,4 +72,17 @@ public interface LicensingConfiguration
      * @return the email of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerEmail();
+
+    /**
+     * @return the list of extensions that have a new version available, that users have been notified of
+     */
+    List<String> getNewVersionNotifiedExtensions();
+
+    /**
+     * Set the list of extensions with a new version available, that users have been notified of.
+     *
+     * @param newVersionNotifiedExtensions the list of extensions with a new version available, that users have been
+     *            notified of
+     */
+    void setNewVersionNotifiedExtensions(List<String> newVersionNotifiedExtensions);
 }

@@ -27,7 +27,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.eventstream.RecordableEventDescriptor;
 
 /**
- * Description of the NewExtensionVersionAvailableEvent. Used for displaying settings in Notifications Preferences.
+ * Description of the {@link NewExtensionVersionAvailableEvent}. Used for displaying settings in Notifications
+ * Preferences.
  *
  * @since 1.23
  * @version $Id$

@@ -27,7 +27,7 @@ import com.xpn.xwiki.plugin.scheduler.AbstractJob;
 import com.xpn.xwiki.web.Utils;
 
 /**
- * Scheduler job that send a notification when a new version is available for a licensed extension.
+ * Scheduler job that sends a notification when a new version is available for a licensed extension.
  * 
  * @since 1.23
  * @version $Id$
