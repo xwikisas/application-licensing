@@ -4,13 +4,29 @@
 #set ($smallIcon = "arrow_up")
 #set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
 
+#macro (getExtensionUpgradeURL $event)
+  ## The event body contains information about the extension id, version and targeted namespace.
+  #set ($extensionInfo = $event.getBody().split(' - '))
+  #set ($extensionNamespace = "#if ($extensionInfo[1] == 'root')$xcontext.mainWikiName#{else}$extensionInfo[1]#end")
+  #set ($queryParams = $escapetool.url({
+    'section': 'XWiki.Extensions',
+    'extensionId': $event.getApplication(),
+    'extensionVersion': $extensionInfo[2],
+    'extensionNamespace': $extensionNamespace
+  }))
+  $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+    'admin', $queryParams)##
+#end
+
 #macro (displayEventDetails $event)
   <tr>
     <td>
       <span class="notification-event-user">$escapetool.xml($event.user.name)</span>
     </td>
     ## The notification message is stored directly on the event body.
-    <td class="description">$escapetool.xml($event.getBody())</td>
+    <td class="description">
+      <a href="#getExtensionUpgradeURL($event)">$escapetool.xml($event.getBody())</a>
+    </td>
     <td class="text-right text-muted">$escapetool.xml($datetool.whenIs($event.date))</td>
   </tr>
 #end

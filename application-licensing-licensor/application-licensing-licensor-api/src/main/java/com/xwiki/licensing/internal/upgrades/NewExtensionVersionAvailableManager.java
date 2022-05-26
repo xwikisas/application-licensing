@@ -110,7 +110,11 @@ public class NewExtensionVersionAvailableManager
 
             String message =
                 String.format("%s - %s - %s", installedExtension.getName(), namespaceName, installableVersions.get(0));
-            this.observationManager.notify(new NewExtensionVersionAvailableEvent(), extensionId.getId(), message);
+            this.observationManager
+                .notify(
+                    new NewExtensionVersionAvailableEvent(
+                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace),
+                    extensionId.getId(), message);
         }
     }
 }
