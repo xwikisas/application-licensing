@@ -50,8 +50,8 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
      * Created a new instance with the given data.
      *
      * @param extensionId the extension id of the new extension version detected
-     * @param namespace the namespace where the new extension version was detected, where null means root namespace
-     *            (i.e. all namespaces)
+     * @param namespace the namespace where the new extension version was detected, where {@code null} means root
+     *            namespace (i.e. all namespaces)
      */
     public NewExtensionVersionAvailableEvent(ExtensionId extensionId, String namespace)
     {
@@ -74,7 +74,7 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
     }
 
     /**
-     * @return the namespace where the new extension version was detected. null means root namespace (i.e all
+     * @return the namespace where the new extension version was detected. {@code null} means root namespace (i.e all
      *         namespaces)
      */
     public String getNamespace()

@@ -81,7 +81,7 @@
         <customDisplay/>
         <defaultValue/>
         <disabled>0</disabled>
-        <displayType>select</displayType>
+        <displayType>input</displayType>
         <freeText/>
         <hint/>
         <largeStorage>1</largeStorage>
