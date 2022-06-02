@@ -565,13 +565,13 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
 
   // An extensionId could have multiple rows in the livetable if is installed on multiple subwikis, but the allowlist
   // is applied to all namespaces.
-  var updateExtensionOfOtherWikis = function(extensionId, isChecked) {
+  var updateExtensionOfOtherWikis = function(extensionId, isAutoUpgrade) {
     var similarExtensions = $("input[name='extensionId'][value='" + extensionId + "']");
     similarExtensions.each(function() {
-      var checkbox = $(this).siblings("input[type='checkbox']");
-      if (checkbox.prop('checked') != isChecked) {
-        checkbox.prop('checked', isChecked);
-      }
+      var autoUpgradeButton = $(this).siblings('.licenseButton-autoUpgrade');
+      autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', isAutoUpgrade);
+      var translationKey = isAutoUpgrade ? 'data-stop-translation' : 'data-allow-translation';
+      autoUpgradeButton.prop('title', autoUpgradeButton.attr(translationKey));
     });
   };
 
@@ -629,7 +629,8 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
 
   // Manages the license buttons from the licenses livetable. If a trial is requested, it is automatically generated
   // and installed, else the user is redirected to a page to buy a license.
-  $('#licenseManager').on('click', '.licenseButton', function() {
+  $('#licenseManager').on('click', '.licenseButton', function(e) {
+    e.preventDefault();
     var ownerDetailsForm = $('#ownerDetails');
     if (!validateOwnerDetails(ownerDetailsForm)) {
       return;
@@ -684,13 +685,18 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     });
   });
 
-  $(document).on('click', 'input[name=autoUpgrade]', function() {
-    var autoUpgradeForm = $(this).parent('form').serializeArray();
+  $(document).on('click', '.licenseButton-autoUpgrade', function(e) {
+    e.preventDefault();
+    var autoUpgradeButton = $(this);
+    var autoUpgradeForm = autoUpgradeButton.closest('form').serializeArray();
     licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).success(function(data) {
+      autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', data.isAutoUpgrade);
       if(data.isAutoUpgrade) {
+        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-stop-translation'));
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');
       } else {
+        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-allow-translation'));
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.removed')), 'done');
       }
@@ -834,16 +840,23 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
 .dropdown-left {
   right: 0;
   left: auto;
+}
+
+.licenseButton-paid .action-icon, .licenseButton-extendPaid .action-icon, .isAutoUpgrade {
+  color: @brand-success;
+}
+.licenseButton-trial .action-icon, .licenseButton-extendTrial .action-icon {
+  color: @link-color;
 }</code>
     </property>
     <property>
-      <contentType>CSS</contentType>
+      <contentType>LESS</contentType>
     </property>
     <property>
       <name/>
     </property>
     <property>
-      <parse>0</parse>
+      <parse>1</parse>
     </property>
     <property>
       <use>currentPage</use>
