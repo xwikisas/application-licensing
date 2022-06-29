@@ -248,16 +248,20 @@
     #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-cart' 'paid' $jsonData)"))
     #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'hourglass-end' 'extendTrial' $jsonData)"))
   #elseif ($license.type == 'PAID')
-    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-card' 'extendPaid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-cart' 'extendPaid' $jsonData)"))
   #end
-  #set ($discard = $actions.add("#autoUpgradeButton($jsonData.featureId)"))
 #end
 
 #macro (licenseActions $license $extension)
   #set ($actions = [])
   #getLicenseActions($license $extension $actions)
-  &lt;div class="licenseActions"&gt;
-    $stringtool.join($actions, '')
+  &lt;div class="licenseActions container-fluid"&gt;
+    &lt;div class="row"&gt;
+      $stringtool.join($actions, '')
+    &lt;/div&gt;
+    &lt;div class="row"&gt;
+      #autoUpgradeButton($extension.id.id)
+    &lt;/div&gt;
   &lt;/div&gt;
 #end
 {{/velocity}}</content>

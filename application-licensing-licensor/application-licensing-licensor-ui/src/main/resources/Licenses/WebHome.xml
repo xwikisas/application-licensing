@@ -550,7 +550,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
   // Remove "Extend Trial" buttons from livetable, if the trial licenses limits were reached.
   var updateLivetableButtons = function() {
     var instanceId = $('#instanceId').val();
-    $('.licenseActions .btn-primary').each(function() {
+    $('.licenseActions .licenseButton-extendTrial').each(function() {
       // Compute the key to check in the localStorage.
       var buttonData = JSON.parse($(this).attr('data-button'));
       var featureId = buttonData.featureId;
