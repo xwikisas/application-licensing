@@ -195,7 +195,7 @@
 
 #macro (licenseButton $licenseType $cssClass $iconName $key $jsonData)
   #set ($jsonData.licenseType = $licenseType)
-  #set ($label = $services.localization.render("licensor.${key}License.label"))
+  #set ($label = $escapetool.xml($services.localization.render("licensor.${key}License.label")))
   &lt;a href="" class="action licenseButton licenseButton-$escapetool.xml($key)"
       data-button="$escapetool.xml($jsontool.serialize($jsonData))" title="$label"&gt;
     &lt;span class="action-icon"&gt;&lt;span class="fa fa-$iconName"&gt;&lt;/span&gt;&lt;/span&gt;##
