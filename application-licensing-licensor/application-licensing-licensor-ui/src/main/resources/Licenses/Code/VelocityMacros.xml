@@ -193,34 +193,41 @@
   {{/html}}
 #end
 
-#macro (licenseButton $licenseType $cssClass $key $jsonData)
+#macro (licenseButton $licenseType $cssClass $iconName $key $jsonData)
   #set ($jsonData.licenseType = $licenseType)
-  #set ($label = $services.localization.render("licensor.${key}License.label"))
-  &lt;button class="btn btn-$cssClass licenseButton licenseButton-$escapetool.xml($key)"
-    data-button="$escapetool.xml($jsontool.serialize($jsonData))"&gt;$label&lt;/button&gt;
+  #set ($label = $escapetool.xml($services.localization.render("licensor.${key}License.label")))
+  &lt;a href="#$escapetool.xml($key)" class="action licenseButton licenseButton-$escapetool.xml($key)"
+      data-button="$escapetool.xml($jsontool.serialize($jsonData))" title="$label"&gt;
+    &lt;span class="action-icon"&gt;&lt;span class="fa fa-$iconName"&gt;&lt;/span&gt;&lt;/span&gt;##
+    &lt;span class="action-label"&gt;$label&lt;/span&gt;
+  &lt;/a&gt;
 #end
 
-#macro (moreActionsButton $extensionId)
+#macro (autoUpgradeButton $extensionId)
   #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
   #set ($autoUpgradesObj = $licensingConfigDoc.getObject('Licenses.Code.AutomaticUpgradesClass'))
   #set ($isAutoUpgrade = $autoUpgradesObj.getValue('allowlist').contains($extensionId))
+  #set ($upgradeL10nKey = "#if ($isAutoUpgrade)prevent#{else}allow#end")
   &lt;div class="btn-group"&gt;
-    &lt;a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"
-      title="$services.localization.render("licensor.moreActions")" role="button"&gt;
-      &lt;span class="fa fa-ellipsis-v"&gt;&lt;/span&gt;
-    &lt;/a&gt;
-    &lt;ul class="dropdown-menu dropdown-left"&gt;
-      &lt;li class="dropdown-header"&gt;
-        &lt;form target="_blank" class="xform half"&gt;
-            &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
-            &lt;input type="hidden" name="extensionId" value="$extensionId" /&gt;
-            &lt;input type="checkbox" name="autoUpgrade" #if ($isAutoUpgrade) checked #end /&gt;
-            &lt;label for="autoUpgrade"&gt;
-              $services.localization.render("licensor.moreActions.autoUpgrade.allow")
-            &lt;/label&gt;
-        &lt;/form&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
+    &lt;form target="_blank" class="xform half"&gt;
+      &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
+      &lt;input type="hidden" name="extensionId" value="$!escapetool.xml($extensionId)" /&gt;
+      &lt;input type="hidden" name="autoUpgrade" value="$!escapetool.xml($isAutoUpgrade)" /&gt;
+      ## The data translations attributes are used for updating the title from js. These can be removed once licensing
+      ## starts depending on a XWiki version &gt;= 13.8 to include XWIKI-18973: Simplify the way JavaScript code loads
+      ## translation messages.
+      &lt;a href="#autoUpgrade" class="action licenseButton-autoUpgrade" title="$escapetool.xml(
+          $services.localization.render("licensor.moreActions.autoUpgrade.${upgradeL10nKey}"))" data-allow-label=
+          "$escapetool.xml($services.localization.render('licensor.moreActions.autoUpgrade.allow'))"
+          data-prevent-label="$escapetool.xml(
+          $services.localization.render('licensor.moreActions.autoUpgrade.prevent'))" &gt;
+        &lt;span class="action-icon #if ($isAutoUpgrade)isAutoUpgrade#end"&gt;
+          &lt;span class="fa fa-cloud-download"&gt;&lt;/span&gt;##
+        &lt;/span&gt;&lt;span class="action-label"&gt;$escapetool.xml(
+          $services.localization.render('licensor.moreActions.autoUpgrade.label'))
+        &lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/form&gt;
   &lt;/div&gt;
 #end
 
@@ -233,24 +240,30 @@
   })
   #if (!$license || $license.expirationDate == 0)
     ## No license available.
-    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'paid' $jsonData)"))
-    #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'trial' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-cart' 'paid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'hourglass-start' 'trial' $jsonData)"))
   #elseif ($license.type == 'FREE')
-    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'paid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-cart' 'paid' $jsonData)"))
   #elseif ($license.type == 'TRIAL')
-    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'paid' $jsonData)"))
-    #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'extendTrial' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-cart' 'paid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('TRIAL' 'primary' 'hourglass-end' 'extendTrial' $jsonData)"))
   #elseif ($license.type == 'PAID')
-    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'extendPaid' $jsonData)"))
+    #set ($discard = $actions.add("#licenseButton('PAID' 'success' 'shopping-cart' 'extendPaid' $jsonData)"))
   #end
-  #set ($discard = $actions.add("#moreActionsButton($jsonData.featureId)"))
 #end
 
 #macro (licenseActions $license $extension)
   #set ($actions = [])
+  ## Pull the resources needed by license actions.
+  #set ($discard = $services.icon.use('Font Awesome'))
   #getLicenseActions($license $extension $actions)
-  &lt;div class="licenseActions"&gt;
-    $stringtool.join($actions, '')
+  &lt;div class="licenseActions container-fluid"&gt;
+    &lt;div class="row"&gt;
+      $stringtool.join($actions, '')
+    &lt;/div&gt;
+    &lt;div class="row"&gt;
+      #autoUpgradeButton($extension.id.id)
+    &lt;/div&gt;
   &lt;/div&gt;
 #end
 {{/velocity}}</content>
