@@ -570,7 +570,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     similarExtensions.each(function() {
       var autoUpgradeButton = $(this).siblings('.licenseButton-autoUpgrade');
       autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', isAutoUpgrade);
-      var translationKey = isAutoUpgrade ? 'data-stop-translation' : 'data-allow-translation';
+      var translationKey = isAutoUpgrade ? 'data-prevent-label' : 'data-allow-label';
       autoUpgradeButton.prop('title', autoUpgradeButton.attr(translationKey));
     });
   };
@@ -692,11 +692,11 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).success(function(data) {
       autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', data.isAutoUpgrade);
       if(data.isAutoUpgrade) {
-        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-stop-translation'));
+        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-prevent-label'));
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');
       } else {
-        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-allow-translation'));
+        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-allow-label'));
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.removed')), 'done');
       }

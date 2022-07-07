@@ -82,5 +82,13 @@
       <version>${rendering.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- On the Administration page, the licensing actions use font-awesome icons that are not defined in the icon theme
+      application, so we need to load an use them manually.-->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-icon-fontawesome</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+    </dependency>
   </dependencies>
 </project>
