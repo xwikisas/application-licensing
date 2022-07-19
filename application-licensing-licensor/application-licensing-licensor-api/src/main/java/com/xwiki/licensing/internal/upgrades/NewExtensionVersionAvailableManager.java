@@ -79,42 +79,40 @@ public class NewExtensionVersionAvailableManager
             InstalledExtension installedExtension = installedRepository.getInstalledExtension(extensionId);
             Collection<String> namespaces = installedExtension.getNamespaces();
             if (namespaces == null) {
-                notifyExtensionAvailableVersion(installedExtension.getId(), null);
+                notifyExtensionVersionAvailable(installedExtension.getId(), null);
             } else {
                 for (String namespace : installedExtension.getNamespaces()) {
-                    notifyExtensionAvailableVersion(installedExtension.getId(), namespace);
+                    notifyExtensionVersionAvailable(installedExtension.getId(), namespace);
                 }
             }
         }
-
     }
 
-    private void notifyExtensionAvailableVersion(ExtensionId extensionId, String namespace)
+    private void notifyExtensionVersionAvailable(ExtensionId extensionId, String namespace)
     {
         InstalledExtension installedExtension =
             installedRepository.getInstalledExtension(extensionId.getId(), namespace);
+        // Get the list of versions that can be installed, with the first one being the most recent.
         List<Version> installableVersions = upgradeExtensionHandler.getInstallableVersions(installedExtension.getId());
-        if (installableVersions.size() <= 0) {
+        if (installableVersions.isEmpty()) {
             return;
         }
 
         List<String> newVersionNotifiedExtensions = new ArrayList<>(licensingConfig.getNewVersionNotifiedExtensions());
         String namespaceName = namespace != null ? namespace : "root";
-        // Create an identified for the extension, by consider also the version and namespace.
-        String verifiedExtensionId =
+        // Create an identifier for the extension, by consider also the version and namespace.
+        String currentExtensionId =
             String.format("%s-%s-%s", extensionId.getId(), namespaceName, installableVersions.get(0));
 
-        if (!newVersionNotifiedExtensions.contains(verifiedExtensionId)) {
-            newVersionNotifiedExtensions.add(verifiedExtensionId);
+        if (!newVersionNotifiedExtensions.contains(currentExtensionId)) {
+            newVersionNotifiedExtensions.add(currentExtensionId);
             licensingConfig.setNewVersionNotifiedExtensions(newVersionNotifiedExtensions);
 
-            String message =
-                String.format("%s - %s - %s", installedExtension.getName(), namespaceName, installableVersions.get(0));
-            this.observationManager
-                .notify(
-                    new NewExtensionVersionAvailableEvent(
-                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace),
-                    extensionId.getId(), message);
+            String message = String.format("{\"extensionName\":\"%s\", \"namespace\": \"%s\", \"version\": \"%s\"}",
+                installedExtension.getName(), namespaceName, installableVersions.get(0));
+            this.observationManager.notify(
+                new NewExtensionVersionAvailableEvent(new ExtensionId(extensionId.getId(), installableVersions.get(0)),
+                    namespace), extensionId.getId(), message);
         }
     }
 }
