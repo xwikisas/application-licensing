@@ -73,6 +73,9 @@ public class NewExtensionVersionAvailableManagerTest
     @MockComponent
     private ObservationManager observationManager;
 
+    @MockComponent
+    private NewVersionNotificationManager newVersionNotificationManager;
+
     @Mock
     private InstalledExtension installedExtension1;
 
@@ -118,14 +121,19 @@ public class NewExtensionVersionAvailableManagerTest
             .thenReturn(Arrays.asList((Version) new DefaultVersion("2.1")));
         when(this.upgradeExtensionHandler.getInstallableVersions(extensionId2))
             .thenReturn(Arrays.asList((Version) new DefaultVersion("3.1"), (Version) new DefaultVersion("2.1")));
-        when(this.licensingConfig.getNewVersionNotifiedExtensions()).thenReturn(Collections.emptyList());
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension1.getName(), namespace,
+            "2.1")).thenReturn(false);
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension2.getName(), "root",
+            "3.1")).thenReturn(false);
 
         this.newVersionAvailableManager.checkLicensedExtensionsAvailableVersions();
 
         verify(this.observationManager, times(1)).notify(any(NewExtensionVersionAvailableEvent.class),
-            eq(this.extensionId1.getId()), eq("Application 1 - wiki:test - 2.1"));
+            eq(this.extensionId1.getId()),
+            eq("{\"extensionName\":\"Application 1\",\"namespace\":\"wiki:test\",\"version\":\"2.1\"}"));
         verify(this.observationManager, times(1)).notify(any(NewExtensionVersionAvailableEvent.class),
-            eq(this.extensionId2.getId()), eq("Application 2 - root - 3.1"));
+            eq(this.extensionId2.getId()),
+            eq("{\"extensionName\":\"Application 2\",\"namespace\":\"root\",\"version\":\"3.1\"}"));
     }
 
     @Test
@@ -134,8 +142,6 @@ public class NewExtensionVersionAvailableManagerTest
         when(this.licensingConfig.getAutoUpgradeAllowList()).thenReturn(Collections.emptyList());
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
-
-        when(this.licensingConfig.getNewVersionNotifiedExtensions()).thenReturn(Collections.emptyList());
 
         String namespace = "wiki:test";
         when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
@@ -151,17 +157,21 @@ public class NewExtensionVersionAvailableManagerTest
         when(this.upgradeExtensionHandler.getInstallableVersions(extensionId2))
             .thenReturn(Arrays.asList((Version) new DefaultVersion("3.1"), (Version) new DefaultVersion("3.0")));
 
-        when(this.licensingConfig.getNewVersionNotifiedExtensions())
-            .thenReturn(Arrays.asList(this.getVersionIdentifier(extensionId1, "2.1", namespace),
-                this.getVersionIdentifier(extensionId1, "2.2", namespace),
-                this.getVersionIdentifier(extensionId2, "3.0", null)));
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension1.getName(), namespace,
+            "2.2")).thenReturn(true);
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension2.getName(), null,
+            "3.0")).thenReturn(true);
 
         this.newVersionAvailableManager.checkLicensedExtensionsAvailableVersions();
 
         verify(this.observationManager, never()).notify(any(NewExtensionVersionAvailableEvent.class),
             eq(this.extensionId1.getId()), any(String.class));
         verify(this.observationManager, times(1)).notify(any(NewExtensionVersionAvailableEvent.class),
-            eq(this.extensionId2.getId()), eq("Application 2 - root - 3.1"));
+            eq(this.extensionId2.getId()),
+            eq("{\"extensionName\":\"Application 2\",\"namespace\":\"root\",\"version\":\"3.1\"}"));
+        verify(this.observationManager, never()).notify(any(NewExtensionVersionAvailableEvent.class),
+            eq(this.extensionId2.getId()),
+            eq("{\"extensionName\":\"Application 2\",\"namespace\":\"root\",\"version\":\"3.0\"}"));
     }
 
     @Test
@@ -175,7 +185,6 @@ public class NewExtensionVersionAvailableManagerTest
         when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
         when(this.installedRepository.getInstalledExtension(this.extensionId1.getId(), namespace))
             .thenReturn(this.installedExtension1);
-        when(this.licensingConfig.getNewVersionNotifiedExtensions()).thenReturn(Collections.emptyList());
 
         when(this.upgradeExtensionHandler.getInstallableVersions(extensionId1)).thenReturn(Collections.emptyList());
 
@@ -184,11 +193,5 @@ public class NewExtensionVersionAvailableManagerTest
         verify(this.observationManager, never()).notify(any(NewExtensionVersionAvailableEvent.class),
             eq(this.extensionId1), any(String.class));
         verify(this.installedRepository, never()).getInstalledExtension(this.extensionId2);
-    }
-
-    private String getVersionIdentifier(ExtensionId extensionId, String version, String namespace)
-    {
-        String namespaceName = namespace != null ? namespace : "root";
-        return String.format("%s-%s-%s", extensionId.getId(), namespaceName, version);
     }
 }

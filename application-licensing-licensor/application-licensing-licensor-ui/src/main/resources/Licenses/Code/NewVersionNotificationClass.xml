@@ -20,25 +20,25 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="Licenses.Code.AutomaticUpgradesClass" locale="">
+<xwikidoc version="1.3" reference="Licenses.Code.NewVersionNotificationClass" locale="">
   <web>Licenses.Code</web>
-  <name>AutomaticUpgradesClass</name>
+  <name>NewVersionNotificationClass</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>XWiki.XWikiClasses</parent>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>AutomaticUpgrades Class</title>
+  <title>NewVersionNotificationClass</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content/>
   <class>
-    <name>Licenses.Code.AutomaticUpgradesClass</name>
+    <name>Licenses.Code.NewVersionNotificationClass</name>
     <customClass/>
     <customMapping/>
     <defaultViewSheet/>
@@ -46,37 +46,54 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
-    <allowlist>
-      <cache>0</cache>
+    <extensionName>
       <customDisplay/>
-      <defaultValue/>
       <disabled>0</disabled>
-      <displayType>input</displayType>
-      <freeText/>
       <hint/>
-      <largeStorage>0</largeStorage>
-      <multiSelect>1</multiSelect>
-      <name>allowlist</name>
+      <name>extensionName</name>
       <number>1</number>
-      <picker>0</picker>
-      <prettyName>allowlist</prettyName>
-      <relationalStorage>1</relationalStorage>
-      <separator> </separator>
-      <separators>|, </separators>
-      <size>1</size>
-      <sort>none</sort>
+      <picker>1</picker>
+      <prettyName>extensionName</prettyName>
+      <size>30</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
-      <values/>
-      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-    </allowlist>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </extensionName>
+    <namespace>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>namespace</name>
+      <number>2</number>
+      <picker>1</picker>
+      <prettyName>namespace</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </namespace>
+    <version>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>version</name>
+      <number>3</number>
+      <picker>1</picker>
+      <prettyName>version</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </version>
   </class>
   <object>
-    <name>Licenses.Code.AutomaticUpgradesClass</name>
+    <name>Licenses.Code.NewVersionNotificationClass</name>
     <number>0</number>
     <className>XWiki.DocumentSheetBinding</className>
-    <guid>ced53e6f-53da-4509-b50b-2098c887a4db</guid>
+    <guid>ebba70d3-6049-4a58-a8e2-d8ffd899d7fa</guid>
     <class>
       <name>XWiki.DocumentSheetBinding</name>
       <customClass/>

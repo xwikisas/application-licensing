@@ -19,13 +19,16 @@
  */
 package com.xwiki.licensing.internal.upgrades;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
@@ -33,6 +36,8 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.version.Version;
 import org.xwiki.observation.ObservationManager;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEvent;
@@ -41,8 +46,8 @@ import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensi
  * Check licensed extensions for new available versions and send a notification, without sending multiple notifications
  * for the same version.
  *
- * @since 1.23
  * @version $Id$
+ * @since 1.23
  */
 @Component(roles = NewExtensionVersionAvailableManager.class)
 @Singleton
@@ -62,6 +67,12 @@ public class NewExtensionVersionAvailableManager
 
     @Inject
     private LicensingConfiguration licensingConfig;
+
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private NewVersionNotificationManager newVersionNotificationManager;
 
     /**
      * Notify the administrators when one of the installed licensed applications has a new version available. Do nothing
@@ -98,21 +109,25 @@ public class NewExtensionVersionAvailableManager
             return;
         }
 
-        List<String> newVersionNotifiedExtensions = new ArrayList<>(licensingConfig.getNewVersionNotifiedExtensions());
-        String namespaceName = namespace != null ? namespace : "root";
-        // Create an identifier for the extension, by consider also the version and namespace.
-        String currentExtensionId =
-            String.format("%s-%s-%s", extensionId.getId(), namespaceName, installableVersions.get(0));
+        try {
+            String namespaceName = namespace != null ? namespace : "root";
+            if (!this.newVersionNotificationManager.isNotificationAlreadySent(installedExtension.getName(),
+                namespaceName, installableVersions.get(0).getValue()))
+            {
+                Map<String, String> extensionInfo = new HashMap<>();
+                extensionInfo.put("extensionName", installedExtension.getName());
+                extensionInfo.put("namespace", namespaceName);
+                extensionInfo.put("version", installableVersions.get(0).getValue());
 
-        if (!newVersionNotifiedExtensions.contains(currentExtensionId)) {
-            newVersionNotifiedExtensions.add(currentExtensionId);
-            licensingConfig.setNewVersionNotifiedExtensions(newVersionNotifiedExtensions);
-
-            String message = String.format("{\"extensionName\":\"%s\", \"namespace\": \"%s\", \"version\": \"%s\"}",
-                installedExtension.getName(), namespaceName, installableVersions.get(0));
-            this.observationManager.notify(
-                new NewExtensionVersionAvailableEvent(new ExtensionId(extensionId.getId(), installableVersions.get(0)),
-                    namespace), extensionId.getId(), message);
+                this.observationManager.notify(new NewExtensionVersionAvailableEvent(
+                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace),
+                    extensionId.getId(), (new ObjectMapper()).writeValueAsString(extensionInfo));
+                this.newVersionNotificationManager.markNotificationAsSent(installedExtension.getName(), namespaceName,
+                    installableVersions.get(0).getValue());
+            }
+        } catch (JsonProcessingException e) {
+            this.logger.warn("Failed to send a NewExtensionVersionAvailableEvent for [{}]. Root cause is [{}]",
+                extensionId.getId(), ExceptionUtils.getRootCauseMessage(e));
         }
     }
 }

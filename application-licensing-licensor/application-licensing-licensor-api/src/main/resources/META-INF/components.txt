@@ -20,6 +20,7 @@ com.xwiki.licensing.internal.upgrades.UpgradeExtensionHandler
 com.xwiki.licensing.internal.upgrades.AutomaticUpgradesConfigurationSource
 com.xwiki.licensing.internal.upgrades.LicensedExtensionUpgradeManager
 com.xwiki.licensing.internal.upgrades.NewExtensionVersionAvailableManager
+com.xwiki.licensing.internal.upgrades.NewVersionNotificationManager
 com.xwiki.licensing.internal.upgrades.LicensingSchedulerListener
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionEventConverter
