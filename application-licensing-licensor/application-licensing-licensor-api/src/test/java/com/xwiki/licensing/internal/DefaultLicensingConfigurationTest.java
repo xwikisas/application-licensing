@@ -62,7 +62,7 @@ class DefaultLicensingConfigurationTest
     private ConfigurationSource configurationSource;
 
     @BeforeEach
-    void configure() throws Exception
+    void configure()
     {
         when(this.configurationSourceProvider.get()).thenReturn(this.configurationSource);
     }

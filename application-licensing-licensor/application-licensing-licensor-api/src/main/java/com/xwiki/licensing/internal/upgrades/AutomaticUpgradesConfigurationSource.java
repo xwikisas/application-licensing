@@ -46,13 +46,13 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
     /**
      * Reference of the document containing licensing configurations.
      */
-    public static final LocalDocumentReference LICENSING_CONFIG_DOC =
+    protected static final LocalDocumentReference LICENSING_CONFIG_DOC =
         new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
 
     /**
      * Reference of the class that contains configurations related to automatic upgrades.
      */
-    public static final LocalDocumentReference AUTO_UPGRADES_CLASS =
+    protected static final LocalDocumentReference AUTO_UPGRADES_CLASS =
         new LocalDocumentReference(CODE_SPACE, "AutomaticUpgradesClass");
 
     @Override
