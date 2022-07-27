@@ -20,6 +20,7 @@
 package com.xwiki.licensing.internal.upgrades;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Provider;
 
@@ -52,7 +53,7 @@ import static org.mockito.Mockito.when;
  * @since 1.23
  */
 @ComponentTest
-public class NewVersionNotificationManagerTest
+class NewVersionNotificationManagerTest
 {
     @InjectMockComponents
     private NewVersionNotificationManager newVersionNotificationManager;
@@ -93,15 +94,15 @@ public class NewVersionNotificationManagerTest
         when(this.licensingDoc.getXObjects(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS)).thenReturn(
             Arrays.asList(newVersionObject1, newVersionObject2));
 
-        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_NAME)).thenReturn("Extension1");
+        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("root");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.1");
 
-        when(newVersionObject2.getStringValue(NewVersionNotificationManager.EXTENSION_NAME)).thenReturn("Extension1");
+        when(newVersionObject2.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject2.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("xwiki:test");
         when(newVersionObject2.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.1");
 
-        assertTrue(this.newVersionNotificationManager.isNotificationAlreadySent("Extension1", "root", "1.1"));
+        assertTrue(this.newVersionNotificationManager.isNotificationAlreadySent("extension1", "root", "1.1"));
     }
 
     @Test
@@ -110,15 +111,15 @@ public class NewVersionNotificationManagerTest
         when(this.licensingDoc.getXObjects(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS)).thenReturn(
             Arrays.asList(newVersionObject1, null, newVersionObject2));
 
-        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_NAME)).thenReturn("Extension1");
+        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("root");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.0");
 
-        when(newVersionObject2.getStringValue(NewVersionNotificationManager.EXTENSION_NAME)).thenReturn("Extension1");
+        when(newVersionObject2.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject2.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("xwiki:test");
         when(newVersionObject2.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.1");
 
-        assertFalse(this.newVersionNotificationManager.isNotificationAlreadySent("Extension1", "root", "1.1"));
+        assertFalse(this.newVersionNotificationManager.isNotificationAlreadySent("extension1", "root", "1.1"));
     }
 
     @Test
@@ -132,31 +133,31 @@ public class NewVersionNotificationManagerTest
         when(this.licensingDoc.getXObject(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS, 0)).thenReturn(
             this.newVersionObject1);
 
-        this.newVersionNotificationManager.markNotificationAsSent("Extension1", "root", "2.1");
+        this.newVersionNotificationManager.markNotificationAsSent("extension1", "root", "2.1");
 
-        verify(this.newVersionObject1, times(1)).setStringValue(NewVersionNotificationManager.EXTENSION_NAME,
-            "Extension1");
+        verify(this.newVersionObject1, times(1)).setStringValue(NewVersionNotificationManager.EXTENSION_ID,
+            "extension1");
         verify(this.newVersionObject1, times(1)).setStringValue(NewVersionNotificationManager.NAMESPACE, "root");
         verify(this.newVersionObject1, times(1)).setStringValue(NewVersionNotificationManager.VERSION, "2.1");
         verify(this.xwiki, times(1)).saveDocument(any(XWikiDocument.class),
-            eq("Added NewVersionNotificationClass object for Extension1."), any(XWikiContext.class));
+            eq("Added NewVersionNotificationClass object for extension1."), any(XWikiContext.class));
     }
 
     @Test
     void markNotificationAsSentOnSameNamespace() throws Exception
     {
         when(this.licensingDoc.getXObjects(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS)).thenReturn(
-            Arrays.asList(newVersionObject1));
+            Collections.singletonList(newVersionObject1));
 
-        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_NAME)).thenReturn("Extension1");
+        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("root");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.0");
 
-        this.newVersionNotificationManager.markNotificationAsSent("Extension1", "root", "1.1");
+        this.newVersionNotificationManager.markNotificationAsSent("extension1", "root", "1.1");
 
         verify(this.newVersionObject1, times(1)).setStringValue(NewVersionNotificationManager.VERSION, "1.1");
         verify(this.xwiki, times(1)).saveDocument(any(XWikiDocument.class),
-            eq("Added NewVersionNotificationClass object for Extension1."), any(XWikiContext.class));
+            eq("Added NewVersionNotificationClass object for extension1."), any(XWikiContext.class));
     }
 
     @Test
@@ -165,7 +166,7 @@ public class NewVersionNotificationManagerTest
         when(this.licensingDoc.getXObjects(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS)).thenReturn(
             Arrays.asList(newVersionObject1, null));
 
-        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_NAME)).thenReturn("Extension1");
+        when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("root");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.0");
 
@@ -174,14 +175,14 @@ public class NewVersionNotificationManagerTest
         when(this.licensingDoc.getXObject(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS, 1)).thenReturn(
             this.newVersionObject2);
 
-        this.newVersionNotificationManager.markNotificationAsSent("Extension1", "xwiki:test", "1.1");
+        this.newVersionNotificationManager.markNotificationAsSent("extension1", "xwiki:test", "1.1");
 
         verify(this.newVersionObject1, never()).setStringValue(NewVersionNotificationManager.VERSION, "1.1");
-        verify(this.newVersionObject2, times(1)).setStringValue(NewVersionNotificationManager.EXTENSION_NAME,
-            "Extension1");
+        verify(this.newVersionObject2, times(1)).setStringValue(NewVersionNotificationManager.EXTENSION_ID,
+            "extension1");
         verify(this.newVersionObject2, times(1)).setStringValue(NewVersionNotificationManager.NAMESPACE, "xwiki:test");
         verify(this.newVersionObject2, times(1)).setStringValue(NewVersionNotificationManager.VERSION, "1.1");
         verify(this.xwiki, times(1)).saveDocument(any(XWikiDocument.class),
-            eq("Added NewVersionNotificationClass object for Extension1."), any(XWikiContext.class));
+            eq("Added NewVersionNotificationClass object for extension1."), any(XWikiContext.class));
     }
 }

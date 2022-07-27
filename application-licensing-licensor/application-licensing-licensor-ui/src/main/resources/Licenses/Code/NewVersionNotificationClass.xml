@@ -46,20 +46,20 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
-    <extensionName>
+    <extensionId>
       <customDisplay/>
       <disabled>0</disabled>
       <hint/>
-      <name>extensionName</name>
+      <name>extensionId</name>
       <number>1</number>
       <picker>1</picker>
-      <prettyName>extensionName</prettyName>
+      <prettyName>extensionId</prettyName>
       <size>30</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </extensionName>
+    </extensionId>
     <namespace>
       <customDisplay/>
       <disabled>0</disabled>

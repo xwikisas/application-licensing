@@ -111,8 +111,8 @@ public class NewExtensionVersionAvailableManager
 
         try {
             String namespaceName = namespace != null ? namespace : "root";
-            if (!this.newVersionNotificationManager.isNotificationAlreadySent(installedExtension.getName(),
-                namespaceName, installableVersions.get(0).getValue()))
+            if (!this.newVersionNotificationManager.isNotificationAlreadySent(extensionId.getId(), namespaceName,
+                installableVersions.get(0).getValue()))
             {
                 Map<String, String> extensionInfo = new HashMap<>();
                 extensionInfo.put("extensionName", installedExtension.getName());
@@ -122,7 +122,7 @@ public class NewExtensionVersionAvailableManager
                 this.observationManager.notify(new NewExtensionVersionAvailableEvent(
                         new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace),
                     extensionId.getId(), (new ObjectMapper()).writeValueAsString(extensionInfo));
-                this.newVersionNotificationManager.markNotificationAsSent(installedExtension.getName(), namespaceName,
+                this.newVersionNotificationManager.markNotificationAsSent(extensionId.getId(), namespaceName,
                     installableVersions.get(0).getValue());
             }
         } catch (JsonProcessingException e) {

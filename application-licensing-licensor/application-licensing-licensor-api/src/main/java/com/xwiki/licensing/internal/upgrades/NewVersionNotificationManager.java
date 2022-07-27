@@ -21,6 +21,7 @@ package com.xwiki.licensing.internal.upgrades;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -47,7 +48,7 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class NewVersionNotificationManager
 {
-    protected static final String EXTENSION_NAME = "extensionName";
+    protected static final String EXTENSION_ID = "extensionId";
 
     protected static final String NAMESPACE = "namespace";
 
@@ -71,12 +72,12 @@ public class NewVersionNotificationManager
      * Check if a notification for this new extension version was already sent. Consider also the namespace since
      * different versions can be installed on different namespaces.
      *
-     * @param extensionName the name of the extension
+     * @param extensionId the id of the extension
      * @param namespaceName the targeted namespace name
      * @param version the new version of the extension
      * @return {@code true} if a notification was already sent with this exact information, or {@code false} otherwise
      */
-    public boolean isNotificationAlreadySent(String extensionName, String namespaceName, String version)
+    public boolean isNotificationAlreadySent(String extensionId, String namespaceName, String version)
     {
         try {
             XWikiContext xcontext = contextProvider.get();
@@ -84,11 +85,11 @@ public class NewVersionNotificationManager
                 .getXObjects(NEW_VERSION_NOTIFICATION_CLASS);
 
             return versionNotifObjects != null && versionNotifObjects.stream().filter(
-                obj -> obj != null && objectHasValue(obj, EXTENSION_NAME, extensionName) && objectHasValue(obj,
+                obj -> obj != null && objectHasValue(obj, EXTENSION_ID, extensionId) && objectHasValue(obj,
                     NAMESPACE, namespaceName) && objectHasValue(obj, VERSION, version)).count() > 0;
         } catch (XWikiException e) {
             logger.warn("Failed to check if a NewVersionNotification was already sent for [{}]. Root cause is: [{}]",
-                extensionName, ExceptionUtils.getRootCauseMessage(e));
+                extensionId, ExceptionUtils.getRootCauseMessage(e));
         }
 
         return false;
@@ -97,11 +98,11 @@ public class NewVersionNotificationManager
     /**
      * Mark that a notification was sent for this new extension version.
      *
-     * @param extensionName the name of the extension
+     * @param extensionId the id of the extension
      * @param namespaceName the targeted namespace name
      * @param version the new version of the extension
      */
-    public void markNotificationAsSent(String extensionName, String namespaceName, String version)
+    public void markNotificationAsSent(String extensionId, String namespaceName, String version)
     {
         try {
             XWikiContext xcontext = contextProvider.get();
@@ -111,26 +112,26 @@ public class NewVersionNotificationManager
             boolean notificationObjectExists = false;
             if (versionNotifObjects != null) {
                 notificationObjectExists =
-                    updateExistingNotification(versionNotifObjects, extensionName, namespaceName, version);
+                    updateExistingNotification(versionNotifObjects, extensionId, namespaceName, version);
             }
 
             if (!notificationObjectExists) {
                 int id = configDoc.createXObject(NEW_VERSION_NOTIFICATION_CLASS, xcontext);
                 BaseObject obj = configDoc.getXObject(NEW_VERSION_NOTIFICATION_CLASS, id);
-                obj.setStringValue(EXTENSION_NAME, extensionName);
+                obj.setStringValue(EXTENSION_ID, extensionId);
                 obj.setStringValue(NAMESPACE, namespaceName);
                 obj.setStringValue(VERSION, version);
             }
 
             xcontext.getWiki().saveDocument(configDoc,
-                String.format("Added NewVersionNotificationClass object for %s.", extensionName), xcontext);
+                String.format("Added NewVersionNotificationClass object for %s.", extensionId), xcontext);
         } catch (XWikiException e) {
-            logger.warn("Failed add NewVersionNotificationClass object for [{}]. Root cause is: [{}]", extensionName,
+            logger.warn("Failed add NewVersionNotificationClass object for [{}]. Root cause is: [{}]", extensionId,
                 ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
-    private boolean updateExistingNotification(List<BaseObject> versionNotifObjects, String extensionName,
+    private boolean updateExistingNotification(List<BaseObject> versionNotifObjects, String extensionId,
         String namespaceName, String version)
     {
         boolean notificationObjectExists = false;
@@ -138,9 +139,8 @@ public class NewVersionNotificationManager
             if (obj == null) {
                 continue;
             }
-            // If there is already a notification sent for this extensionId and namespace, update only the
-            // version.
-            if (objectHasValue(obj, EXTENSION_NAME, extensionName) && objectHasValue(obj, NAMESPACE, namespaceName)) {
+            // If there is already a notification sent for this extensionId and namespace, update only the version.
+            if (objectHasValue(obj, EXTENSION_ID, extensionId) && objectHasValue(obj, NAMESPACE, namespaceName)) {
                 if (!objectHasValue(obj, VERSION, version)) {
                     obj.setStringValue(VERSION, version);
                 }
@@ -152,6 +152,6 @@ public class NewVersionNotificationManager
 
     private boolean objectHasValue(BaseObject obj, String name, String value)
     {
-        return obj.getStringValue(name) != null && obj.getStringValue(name).equals(value);
+        return Objects.equals(obj.getStringValue(name), value);
     }
 }

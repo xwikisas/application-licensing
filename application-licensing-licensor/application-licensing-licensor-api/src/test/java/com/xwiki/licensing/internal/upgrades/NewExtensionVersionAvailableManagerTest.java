@@ -109,7 +109,7 @@ public class NewExtensionVersionAvailableManagerTest
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
 
         String namespace = "wiki:test";
-        when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension1.getNamespaces()).thenReturn(Collections.singletonList(namespace));
         when(this.installedRepository.getInstalledExtension(this.extensionId1.getId(), namespace))
             .thenReturn(this.installedExtension1);
 
@@ -118,12 +118,12 @@ public class NewExtensionVersionAvailableManagerTest
             .thenReturn(this.installedExtension2);
 
         when(this.upgradeExtensionHandler.getInstallableVersions(extensionId1))
-            .thenReturn(Arrays.asList((Version) new DefaultVersion("2.1")));
+            .thenReturn(Collections.singletonList((Version) new DefaultVersion("2.1")));
         when(this.upgradeExtensionHandler.getInstallableVersions(extensionId2))
             .thenReturn(Arrays.asList((Version) new DefaultVersion("3.1"), (Version) new DefaultVersion("2.1")));
-        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension1.getName(), namespace,
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.extensionId1.getId(), namespace,
             "2.1")).thenReturn(false);
-        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension2.getName(), "root",
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.extensionId2.getId(), "root",
             "3.1")).thenReturn(false);
 
         this.newVersionAvailableManager.checkLicensedExtensionsAvailableVersions();
@@ -144,7 +144,7 @@ public class NewExtensionVersionAvailableManagerTest
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
 
         String namespace = "wiki:test";
-        when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension1.getNamespaces()).thenReturn(Collections.singletonList(namespace));
         when(this.installedRepository.getInstalledExtension(this.extensionId1.getId(), namespace))
             .thenReturn(this.installedExtension1);
 
@@ -157,9 +157,9 @@ public class NewExtensionVersionAvailableManagerTest
         when(this.upgradeExtensionHandler.getInstallableVersions(extensionId2))
             .thenReturn(Arrays.asList((Version) new DefaultVersion("3.1"), (Version) new DefaultVersion("3.0")));
 
-        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension1.getName(), namespace,
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.extensionId1.getId(), namespace,
             "2.2")).thenReturn(true);
-        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.installedExtension2.getName(), null,
+        when(this.newVersionNotificationManager.isNotificationAlreadySent(this.extensionId2.getId(), null,
             "3.0")).thenReturn(true);
 
         this.newVersionAvailableManager.checkLicensedExtensionsAvailableVersions();
@@ -177,12 +177,13 @@ public class NewExtensionVersionAvailableManagerTest
     @Test
     void checkLicensedExtensionsAvailableVersionsWithoutNewVersions() throws Exception
     {
-        when(this.licensingConfig.getAutoUpgradeAllowList()).thenReturn(Arrays.asList(this.extensionId2.getId()));
+        when(this.licensingConfig.getAutoUpgradeAllowList()).thenReturn(
+            Collections.singletonList(this.extensionId2.getId()));
         when(this.licensedExtensionManager.getLicensedExtensions())
             .thenReturn(Arrays.asList(this.extensionId1, this.extensionId2));
 
         String namespace = "wiki:test";
-        when(this.installedExtension1.getNamespaces()).thenReturn(Arrays.asList(namespace));
+        when(this.installedExtension1.getNamespaces()).thenReturn(Collections.singletonList(namespace));
         when(this.installedRepository.getInstalledExtension(this.extensionId1.getId(), namespace))
             .thenReturn(this.installedExtension1);
 
