@@ -40,6 +40,8 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.objects.BaseObject;
+
 @ComponentTest
 class DefaultLicensingConfigurationTest
 {

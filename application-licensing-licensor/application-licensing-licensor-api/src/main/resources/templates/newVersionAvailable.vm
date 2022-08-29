@@ -1,0 +1,66 @@
+#template('notification/macros.vm')
+
+#set ($mainIcon = "bell")
+#set ($smallIcon = "arrow_up")
+#set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
+
+#macro (getExtensionUpgradeURL $extensionInfo)
+  #set ($extensionNamespace =
+    "#if ($extensionInfo.namespace == 'root')$xcontext.mainWikiName#{else}$extensionInfo.namespace#end")
+  #set ($queryParams = $escapetool.url({
+    'section': 'XWiki.Extensions',
+    'extensionId': $event.getApplication(),
+    'extensionVersion': $extensionInfo.version,
+    'extensionNamespace': $extensionNamespace
+  }))
+  $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+    'admin', $queryParams)##
+#end
+
+#macro (displayEventDetails $event)
+  <tr>
+    <td>
+      <span class="notification-event-user">$escapetool.xml($event.user.name)</span>
+    </td>
+    ## The event body contains information about the extension name, version and targeted namespace.
+    #set ($extensionInfo = $jsontool.fromString($event.getBody()))
+    <td class="description">
+      <a href="#getExtensionUpgradeURL($extensionInfo)">
+        $extensionInfo.extensionName - $extensionInfo.namespace - $extensionInfo.version
+      </a>
+    </td>
+    <td class="text-right text-muted">$escapetool.xml($datetool.whenIs($event.date))</td>
+  </tr>
+#end
+
+#define ($content)
+  #set ($document = $xwiki.getDocument($event.document))
+  <div class="notification-page">
+    ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
+    ## to actually know where the request comes from.
+    #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
+      <span class="text-muted">($services.wiki.getById($event.document.wikiReference.name).prettyName)</span>
+    #end
+  </div>
+  <div class="notification-description">
+    <div class="activity-summary">
+      #if ($event.events.size() == 1)
+        $services.localization.render("licensor.notification.newVersion.singular")
+      #else
+        $services.localization.render("licensor.notification.newVersion.plural")
+      #end
+    </div>
+    <div><small class="text-muted">$compositeEventDate</small></div>
+  </div>
+#end
+
+#define ($details)
+  #define($rows)
+    #foreach($thisEvent in $event.events)
+      #displayEventDetails($thisEvent)
+    #end
+  #end
+  #displayNotificationEventDetailsSkeletons($events.size(), $rows)
+#end
+
+#displayNotificationEventSkeleton($mainIcon $smallIcon $content $details)

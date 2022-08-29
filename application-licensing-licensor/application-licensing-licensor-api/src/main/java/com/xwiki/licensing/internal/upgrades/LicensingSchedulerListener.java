@@ -49,9 +49,11 @@ import com.xpn.xwiki.plugin.scheduler.JobState;
 import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 
 /**
- * Ensure that LicensedExtensionUpgradeJob is scheduled after licensing install. Reschedule LicensedExtensionUpgradeJob
- * to work around https://jira.xwiki.org/browse/XWIKI-14494. The unschedule / schedule process should be removed once
- * the issue is fixed and licensing depends on a version of XWiki >= the version where is fixed.
+ * Ensure that {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} are scheduled after
+ * licensing install. Reschedule {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} to work
+ * around XWIKI-14494: Java scheduler job coming from an extension is not rescheduled when the extension is upgraded.
+ * The unschedule / schedule process should be removed once the issue is fixed and licensing depends on a version of
+ * XWiki >= the version where is fixed.
  * 
  * @since 1.17
  * @version $Id$
@@ -71,8 +73,13 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
      */
     protected static final String LICENSOR_API_ID = "com.xwiki.licensing:application-licensing-licensor-api";
 
-    protected static final LocalDocumentReference JOB_DOC =
-        new LocalDocumentReference(Arrays.asList("Licenses", "Code"), "LicensedExtensionUpgradeJob");
+    protected static final List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
+
+    protected static final LocalDocumentReference EXTENSION_UPGRADE_JOB_DOC =
+        new LocalDocumentReference(CODE_SPACE, "LicensedExtensionUpgradeJob");
+
+    protected static final LocalDocumentReference NEW_VERSION_JOB_DOC =
+        new LocalDocumentReference(CODE_SPACE, "NewExtensionVersionAvailableJob");
 
     private static final List<Event> EVENTS = Arrays.asList(new ExtensionInstalledEvent());
 
@@ -113,7 +120,8 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
         try {
             // Don't trigger the rescheduling process at xwiki startup time.
             if (this.contextProvider.get() != null) {
-                scheduleAutomaticUpgradesJob(true);
+                scheduleJob(true, EXTENSION_UPGRADE_JOB_DOC);
+                scheduleJob(true, NEW_VERSION_JOB_DOC);
             }
         } catch (XWikiException | SchedulerException e) {
             throw new InitializationException("Error while rescheduling LicensedExtensionUpgradeJob", e);
@@ -127,7 +135,8 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
 
         if (event instanceof ExtensionInstalledEvent && extensionId.equals(LICENSOR_API_ID)) {
             try {
-                scheduleAutomaticUpgradesJob(false);
+                scheduleJob(false, EXTENSION_UPGRADE_JOB_DOC);
+                scheduleJob(false, NEW_VERSION_JOB_DOC);
             } catch (XWikiException | SchedulerException e) {
                 throw new RuntimeException("Error while scheduling LicensedExtensionUpgradeJob after licensing install",
                     e);
@@ -135,12 +144,13 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
         }
     }
 
-    protected void scheduleAutomaticUpgradesJob(boolean doReschedule) throws XWikiException, SchedulerException
+    protected void scheduleJob(boolean doReschedule, LocalDocumentReference jobDocReference)
+        throws XWikiException, SchedulerException
     {
         XWikiContext xcontext = contextProvider.get();
 
         SchedulerPlugin scheduler = (SchedulerPlugin) xcontext.getWiki().getPluginManager().getPlugin("scheduler");
-        XWikiDocument jobDoc = xcontext.getWiki().getDocument(JOB_DOC, xcontext);
+        XWikiDocument jobDoc = xcontext.getWiki().getDocument(jobDocReference, xcontext);
         BaseObject job = jobDoc.getXObject(SchedulerPlugin.XWIKI_JOB_CLASSREFERENCE);
         JobState jobState = scheduler.getJobStatus(job, xcontext);
 

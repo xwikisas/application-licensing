@@ -31,21 +31,24 @@ import org.xwiki.eventstream.Event;
 import org.xwiki.eventstream.RecordableEvent;
 import org.xwiki.eventstream.RecordableEventConverter;
 
+import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEvent;
+
 /**
- * Add additional information to ExtensionAutoUpgradedEvent or ExtensionAutoUpgradedFailedEvent.
+ * Add additional information to {@link ExtensionAutoUpgradedEvent}, {@link ExtensionAutoUpgradedFailedEvent} or
+ * {@link NewExtensionVersionAvailableEvent}.
  *
  * @version $Id$
  * @since 1.17
  */
 @Singleton
-@Named(ExtensionAutoUpgradedEventConverter.NAME)
+@Named(ExtensionEventConverter.NAME)
 @Component
-public class ExtensionAutoUpgradedEventConverter implements RecordableEventConverter
+public class ExtensionEventConverter implements RecordableEventConverter
 {
     /**
      * The name of this component.
      */
-    public static final String NAME = "ExtensionAutoUpgradedEventConverter";
+    public static final String NAME = "ExtensionEventConverter";
 
     @Inject
     private RecordableEventConverter defaultConverter;
@@ -66,6 +69,7 @@ public class ExtensionAutoUpgradedEventConverter implements RecordableEventConve
     @Override
     public List<RecordableEvent> getSupportedEvents()
     {
-        return Arrays.asList(new ExtensionAutoUpgradedEvent(), new ExtensionAutoUpgradedFailedEvent());
+        return Arrays.asList(new ExtensionAutoUpgradedEvent(), new ExtensionAutoUpgradedFailedEvent(),
+            new NewExtensionVersionAvailableEvent());
     }
 }

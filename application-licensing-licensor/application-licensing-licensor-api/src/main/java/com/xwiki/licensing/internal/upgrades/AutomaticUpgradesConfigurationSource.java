@@ -43,9 +43,15 @@ public class AutomaticUpgradesConfigurationSource extends AbstractDocumentConfig
 {
     private static final List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
 
+    /**
+     * Reference of the document containing licensing configurations.
+     */
     protected static final LocalDocumentReference LICENSING_CONFIG_DOC =
         new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
 
+    /**
+     * Reference of the class that contains configurations related to automatic upgrades.
+     */
     protected static final LocalDocumentReference AUTO_UPGRADES_CLASS =
         new LocalDocumentReference(CODE_SPACE, "AutomaticUpgradesClass");
 

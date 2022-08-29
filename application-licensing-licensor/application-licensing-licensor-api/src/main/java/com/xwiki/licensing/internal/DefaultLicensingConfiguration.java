@@ -93,21 +93,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> getAutoUpgradeAllowList()
     {
         // Since you cannot pass a default value and a target type to getProperty, the class of defaultValue is used
         // for converting the result. In this case there is no converter for EmptyList, so we manage the result
         // manually.
-        Object allowlist = this.automaticUpgradesConfig.getProperty("allowlist");
-        if (allowlist instanceof List) {
-            return ((List<Object>) allowlist).stream().map(item -> Objects.toString(item, null))
-                .collect(Collectors.toList());
-        } else if (allowlist == null) {
-            return Collections.emptyList();
-        } else {
-            throw new RuntimeException(String.format("Cannot convert [%s] to List", allowlist));
-        }
+        return convertObjectToStringList(this.automaticUpgradesConfig.getProperty("allowlist"));
     }
 
     @Override
@@ -140,4 +131,16 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
         return this.ownerConfig.getProperty("email");
     }
 
+    @SuppressWarnings("unchecked")
+    private List<String> convertObjectToStringList(Object list)
+    {
+        if (list instanceof List) {
+            return ((List<Object>) list).stream().map(item -> Objects.toString(item, null))
+                .collect(Collectors.toList());
+        } else if (list == null) {
+            return Collections.emptyList();
+        } else {
+            throw new RuntimeException(String.format("Cannot convert [%s] to List", list));
+        }
+    }
 }
