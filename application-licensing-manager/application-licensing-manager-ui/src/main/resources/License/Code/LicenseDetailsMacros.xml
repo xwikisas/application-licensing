@@ -56,16 +56,16 @@
     #elseif ($licenseDetails.type.equalsIgnoreCase('free'))
       #set ($discard = $dateTime.addDays(365))
     #else
-      ## We needed a way to handle the Extend Trial action so the user won't loose it.
-      ## E.g.: If an user gets a trial and tries to extend it before the expiration date, the 11 days will be added
-      ## to the previous expiration date and not to the current date.
-      #countTrials($licenseDetails.instanceId $licenseDetails.featureId $trialCount)
-      #if ($trialCount &gt;= 1)
-        #getExpirationDate($licenseDetails.instanceId $licenseDetails.featureId $date)
-        ## If the last expiration date is not defined it means there's no expiration date set yet (i.e. this is a new
-        ## entry). Use the current date as the expiration date in this case.
-        #if ("$!date" != '')
-          #set ($dateTime = $xwiki.jodatime.getMutableDateTime($date.time))
+      ## Check if there is a trial license to extend, in which case we need to add 11 days to the expiration date of the
+      ## existing trial license, rather than to the current date.
+      #getTrialLicenses($licenseDetails.instanceId $licenseDetails.featureId)
+      #if (!$trialLicenses.isEmpty())
+        ## Extend the trial license with the best expiration date (which should be at the start of the list). Note that
+        ## the expiration date might not be set, which happens if the license page is created but the license is not yet
+        ## generated. We ignore the existing trial license in this case.
+        #set ($bestTrialLicense = $trialLicenses.get(0))
+        #if ("$!bestTrialLicense.expirationDate" != '')
+          #set ($dateTime = $xwiki.jodatime.getMutableDateTime($bestTrialLicense.expirationDate.time))
         #end
       #end
       #set ($discard = $dateTime.addDays(11))
@@ -321,30 +321,35 @@
   #setVariable ("$expiringLicenses", $totalResults)
 #end
 
-#macro (countTrials $instanceId $featureId $trialCount)
-  #getLicenseQuery($instanceId $featureId $query)
-  #set ($trialCount = $NULL)
-  #setVariable ("$trialCount", $query.count())
+#macro (getTrialLicenses $instanceId $featureId)
+  #getLicenseQuery($instanceId $featureId $trialLicenseQuery 'trial')
+  #set ($trialLicenses = [])
+  #foreach ($result in $trialLicenseQuery.execute())
+    #set ($macro.licenseDetailsDocument = $xwiki.getDocument($result))
+    ## Due to the way Velocity works, calling #readLicenseDetailsFromDocument() will overwrite the $licenseDetails
+    ## variable leading to unexpected side effects because this variable is common in the License Manager code. We
+    ## backup the variable value in order to be able to restore it after the macro call.
+    #set ($licenseDetailsBackup = $licenseDetails)
+    #readLicenseDetailsFromDocument($macro.licenseDetailsDocument)
+    #set ($discard = $trialLicenses.add($licenseDetails))
+    #set ($licenseDetails = $licenseDetailsBackup)
+  #end
 #end
 
-#macro (getExpirationDate $instanceId $featureId $date)
-  #getLicenseQuery($instanceId $featureId $query)
-  #set ($result = $query.setLimit(1).execute())
-  #set ($resultDoc = $xwiki.getDocument($result[0]))
-  #set ($date = $NULL)
-  #setVariable ("$date", $resultDoc.getValue('expirationDate'))
-#end
-
-#macro (getLicenseQuery $instanceId $featureId $query)
-  #set ($statement =
-    'from doc.object(License.Code.LicenseDetailsClass) license ' +
-    'where license.instanceId = :instanceId and ' +
-      '(license.featureId = :featureId or :featureId member of license.dependentFeatureIds) ' +
-    'order by license.expirationDate desc, doc.creationDate desc'
-  )
-  #set ($computedQuery = $services.query.xwql($statement))
+#macro (getLicenseQuery $instanceId $featureId $query $licenseType)
+  #set ($fromClause = 'from doc.object(License.Code.LicenseDetailsClass) license')
+  #set ($whereClause = 'where license.instanceId = :instanceId and ' +
+    '(license.featureId = :featureId or :featureId member of license.dependentFeatureIds)')
+  #if ("$!licenseType" != '')
+    #set ($whereClause = $whereClause + ' and license.type = :licenseType')
+  #end
+  #set ($orderByClause = 'order by license.expirationDate desc, doc.creationDate desc')
+  #set ($computedQuery = $services.query.xwql("$fromClause $whereClause $orderByClause"))
   #set ($computedQuery = $computedQuery.bindValue('instanceId', $instanceId))
   #set ($computedQuery = $computedQuery.bindValue('featureId', $featureId))
+  #if ("$!licenseType" != '')
+    #set ($computedQuery = $computedQuery.bindValue('licenseType', $licenseType))
+  #end
   #set ($query = $NULL)
   #setVariable ("$query", $computedQuery)
 #end
