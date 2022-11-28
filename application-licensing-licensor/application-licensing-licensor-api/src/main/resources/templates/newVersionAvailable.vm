@@ -34,14 +34,6 @@
 #end
 
 #define ($content)
-  #set ($document = $xwiki.getDocument($event.document))
-  <div class="notification-page">
-    ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
-    ## to actually know where the request comes from.
-    #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
-      <span class="text-muted">($services.wiki.getById($event.document.wikiReference.name).prettyName)</span>
-    #end
-  </div>
   <div class="notification-description">
     <div class="activity-summary">
       #if ($event.events.size() == 1)
