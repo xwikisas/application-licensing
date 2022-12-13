@@ -50,10 +50,10 @@ import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
 
 /**
  * Ensure that {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} are scheduled after
- * licensing install. Reschedule {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} to work
- * around XWIKI-14494: Java scheduler job coming from an extension is not rescheduled when the extension is upgraded.
- * The unschedule / schedule process should be removed once the issue is fixed and licensing depends on a version of
- * XWiki >= the version where is fixed.
+ * licensing install or upgrade. Reschedule {@link LicensedExtensionUpgradeJob} and
+ * {@link NewExtensionVersionAvailableJob} to work around XWIKI-14494: Java scheduler job coming from an extension is
+ * not rescheduled when the extension is upgraded. The unschedule / schedule process should be removed once the issue
+ * is fixed and licensing depends on a version of XWiki >= the version where is fixed.
  * 
  * @since 1.17
  * @version $Id$
@@ -102,18 +102,18 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
 
     /**
      * The unschedule / schedule process should be done at ExtensionUpgradedEvent, but for avoiding
-     * https://jira.xwiki.org/browse/XCOMMONS-751 it is done at initialization step, since when the extension is
-     * initialized after an upgrade, all the extension's listeners are initialized. After the issue is fixed and
-     * licensing starts depending on a version of XWiki >= the version where is fixed, then this code should be moved
-     * inside a ExtensionUpgradedEvent listener.
+     * XCOMMONS-751: Getting wrong component instance during JAR extension upgrade, it is done at initialization step,
+     * since when the extension is initialized after an upgrade, all the extension's listeners are initialized. After
+     * the issue is fixed and licensing starts depending on a version of XWiki >= the version where is fixed, then
+     * this code should be moved inside a ExtensionUpgradedEvent listener.
      *
      * @see org.xwiki.component.phase.Initializable#initialize()
      */
     @Override
     public void initialize() throws InitializationException
     {
-        // Overwrite the Thread Context ClassLoader to work around the https://jira.xwiki.org/browse/XCOMMONS-2064 bug.
-        // Remove this hack once it's fixed and licensing starts depending on XWiki >= the version where it's fixed.
+        // Overwrite the Thread Context ClassLoader to work around XCOMMONS-2064: The Thread Context ClassLoader is not
+        // cleaned between jobs. Remove this hack once licensing starts depending on a version of XWiki >= 12.10.
         Thread.currentThread().setContextClassLoader(
             new ContextNamespaceURLClassLoader(this.wikiDescriptorManager, this.classLoaderManager));
 
@@ -157,7 +157,7 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
         if (doReschedule && jobState.getQuartzState().equals(TriggerState.NORMAL)) {
             scheduler.unscheduleJob(job, xcontext);
             scheduler.scheduleJob(job, xcontext);
-        } else if (!doReschedule && jobState.getQuartzState().equals(TriggerState.NONE)) {
+        } else if (jobState.getQuartzState().equals(TriggerState.NONE)) {
             scheduler.scheduleJob(job, xcontext);
         }
     }
