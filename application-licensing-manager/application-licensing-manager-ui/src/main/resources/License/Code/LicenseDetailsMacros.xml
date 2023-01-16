@@ -427,7 +427,7 @@
     #try ('retrieveGeneratedLicenseError')
       #set ($license = $services.licensing.manager.retrieveGeneratedLicense($licenseStore, $licenseId))
     #end
-    #if ($retrieveGeneratedLicenseError)
+    #if ($retrieveGeneratedLicenseError || !$license.certificates)
       #set ($discard = $licensesToRegenerate.add($licenseId))
     #end
   #end

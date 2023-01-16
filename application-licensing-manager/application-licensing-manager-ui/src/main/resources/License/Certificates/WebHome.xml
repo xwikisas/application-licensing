@@ -84,9 +84,11 @@
   #getActiveLicenses($issuedYear $certificate.notBefore)
   #set ($licenseStore = $services.licensing.license.getFileLicenseStore('generated-licenses'))
   #set ($activeLicensesForCertificate = [])
+  #set ($certificateNameLowerCase = $certificate.subject.name.toLowerCase())
   #foreach ($activeLicenseId in $activeLicenses)
     #set ($activeLicense = $licenseStore.retrieve($activeLicenseId))
-    #if ($activeLicense.certificates.contains($certificate))
+    #if ($activeLicense.certificates.contains($certificate) ||
+        $certificateNameLowerCase.contains($activeLicense.type.name().toLowerCase()))
       #set ($discard = $activeLicensesForCertificate.add($activeLicense))
     #end
   #end
