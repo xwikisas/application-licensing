@@ -672,7 +672,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     updateLicensesButton.focus().popover('show');
   });
 
-  $('#updateLicenses').click(function() {
+  $('#updateLicenses').on('click', function() {
     var updateButton = $(this);
     updateButton.prop('disabled', true);
     // Show a notification message.
