@@ -52,8 +52,8 @@ public final class SignedLicense extends License
     private final byte[] signedLicense;
 
     /**
-     * Construct a Signed license, not for public usage, see the LicenseConverter to convert a encoded license
-     * into a SignedLicense.
+     * Construct a Signed license, not for public usage, see the LicenseConverter to convert a encoded license into a
+     * SignedLicense.
      *
      * @param signedLicense the encoded signed license.
      * @param verifier the signature verifier, should be an instance of DefaultCMSSignedDataVerifier.
@@ -78,6 +78,7 @@ public final class SignedLicense extends License
 
     /**
      * Copy constructor.
+     *
      * @param license the license to copy.
      */
     public SignedLicense(SignedLicense license)
@@ -147,7 +148,8 @@ public final class SignedLicense extends License
         return rootCA.isRootCA() ? checkChainValidity(chain) : null;
     }
 
-    private Collection<X509CertifiedPublicKey> checkChainValidity(Collection<CertifiedPublicKey> chain) {
+    private Collection<X509CertifiedPublicKey> checkChainValidity(Collection<CertifiedPublicKey> chain)
+    {
         Collection<X509CertifiedPublicKey> result = new ArrayList<X509CertifiedPublicKey>();
         for (CertifiedPublicKey cert : chain) {
             if (!(cert instanceof X509CertifiedPublicKey)) {
@@ -230,7 +232,8 @@ public final class SignedLicense extends License
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (o == null) {
             return false;
         }
@@ -250,7 +253,8 @@ public final class SignedLicense extends License
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return super.hashCode();
     }
 }

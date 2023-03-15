@@ -32,12 +32,15 @@ import org.xwiki.extension.version.internal.DefaultVersionConstraint;
  */
 public class LicensedFeatureId
 {
-    private static final VersionConstraint NO_VERSION_CONSTRAINT =  new DefaultVersionConstraint("(,)");
+    private static final VersionConstraint NO_VERSION_CONSTRAINT = new DefaultVersionConstraint("(,)");
+
     private final String id;
+
     private final VersionConstraint versionConstraint;
 
     /**
      * Construct a feature identifier from a String without any version constraint.
+     *
      * @param id the identifier as a string.
      */
     public LicensedFeatureId(String id)
@@ -82,8 +85,8 @@ public class LicensedFeatureId
     }
 
     /**
-     * @return an extension dependency object useful to find extensions matching this feature in the installed
-     * extension repository.
+     * @return an extension dependency object useful to find extensions matching this feature in the installed extension
+     *     repository.
      */
     public ExtensionDependency getExtensionDependency()
     {
@@ -124,12 +127,13 @@ public class LicensedFeatureId
 
         return this.id.equals(licensedFeatureId.id)
             && ((this.versionConstraint == null && licensedFeatureId.versionConstraint == null)
-                || (this.versionConstraint != null
-                    && this.versionConstraint.equals(licensedFeatureId.versionConstraint)));
+            || (this.versionConstraint != null
+            && this.versionConstraint.equals(licensedFeatureId.versionConstraint)));
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return super.hashCode();
     }
 }

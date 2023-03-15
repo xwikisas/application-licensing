@@ -63,17 +63,24 @@ public class License implements Comparable<License>
     }
 
     private LicenseId licenseId;
+
     private Collection<LicensedFeatureId> featureIds;
+
     private Collection<InstanceId> instanceIds;
+
     private long expirationDate = Long.MAX_VALUE;
+
     private long maxUserCount = Long.MAX_VALUE;
+
     private LicenseType licenseType = LicenseType.FREE;
+
     private Map<String, String> licensee;
 
     /**
      * Default constructor.
      */
-    public License() {
+    public License()
+    {
         // Empty license construction.
     }
 
@@ -82,7 +89,8 @@ public class License implements Comparable<License>
      *
      * @param license license object to be copied.
      */
-    public License(License license) {
+    public License(License license)
+    {
         this.setId(license.getId());
         this.setType(license.getType());
         this.setFeatureIds(license.getFeatureIds());
@@ -105,6 +113,7 @@ public class License implements Comparable<License>
 
     /**
      * Set the unique identifier for this license object.
+     *
      * @param id the identifier to assign.
      */
     public void setId(LicenseId id)
@@ -122,6 +131,7 @@ public class License implements Comparable<License>
 
     /**
      * Set the set of features covered by this license.
+     *
      * @param ids a set of feature ids to be assigned.
      */
     public void setFeatureIds(Collection<LicensedFeatureId> ids)
@@ -136,6 +146,7 @@ public class License implements Comparable<License>
 
     /**
      * Add a feature to the actual feature set covered by this license.
+     *
      * @param id the feature to be added.
      */
     public void addFeatureId(LicensedFeatureId id)
@@ -156,6 +167,7 @@ public class License implements Comparable<License>
 
     /**
      * Set the set of instances this license could be applied to.
+     *
      * @param ids a set of InstanceId to be assigned.
      */
     public void setInstanceIds(Collection<InstanceId> ids)
@@ -170,6 +182,7 @@ public class License implements Comparable<License>
 
     /**
      * Add an instance for which this license is applicable.
+     *
      * @param id the identifier of the instance to be added.
      */
     public void addInstanceId(InstanceId id)
@@ -182,7 +195,7 @@ public class License implements Comparable<License>
 
     /**
      * Check if this license is applicable for a given instance.
-     * 
+     *
      * @param id the identifier of the instance to be checked.
      * @return true if this license is applicable for the given instance.
      */
@@ -201,6 +214,7 @@ public class License implements Comparable<License>
 
     /**
      * Set the expiration date of this license.
+     *
      * @param date the date to be assigned. Use Long.MAX_VALUE for an infinite license.
      */
     public void setExpirationDate(Long date)
@@ -218,6 +232,7 @@ public class License implements Comparable<License>
 
     /**
      * Set the maximum number of user covered by this license.
+     *
      * @param userCount the maximum number of user to be assigned. Use Long.MAX_VALUE for no limitation.
      */
     public void setMaxUserCount(long userCount)
@@ -235,6 +250,7 @@ public class License implements Comparable<License>
 
     /**
      * Set the license type.
+     *
      * @param type the license type to be assigned.
      */
     public void setType(LicenseType type)
@@ -252,6 +268,7 @@ public class License implements Comparable<License>
 
     /**
      * Set licensee informations.
+     *
      * @param licensee a map of licensee information to be assigned.
      */
     public void setLicensee(Map<String, String> licensee)
@@ -266,6 +283,7 @@ public class License implements Comparable<License>
 
     /**
      * Add a licensee information (or change it).
+     *
      * @param key the key of the licensee information.
      * @param value the value of the licensee information.
      */
@@ -279,6 +297,7 @@ public class License implements Comparable<License>
 
     /**
      * Compare two licenses and return the one that has the larger coverage.
+     *
      * @param license1 the first license to be compared
      * @param license2 the second license to be compared
      * @return the license that has the larger coverage, only meaningful if both license cover at least a common target.
@@ -332,6 +351,7 @@ public class License implements Comparable<License>
 
     /**
      * Compare several licenses and return the one that has the larger coverage.
+     *
      * @param licenses a set of licenses to be compared
      * @return the license that has the larger coverage, only meaningful if all licenses cover at least a common target.
      */
@@ -345,7 +365,8 @@ public class License implements Comparable<License>
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -370,7 +391,8 @@ public class License implements Comparable<License>
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return super.hashCode();
     }
 
@@ -394,10 +416,10 @@ public class License implements Comparable<License>
             if (!(lhs instanceof Collection) || lhs.getClass() != rhs.getClass()) {
                 return super.append(lhs, rhs);
             }
-            return append((Collection< ? >) lhs, (Collection< ? >) rhs);
+            return append((Collection<?>) lhs, (Collection<?>) rhs);
         }
 
-        private EqualsBuilder append(Collection< ? > lhs, Collection< ? > rhs)
+        private EqualsBuilder append(Collection<?> lhs, Collection<?> rhs)
         {
             if (lhs.size() != rhs.size()) {
                 this.setEquals(false);
@@ -405,7 +427,7 @@ public class License implements Comparable<License>
             }
 
             if (lhs.size() > 0) {
-                return appendCollection((Collection< ? >) lhs, (Collection< ? >) rhs);
+                return appendCollection((Collection<?>) lhs, (Collection<?>) rhs);
             }
             return this;
         }

@@ -47,8 +47,8 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,11 +70,19 @@ public class FileSystemLicenseStoreTest
     public AllLogRule logRule = new AllLogRule();
 
     private static final File TEST_DIR = new File("target/tmp");
+
     private static final File SINGLE_STORE_FILE = new File(TEST_DIR, "single.license");
+
     private static final File MULTI_STORE_DIR = new File(TEST_DIR, "licenses");
-    private static final LicenseStoreReference SINGLE_STORE_REFERENCE = new FileLicenseStoreReference(SINGLE_STORE_FILE, false);
-    private static final LicenseStoreReference MULTI_STORE_REFERENCE = new FileLicenseStoreReference(MULTI_STORE_DIR, true);
+
+    private static final LicenseStoreReference SINGLE_STORE_REFERENCE =
+        new FileLicenseStoreReference(SINGLE_STORE_FILE, false);
+
+    private static final LicenseStoreReference MULTI_STORE_REFERENCE =
+        new FileLicenseStoreReference(MULTI_STORE_DIR, true);
+
     private static final License testLicense = new License();
+
     private static final String xmlLicense = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         + "<license xmlns=\"http://www.xwiki.com/license\" id=\"00000000-0000-0000-0000-000000000000\">\n"
         + "    <modelVersion>2.0.0</modelVersion>\n"
@@ -204,7 +212,6 @@ public class FileSystemLicenseStoreTest
         assertThat(license, equalTo(signedLicense));
     }
 
-
     @Test
     public void testRetrieveUnsignedLicenseFromFolder() throws Exception
     {
@@ -295,5 +302,4 @@ public class FileSystemLicenseStoreTest
         verify(this.mockedStore.getMockedLogger()).warn(eq("Failed to read license file [{}]."), eq(invalidStoreFile),
             any(IllegalArgumentException.class));
     }
-
 }

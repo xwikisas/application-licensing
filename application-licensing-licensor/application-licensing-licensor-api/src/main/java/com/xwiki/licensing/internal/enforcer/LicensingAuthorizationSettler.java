@@ -78,6 +78,7 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
     private Provider<LicenseValidator> licenseValidator;
 
     private LicenseValidator cachedLicenseValidator;
+
     private AuthorizationSettler authorizationSettler;
 
     /**
@@ -85,13 +86,19 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
      */
     private final class InternalSecurityAccessEntry extends AbstractSecurityAccessEntry
     {
-        /** User reference. */
+        /**
+         * User reference.
+         */
         private final UserSecurityReference userReference;
 
-        /** Entity reference. */
+        /**
+         * Entity reference.
+         */
         private final SecurityReference reference;
 
-        /** Security access. */
+        /**
+         * Security access.
+         */
         private final SecurityAccess access;
 
         /**
@@ -187,7 +194,8 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
         ReflectionUtils.setFieldValue(authorizationSettlerProvider, AUTHORIZATION_SETTLER_FIELD, this);
     }
 
-    private LicenseValidator getLicenseValidator() {
+    private LicenseValidator getLicenseValidator()
+    {
         if (cachedLicenseValidator == null) {
             cachedLicenseValidator = licenseValidator.get();
             if (!LicensingUtils.isPristineImpl(cachedLicenseValidator)) {

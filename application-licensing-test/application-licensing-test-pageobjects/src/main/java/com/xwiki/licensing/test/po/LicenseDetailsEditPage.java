@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.test.po;
 
+import org.openqa.selenium.By;
 import org.xwiki.test.ui.po.InlinePage;
 
 /**
@@ -80,8 +81,8 @@ public class LicenseDetailsEditPage extends InlinePage
 
     public LicenseDetailsEditPage setLicenseType(String type)
     {
-        getDriver().findElementByXPath(
-            "//input[@name = 'License.Code.LicenseDetailsClass_0_type' and @value = '" + type + "']").click();
+        getDriver().findElement(By.xpath(
+            "//input[@name = 'License.Code.LicenseDetailsClass_0_type' and @value = '" + type + "']")).click();
         return this;
     }
 }
