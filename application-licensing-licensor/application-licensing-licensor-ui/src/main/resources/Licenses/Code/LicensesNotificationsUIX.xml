@@ -42,12 +42,7 @@
 #if ($hasAdmin &amp;&amp; $hasProgramming)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($extensionNames = $collectiontool.sortedSet)
-  #else
-    #set ($extensionNames = $collectionstool.sortedSet)
-  #end
+  #set ($extensionNames = $collectiontool.sortedSet)
   #set ($limit = 3)
   #set ($showMore = false)
   #foreach ($extension in $visiblePaidExtensions)

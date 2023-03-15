@@ -47,12 +47,7 @@
 
 #macro (getPaidExtensions)
   #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($paidExtensions = $collectiontool.set)
-  #else
-    #set ($paidExtensions = $collectionstool.set)
-  #end
+  #set ($paidExtensions = $collectiontool.set)
   #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
     #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
   #end
@@ -60,12 +55,7 @@
 
 #macro (getVisiblePaidExtensions)
   #getPaidExtensions
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($visiblePaidExtensions = $collectiontool.set)
-  #else
-    #set ($visiblePaidExtensions = $collectionstool.set)
-  #end
+  #set ($visiblePaidExtensions = $collectiontool.set)
   #foreach ($paidExtension in $paidExtensions)
     ## Filter out the paid extensions that are dependencies of other paid extensions (because the license of a paid
     ## extension should cover its paid dependencies).
@@ -78,12 +68,7 @@
 
 #macro (isRequiredBy $installedExtension $extensions)
   #set ($isRequiredBy = false)
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($backwardDependencies = $collectiontool.queue)
-  #else
-    #set ($backwardDependencies = $collectionstool.queue)
-  #end
+  #set ($backwardDependencies = $collectiontool.queue)
   #addBackwardDependencies($installedExtension $backwardDependencies)
   ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
   ## rely on a range loop (limiting the number of backward dependencies that we analyze).
@@ -103,12 +88,7 @@
 #end
 
 #macro (addBackwardDependencies $installedExtension $backwardDependencies)
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($backwardDependenciesSet = $collectiontool.set)
-  #else
-    #set ($backwardDependenciesSet = $collectionstool.set)
-  #end
+  #set ($backwardDependenciesSet = $collectiontool.set)
   #set ($discard = $backwardDependenciesSet.addAll($backwardDependencies))
   #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($installedExtension.id))
   #foreach ($backwardDependenciesOnNamespace in $backwardDependenciesByNamespace.values())
@@ -213,14 +193,8 @@
       &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
       &lt;input type="hidden" name="extensionId" value="$!escapetool.xml($extensionId)" /&gt;
       &lt;input type="hidden" name="autoUpgrade" value="$!escapetool.xml($isAutoUpgrade)" /&gt;
-      ## The data translations attributes are used for updating the title from js. These can be removed once licensing
-      ## starts depending on a XWiki version &gt;= 13.8 to include XWIKI-18973: Simplify the way JavaScript code loads
-      ## translation messages.
       &lt;a href="#autoUpgrade" class="action licenseButton-autoUpgrade" title="$escapetool.xml(
-          $services.localization.render("licensor.moreActions.autoUpgrade.${upgradeL10nKey}"))" data-allow-label=
-          "$escapetool.xml($services.localization.render('licensor.moreActions.autoUpgrade.allow'))"
-          data-prevent-label="$escapetool.xml(
-          $services.localization.render('licensor.moreActions.autoUpgrade.prevent'))" &gt;
+          $services.localization.render("licensor.moreActions.autoUpgrade.${upgradeL10nKey}"))" &gt;
         &lt;span class="action-icon #if ($isAutoUpgrade)isAutoUpgrade#end"&gt;
           &lt;span class="fa fa-cloud-download"&gt;&lt;/span&gt;##
         &lt;/span&gt;&lt;span class="action-label"&gt;$escapetool.xml(

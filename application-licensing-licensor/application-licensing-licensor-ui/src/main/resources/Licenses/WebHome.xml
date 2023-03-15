@@ -424,7 +424,14 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>define('licensor', ['jquery', 'xwiki-meta'], function($, xwikiMeta) {
+      <code>define('auto-update-button', {
+  prefix: 'licensor.moreActions.autoUpgrade.',
+  keys: [
+    'allow',
+    'prevent'
+  ]
+});
+define('licensor', ['jquery', 'xwiki-meta', 'xwiki-l10n!auto-update-button'], function($, xwikiMeta, l10n) {
   return {
     addLicense: function(data) {
       return $.post(
@@ -484,7 +491,7 @@
   };
 });
 
-require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap'], function ($, licensor, xwikiMeta) {
+require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'xwiki-events-bridge', 'bootstrap'], function ($, licensor, xwikiMeta, l10n) {
   //
   // Owner Details Form
   //
@@ -570,8 +577,8 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     similarExtensions.each(function() {
       var autoUpgradeButton = $(this).siblings('.licenseButton-autoUpgrade');
       autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', isAutoUpgrade);
-      var translationKey = isAutoUpgrade ? 'data-prevent-label' : 'data-allow-label';
-      autoUpgradeButton.prop('title', autoUpgradeButton.attr(translationKey));
+      var translationKey = isAutoUpgrade ? 'prevent' : 'allow';
+      autoUpgradeButton.prop('title', l10n.get(translationKey));
     });
   };
 
@@ -692,11 +699,11 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
     licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).success(function(data) {
       autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', data.isAutoUpgrade);
       if(data.isAutoUpgrade) {
-        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-prevent-label'));
+        autoUpgradeButton.prop('title', l10n.get('prevent'));
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.added')), 'done');
       } else {
-        autoUpgradeButton.prop('title', autoUpgradeButton.attr('data-allow-label'));
+        autoUpgradeButton.prop('title', l10n.get('allow'));
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('licensor.moreActions.autoUpgrade.removed')), 'done');
       }
@@ -825,15 +832,6 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-events-bridge', 'bootstrap']
 
 #addLicense + .errormessage {
   margin-top: .7em;
-}
-
-/* Duplicate some rules from style.css for input[type='email'].
-   Should be removed when https://jira.xwiki.org/browse/XWIKI-13803 is implemented.*/
-.xform input[type="email"] {
-  width: 100%;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
 /* .dropleft to be used after moving to Bootstrap 4 */
