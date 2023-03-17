@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="License.Certificates.WebHome" locale="">
+<xwikidoc version="1.4" reference="License.Certificates.WebHome" locale="">
   <web>License.Certificates</web>
   <name>WebHome</name>
   <language/>
@@ -50,7 +50,7 @@
       #set ($discard = $validCertificates.add($certificate))
     #end
   #end
-  #set ($validCertificates = $sorttool.sort($validCertificates, 'notAfter'))
+  #set ($validCertificates = $collectiontool.sort($validCertificates, 'notAfter'))
 #end
 
 #macro (getExpiredCertificates)
@@ -60,7 +60,7 @@
       #set ($discard = $expiredCertificates.add($certificate))
     #end
   #end
-  #set ($expiredCertificates = $sorttool.sort($expiredCertificates, 'notBefore:desc'))
+  #set ($expiredCertificates = $collectiontool.sort($expiredCertificates, 'notBefore:desc'))
 #end
 
 #macro (certificatesTable $certificates)

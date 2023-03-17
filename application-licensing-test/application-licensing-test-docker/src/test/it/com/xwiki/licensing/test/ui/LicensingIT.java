@@ -29,6 +29,7 @@ import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.platform.notifications.test.po.NotificationsTrayPage;
@@ -47,7 +48,7 @@ import com.xwiki.licensing.test.po.LicenseNotificationPane;
 import com.xwiki.licensing.test.po.LicensesAdminPage;
 import com.xwiki.licensing.test.po.LicensesHomePage;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Functional tests for the Licensing application.
@@ -110,7 +111,7 @@ class LicensingIT
         // The rest of the users are not allowed view it.
         setup.createUserAndLoginWithRedirect("alice", "test", setup.getURL("Example", "WebHome"));
         assertEquals("You are not allowed to view this page or perform this action.",
-            setup.getDriver().findElementByCssSelector("p.xwikimessage").getText());
+            setup.getDriver().findElement(By.cssSelector("p.xwikimessage")).getText());
 
         // Verify that the public page is accessible without a license.
         setup.gotoPage("Example", "ApplicationsPanelEntry");
@@ -140,8 +141,8 @@ class LicensingIT
         assertEquals(1, liveTable.getRowCount());
         WebElement firstRow = liveTable.getRow(1);
         assertEquals("No license available", liveTable.getCell(firstRow, 3).getText());
-        assertEquals("Support level should not be specified.", "-", liveTable.getCell(firstRow, 4).getText());
-        assertEquals("User limit should not be specified.", "-", liveTable.getCell(firstRow, 5).getText());
+        assertEquals("-", liveTable.getCell(firstRow, 4).getText(), "Support level should not be specified.");
+        assertEquals("-", liveTable.getCell(firstRow, 5).getText(), "User limit should not be specified.");
 
         // Import an invalid license.
         assertEquals("Failed! The provided license could not be decoded. Please contact sales@xwiki.com.",

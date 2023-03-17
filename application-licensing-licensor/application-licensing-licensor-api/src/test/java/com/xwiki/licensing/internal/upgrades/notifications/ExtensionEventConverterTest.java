@@ -57,7 +57,5 @@ class ExtensionEventConverterTest
         when(this.defaultConverter.convert(event, null, message)).thenReturn(convertedEvent);
 
         assertEquals(convertedEvent, this.extensionEventConverter.convert(event, null, message));
-
-        verify(convertedEvent).setBody(message);
     }
 }

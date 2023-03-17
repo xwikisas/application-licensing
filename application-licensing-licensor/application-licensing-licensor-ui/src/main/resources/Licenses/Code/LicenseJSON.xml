@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="Licenses.Code.LicenseJSON" locale="">
+<xwikidoc version="1.4" reference="Licenses.Code.LicenseJSON" locale="">
   <web>Licenses.Code</web>
   <name>LicenseJSON</name>
   <language/>
@@ -99,12 +99,7 @@
     #end
     #set ($discard = $namespaces.add($wikiPrettyName))
   #end
-  ## SortTool is deprecated since 12.0.
-  #if ($collectiontool)
-    #set ($namespaces = $collectiontool.sort($namespaces))
-  #else
-    #set ($namespaces = $sorttool.sort($namespaces))
-  #end
+  #set ($namespaces = $collectiontool.sort($namespaces))
   ##
   ## Other
   ##
@@ -146,12 +141,7 @@
 #foreach ($extension in $extensions)
   #addPaidExtensionRow($extension $rows)
 #end
-## SortTool is deprecated since 12.0.
-#if ($collectiontool)
-  #set ($rows = $collectiontool.sort($rows, 'name'))
-#else
-  #set ($rows = $sorttool.sort($rows, 'name'))
-#end
+#set ($rows = $collectiontool.sort($rows, 'name'))
 #set ($offset = $mathtool.sub($numbertool.toNumber($request.offset).intValue(), 1))
 #if ("$!offset" == '')
   #set ($offset = 0)

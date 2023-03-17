@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="License.Code.GenerateCertificates" locale="">
+<xwikidoc version="1.4" reference="License.Code.GenerateCertificates" locale="">
   <web>License.Code</web>
   <name>GenerateCertificates</name>
   <language/>
@@ -35,7 +35,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content>{{velocity output="false"}}
 #macro (displayFormToRegenerateCertificates)
   This will generate License Certificates for ${datetool.year}.

@@ -29,8 +29,6 @@ import javax.inject.Singleton;
 
 import org.quartz.SchedulerException;
 import org.quartz.Trigger.TriggerState;
-import org.xwiki.classloader.ClassLoaderManager;
-import org.xwiki.classloader.xwiki.internal.ContextNamespaceURLClassLoader;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -39,7 +37,6 @@ import org.xwiki.extension.repository.internal.installed.DefaultInstalledExtensi
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
-import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -86,12 +83,6 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     @Inject
     private Provider<XWikiContext> contextProvider;
 
-    @Inject
-    private WikiDescriptorManager wikiDescriptorManager;
-
-    @Inject
-    private ClassLoaderManager classLoaderManager;
-
     /**
      * Constructor.
      */
@@ -112,10 +103,6 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     @Override
     public void initialize() throws InitializationException
     {
-        // Overwrite the Thread Context ClassLoader to work around XCOMMONS-2064: The Thread Context ClassLoader is not
-        // cleaned between jobs. Remove this hack once licensing starts depending on a version of XWiki >= 12.10.
-        Thread.currentThread().setContextClassLoader(
-            new ContextNamespaceURLClassLoader(this.wikiDescriptorManager, this.classLoaderManager));
 
         try {
             // Don't trigger the rescheduling process at xwiki startup time.

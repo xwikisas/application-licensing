@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="License.Code.LicenseDetailsMacros" locale="">
+<xwikidoc version="1.4" reference="License.Code.LicenseDetailsMacros" locale="">
   <web>License.Code</web>
   <name>LicenseDetailsMacros</name>
   <language/>
@@ -211,19 +211,10 @@
   #if ("$!licenseDetails.dependentFeatureIds" == '' || $licenseDetails.dependentFeatureIds.isEmpty())
     #getLicensedExtension($licenseDetails)
     #if ($extension)
-      ## CollectionsTool is deprecated since 12.1RC1.
-      #if ($collectiontool)
-        #set ($dependentFeatureIds = $collectiontool.set)
-      #else
-        #set ($dependentFeatureIds = $collectionstool.set)
-      #end
+      #set ($dependentFeatureIds = $collectiontool.set)
       #set ($packageId = $extension.getProperty('xwiki.extension.licensing.packageId'))
       #if ("$!packageId" != '')
-        ## See XWIKI-15051: SafeExtension#getProperty(key, defaultValue) ignores the default value
-        #set ($packageVersion = $extension.getProperty('xwiki.extension.licensing.packageVersion'))
-        #if ("$!packageVersion" == '')
-          #set ($packageVersion = $extension.id.version.toString())
-        #end
+        #set ($packageVersion = $extension.getProperty('xwiki.extension.licensing.packageVersion', $extension.id.version.toString()))
         #set ($package = $services.extension.resolve($packageId, $packageVersion))
         #if ($package)
           ## Add the paid modules from the specified package.
@@ -242,12 +233,7 @@
 #macro (getDependentFeatureIds $extension $dependentFeatureIds)
   #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
   #set ($namespace = "wiki:$xcontext.database")
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($dependencies = $collectiontool.queue)
-  #else
-    #set ($dependencies = $collectionstool.queue)
-  #end
+  #set ($dependencies = $collectiontool.queue)
   #set ($discard = $dependencies.add($services.extension.createExtensionDependency($extension.id.id,
     $extension.id.version)))
   ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
@@ -435,20 +421,11 @@
 
 #macro (getEmailsForActiveLicensesToRegenerate)
   #getActiveLicensesToRegenerate()
-  ## CollectionsTool is deprecated since 12.1RC1.
-  #if ($collectiontool)
-    #set ($emailsForActiveLicensesToRegenerate = {
-      'free': $collectiontool.sortedSet,
-      'paid': $collectiontool.sortedSet,
-      'trial': $collectiontool.sortedSet
-    })
-  #else
-    #set ($emailsForActiveLicensesToRegenerate = {
-      'free': $collectionstool.sortedSet,
-      'paid': $collectionstool.sortedSet,
-      'trial': $collectionstool.sortedSet
-    })
-  #end
+  #set ($emailsForActiveLicensesToRegenerate = {
+    'free': $collectiontool.sortedSet,
+    'paid': $collectiontool.sortedSet,
+    'trial': $collectiontool.sortedSet
+  })
   #foreach ($licenseId in $licensesToRegenerate)
     #set ($licenseDetailsDocument = $xwiki.getDocument("License.Data.$licenseId"))
     #set ($email = $licenseDetailsDocument.getValue('email'))

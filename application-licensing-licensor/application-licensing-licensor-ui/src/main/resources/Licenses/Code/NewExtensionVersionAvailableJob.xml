@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.3" reference="Licenses.Code.NewExtensionVersionAvailableJob" locale="">
+<xwikidoc version="1.4" reference="Licenses.Code.NewExtensionVersionAvailableJob" locale="">
   <web>Licenses.Code</web>
   <name>NewExtensionVersionAvailableJob</name>
   <language/>
@@ -35,7 +35,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>false</hidden>
+  <hidden>true</hidden>
   <content/>
   <object>
     <name>Licenses.Code.NewExtensionVersionAvailableJob</name>

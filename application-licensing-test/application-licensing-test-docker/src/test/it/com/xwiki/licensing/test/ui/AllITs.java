@@ -42,27 +42,29 @@ import org.xwiki.test.docker.junit5.UITest;
     },
     extraJARs = {
         // Required for the instance.hbm.xml file.
-        "org.xwiki.platform:xwiki-platform-instance:11.10",
+        "org.xwiki.platform:xwiki-platform-instance:13.10",
 
         // Required for the eventstream.hbm.xml file.
-        "org.xwiki.platform:xwiki-platform-eventstream-store:11.10",
+        "org.xwiki.platform:xwiki-platform-eventstream-store-hibernate:13.10",
+        "org.xwiki.platform:xwiki-platform-eventstream-store-solr:13.10",
+        "org.xwiki.platform:xwiki-platform-eventstream-store-hibernate:13.10",
 
         // Required for the notification-filter-preferences.hbm.xml file.
-        "org.xwiki.platform:xwiki-platform-notifications-filters-default:11.10",
+        "org.xwiki.platform:xwiki-platform-notifications-filters-default:13.10",
 
         // The component manager fails to load WikiMacroEventListener when wikimacro-api and wikimacro-store are
         // installed at runtime. We force them as core extensions.
-        "org.xwiki.platform:xwiki-platform-rendering-wikimacro-store:11.10",
+        "org.xwiki.platform:xwiki-platform-rendering-wikimacro-store:13.10",
 
         // Required by the Crypto Store script service, which is a core extension and injects the filesystem and wiki
         // implementations directly (so the root component manager is used).
-        "org.xwiki.commons:xwiki-commons-crypto-store-filesystem:11.10",
-        "org.xwiki.platform:xwiki-platform-crypto-store-wiki:11.10",
+        "org.xwiki.commons:xwiki-commons-crypto-store-filesystem:13.10",
+        "org.xwiki.platform:xwiki-platform-crypto-store-wiki:13.10",
 
         // The JodaTime plugin needs to be in WEB-INF/lib since it's defined in xwiki.cfg and plugins are loaded by
         // XWiki at startup, i.e. before extensions are provisioned for the tests.
-        "org.xwiki.platform:xwiki-platform-jodatime:11.10"
-    }
+        "org.xwiki.platform:xwiki-platform-jodatime:13.10"
+    } , resolveExtraJARs = true
 )
 class AllITs
 {

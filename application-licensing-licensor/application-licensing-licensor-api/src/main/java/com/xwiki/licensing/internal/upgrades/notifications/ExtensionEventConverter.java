@@ -56,14 +56,7 @@ public class ExtensionEventConverter implements RecordableEventConverter
     @Override
     public Event convert(RecordableEvent recordableEvent, String source, Object data) throws Exception
     {
-        String upgradeMessage = (String) data;
-        Event convertedEvent = this.defaultConverter.convert(recordableEvent, source, data);
-
-        // Before 12.6 or if you use hibernate event store, the parameters you put in an event are not stored so
-        // instead the message is stored directly on the notification body.
-        convertedEvent.setBody(upgradeMessage);
-
-        return convertedEvent;
+        return this.defaultConverter.convert(recordableEvent, source, data);
     }
 
     @Override

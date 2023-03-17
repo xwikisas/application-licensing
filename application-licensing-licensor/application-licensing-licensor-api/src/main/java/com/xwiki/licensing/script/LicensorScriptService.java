@@ -104,8 +104,8 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * Retrieve the currently applicable license for the current context document if any.
-     * Equivalent to licensor.getLicense() call.
+     * Retrieve the currently applicable license for the current context document if any. Equivalent to
+     * licensor.getLicense() call.
      *
      * @return a license, or null if there is no current document, or the current document is not subject to licensing.
      */
@@ -115,8 +115,8 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * Retrieve the currently applicable license for the given installed extension.
-     * Equivalent to licensor.getLicense(ExtensionId) call.
+     * Retrieve the currently applicable license for the given installed extension. Equivalent to
+     * licensor.getLicense(ExtensionId) call.
      *
      * @param extensionId identifier of an installed extension
      * @return a license, or null if the given installed extension is not subject to licensing.
@@ -127,8 +127,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * Get the license applicable to the given reference.
-     * Equivalent to licensor.getLicense(EntityReference) call.
+     * Get the license applicable to the given reference. Equivalent to licensor.getLicense(EntityReference) call.
      *
      * @param reference the reference to get the license from.
      * @return a license, or null if the given reference is not subject to licensing.
@@ -140,6 +139,7 @@ public class LicensorScriptService implements ScriptService, Initializable
 
     /**
      * Equivalent to licensor.hasLicensure() call.
+     *
      * @return true if the current document has a valid license or is not subject to licensing.
      */
     public boolean hasLicensure()
@@ -148,8 +148,8 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * Check if the given extension is covered by a valid license.
-     * Equivalent to licensor.hasLicensure(ExtensionId) call.
+     * Check if the given extension is covered by a valid license. Equivalent to licensor.hasLicensure(ExtensionId)
+     * call.
      *
      * @param extensionId the identifier of the extension for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
@@ -160,8 +160,8 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * Check if the given entity is covered by a valid license.
-     * Equivalent to licensor.hasLicensure(EntityReference) call.
+     * Check if the given entity is covered by a valid license. Equivalent to licensor.hasLicensure(EntityReference)
+     * call.
      *
      * @param reference the reference of the entity for which licensure should be checked.
      * @return true if the given reference has a valid license or is not subject to licensing.
@@ -182,7 +182,8 @@ public class LicensorScriptService implements ScriptService, Initializable
     /**
      * @return the licence manager (programming rights is required).
      */
-    public LicenseManager getLicenseManager() {
+    public LicenseManager getLicenseManager()
+    {
         if (contextualAuthorizationManager.hasAccess(Right.PROGRAM)) {
             return licenseManager;
         }
@@ -201,7 +202,8 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @throws AccessDeniedException if the user does not have admin rights on the main wiki.
      * @throws IOException if the user does not have admin rights on the main wiki.
      */
-    public boolean addLicense(String license) throws AccessDeniedException, IOException {
+    public boolean addLicense(String license) throws AccessDeniedException, IOException
+    {
         contextualAuthorizationManager.checkAccess(Right.ADMIN,
             entityReferenceProvider.getDefaultReference(EntityType.WIKI));
         return licenseManager.add(converter.convert(License.class, base64decoder.decode(license)));
@@ -219,7 +221,8 @@ public class LicensorScriptService implements ScriptService, Initializable
      * @throws AccessDeniedException if the user does not have admin rights on the main wiki.
      * @throws IOException if the user does not have admin rights on the main wiki.
      */
-    public boolean addLicense(byte[] license) throws AccessDeniedException, IOException {
+    public boolean addLicense(byte[] license) throws AccessDeniedException, IOException
+    {
         contextualAuthorizationManager.checkAccess(Right.ADMIN,
             entityReferenceProvider.getDefaultReference(EntityType.WIKI));
         return licenseManager.add(converter.convert(License.class, license));
@@ -261,11 +264,11 @@ public class LicensorScriptService implements ScriptService, Initializable
             DocumentModelBridge documentModelBridge = documentAccessBridge.getDocument(documentReference);
             List<DocumentReference> sheetsUsedByDocument = sheetManager.getSheets(documentModelBridge, action);
             return sheetsUsedByDocument.stream()
-                    .filter(sheet -> !this.hasLicensureForEntity(sheet))
-                    .collect(Collectors.toList());
+                .filter(sheet -> !this.hasLicensureForEntity(sheet))
+                .collect(Collectors.toList());
         } catch (Exception e) {
             this.logger.error("Failed to get the list of associated sheets. Root cause is: [{}].",
-                    ExceptionUtils.getRootCauseMessage(e));
+                ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }

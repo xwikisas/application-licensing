@@ -1,10 +1,35 @@
-#template('notification/macros.vm')
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
 
-#includeMacros('Licenses.Code.VelocityMacros')
+#template('notification/macros.vm')
 
 #set ($mainIcon = "bell")
 #set ($smallIcon = "arrow_up")
 #set ($compositeEventDate = $escapetool.xml($datetool.whenIs($event.dates.get(0))))
+
+#if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+  #set ($url = $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+    'admin', 'editor=globaladmin&amp;section=Licenses'))##
+#else
+  #set ($url = $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome')))##
+#end
 
 #macro (displayEventDetails $event)
   <tr>
@@ -18,15 +43,14 @@
 #end
 
 #define ($content)
-  #set ($document = $xwiki.getDocument($event.document))
   <div class="notification-page">
-    <a href="#getLicensesAdminSectionURL">
+    <a href="$url">
       $escapetool.xml($services.localization.render('admin.licenses'))
     </a>
     ## Notifications are rendered in the context of their wiki, so we need to use the XWikiContext#originalWikiId
     ## to actually know where the request comes from.
-    #if ($xcontext.getContext().getOriginalWikiId() != $event.document.wikiReference.name)
-      <span class="text-muted">($services.wiki.getById($event.document.wikiReference.name).prettyName)</span>
+    #if ($xcontext.getContext().getOriginalWikiId() != "$!event.events.get(0).wiki.name")
+      <span class="text-muted">($services.wiki.getById("$!event.events.get(0).wiki.name").prettyName)</span>
     #end
   </div>
   <div class="notification-description">
