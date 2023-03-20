@@ -342,9 +342,6 @@
       <configurationClass/>
     </property>
     <property>
-      <configureGlobally>1</configureGlobally>
-    </property>
-    <property>
       <displayBeforeCategory/>
     </property>
     <property>
@@ -366,7 +363,7 @@
       <propertiesToShow/>
     </property>
     <property>
-      <scope/>
+      <scope>WIKI</scope>
     </property>
     <property>
       <sectionOrder>600</sectionOrder>
