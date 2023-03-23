@@ -335,8 +335,10 @@
     </property>
     <property>
       <content>{{velocity}}
-#set ($missingLicensesWrapperTagName = 'li')
-{{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
+#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX'))
+  #set ($missingLicensesWrapperTagName = 'li')
+  {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
+#end
 {{/velocity}}
 
 {{velocity output="false"}}
