@@ -321,7 +321,7 @@
       <levels>view</levels>
     </property>
     <property>
-      <users/>
+      <users>XWiki.XWikiGuest</users>
     </property>
   </object>
 </xwikidoc>
