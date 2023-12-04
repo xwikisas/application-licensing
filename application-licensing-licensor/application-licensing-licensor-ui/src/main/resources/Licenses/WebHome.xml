@@ -617,7 +617,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
   // xwiki:livetable:displayComplete might be triggered before the code from this jsx is executed. In this case, the
   // livetable is also loaded before, because it is using Prototype.js which is loading before the page loads.
   // Make sure that the livetable is loaded by checking for a row with some data.
-  if ($('#licenseManager-display td.type').size() &gt; 0) {
+  if ($('#licenseManager-display td.type').length &gt; 0) {
     updateLivetableButtons();
   }
   $(document).on('xwiki:livetable:displayComplete', updateLivetableButtons);
