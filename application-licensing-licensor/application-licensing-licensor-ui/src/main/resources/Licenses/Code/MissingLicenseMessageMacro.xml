@@ -252,13 +252,13 @@
     $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome')))
 #end
 #set ($extensionName = $services.localization.render("${wikimacro.parameters.extensionName}"))
-#set ($translation = $services.localization.render("licensor.missingLicense", 'xwiki/2.1',
-  [$extensionName, 'LINKSTART', 'LINKEND']))
-#set ($linkLabel = $stringtool.substringBetween($translation, 'LINKSTART', 'LINKEND'))
-#set ($escapedLinkLabel = $services.rendering.escape($linkLabel, 'xwiki/2.1'))
-#set ($escapedLinkTarget = $services.rendering.escape("path:${licenseHomeURL}", 'xwiki/2.1'))
+#set ($linkLabel = $services.rendering.escape($services.localization.render('licensor.missingLicense.label'),
+  'xwiki/2.1'))
+#set ($link = "[[${linkLabel}&gt;&gt;path:${licenseHomeURL}]]")
+#set ($translation = $services.localization.render('licensor.missingLicense.info', 'xwiki/2.1',
+  [$extensionName, 'LICENSE_LINK']))
 {{error}}
-  $translation.replace("LINKSTART${linkLabel}LINKEND", "[[$escapedLinkLabel&gt;&gt;$escapedLinkTarget]]")
+  $translation.replace('LICENSE_LINK', $link)
 {{/error}}
 {{/velocity}}</code>
     </property>
