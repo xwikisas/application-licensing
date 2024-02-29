@@ -24,5 +24,8 @@
 // @Library("XWiki@<branch, tag, sha1>") _
 // See https://github.com/jenkinsci/workflow-cps-global-lib-plugin for details.
 
-xwikisasModule {
+node {
+  xwikisasModule {
+    javaTool = 'java8'
+  }
 }
