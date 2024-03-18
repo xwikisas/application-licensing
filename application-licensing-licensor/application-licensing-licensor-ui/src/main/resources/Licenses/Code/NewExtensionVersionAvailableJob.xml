@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Licenses.Code.NewExtensionVersionAvailableJob" locale="">
+<xwikidoc version="1.5" reference="Licenses.Code.NewExtensionVersionAvailableJob" locale="">
   <web>Licenses.Code</web>
   <name>NewExtensionVersionAvailableJob</name>
   <language/>
@@ -101,6 +101,7 @@
         <name>jobDescription</name>
         <number>2</number>
         <prettyName>Job Description</prettyName>
+        <restricted>0</restricted>
         <rows>10</rows>
         <size>45</size>
         <unmodifiable>0</unmodifiable>
@@ -122,6 +123,7 @@
         <name>script</name>
         <number>6</number>
         <prettyName>Job Script</prettyName>
+        <restricted>0</restricted>
         <rows>10</rows>
         <size>60</size>
         <unmodifiable>0</unmodifiable>
