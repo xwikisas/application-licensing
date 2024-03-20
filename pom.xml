@@ -33,6 +33,9 @@
   <packaging>pom</packaging>
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
+  <properties>
+    <xwiki.enforcer.banneddependencytype-xar.skip>true</xwiki.enforcer.banneddependencytype-xar.skip>
+  </properties>
   <scm>
     <connection>scm:git:git://github.com/xwikisas/application-licensing.git</connection>
     <developerConnection>scm:git:git@github.com:xwikisas/application-licensing.git</developerConnection>
