@@ -49,6 +49,17 @@
       ; $doc.displayPrettyName($propertyName)
       : $doc.display($propertyName)
     #end
+    #if($request.template)
+      #if($request.getParameter("License.Code.LicenseDetailsClass_0_issueDate"))
+      ; $doc.displayPrettyName("issueDate")
+      : $doc.display("issueDate")
+      #end
+      #if($request.getParameter("License.Code.LicenseDetailsClass_0_expirationDate"))
+      ; $doc.displayPrettyName("expirationDate")
+      : $doc.display("expirationDate")
+      #end
+      $doc.display("hasLicense", "hidden")
+    #end
   )))
 #end
 
@@ -89,6 +100,10 @@
 
         #displayGenerateButton()
       #end
+
+      #if ("$!hasLicense" == '1')
+        #displayExtendButton()
+      #end
     #else
 
       ## No license ID, we consider that no license has been generated yet. Propose to generate one.
@@ -101,6 +116,15 @@
   {{html clean="false"}}
   &lt;form&gt;
     &lt;button name="action" value="generate" class="btn btn-primary"&gt;Generate License&lt;/button&gt;
+  &lt;/form&gt;
+  {{/html}}
+#end
+
+#macro (displayExtendButton)
+  {{html clean="false"}}
+  &lt;form action="$xwiki.getURL("License.Code.Extend")" method="GET"&gt;
+    &lt;input name="page" type="hidden" value="${escapetool.xml($doc.fullName)}" /&gt;
+    &lt;button name="action" value="generate" class="btn btn-primary"&gt;Copy and Extend License&lt;/button&gt;
   &lt;/form&gt;
   {{/html}}
 #end
