@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>13.10-3</version>
+    <version>14.10-1</version>
   </parent>
   <groupId>com.xwiki.licensing</groupId>
   <artifactId>application-licensing</artifactId>
@@ -33,6 +33,9 @@
   <packaging>pom</packaging>
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
+  <properties>
+    <xwiki.enforcer.banneddependencytype-xar.skip>true</xwiki.enforcer.banneddependencytype-xar.skip>
+  </properties>
   <scm>
     <connection>scm:git:git://github.com/xwikisas/application-licensing.git</connection>
     <developerConnection>scm:git:git@github.com:xwikisas/application-licensing.git</developerConnection>
