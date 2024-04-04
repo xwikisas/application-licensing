@@ -57,7 +57,7 @@ public class ManagerScriptService implements ScriptService
     private SignedLicenseGenerator signedLicenseGenerator;
 
     @Inject
-    @Named("SHA1withRSAEncryption")
+    @Named("SHA256withRSAEncryption")
     private SignerFactory signerFactory;
 
     /**

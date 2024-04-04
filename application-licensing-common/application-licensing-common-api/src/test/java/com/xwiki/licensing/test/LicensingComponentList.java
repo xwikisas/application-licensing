@@ -24,17 +24,20 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.xwiki.crypto.internal.DefaultSecureRandomProvider;
 import org.xwiki.crypto.internal.asymmetric.keyfactory.BcDSAKeyFactory;
-import org.xwiki.crypto.internal.digest.factory.BcSHA1DigestFactory;
+import org.xwiki.crypto.internal.asymmetric.keyfactory.BcRSAKeyFactory;
+import org.xwiki.crypto.internal.digest.factory.BcSHA256DigestFactory;
 import org.xwiki.crypto.internal.digest.factory.DefaultDigestFactory;
 import org.xwiki.crypto.internal.encoder.Base64BinaryStringEncoder;
 import org.xwiki.crypto.pkix.internal.BcStoreX509CertificateProvider;
 import org.xwiki.crypto.pkix.internal.BcX509CertificateChainBuilder;
 import org.xwiki.crypto.pkix.internal.BcX509CertificateFactory;
+import org.xwiki.crypto.pkix.internal.BcX509CertificateGeneratorFactory;
+import org.xwiki.crypto.pkix.params.x509certificate.X509CertificateParameters;
 import org.xwiki.crypto.signer.internal.DefaultBcContentVerifierProviderBuilder;
 import org.xwiki.crypto.signer.internal.cms.DefaultCMSSignedDataVerifier;
-import org.xwiki.crypto.signer.internal.factory.BcDSAwithSHA1SignerFactory;
-import org.xwiki.crypto.signer.internal.factory.BcSHA1withRsaSignerFactory;
+import org.xwiki.crypto.signer.internal.factory.BcSHA256withRsaSignerFactory;
 import org.xwiki.crypto.signer.internal.factory.DefaultSignerFactory;
 import org.xwiki.test.annotation.ComponentList;
 
@@ -56,11 +59,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ TYPE, METHOD, ANNOTATION_TYPE })
 @ComponentList({
     Base64BinaryStringEncoder.class,
+    DefaultSecureRandomProvider.class,
     BcDSAKeyFactory.class,
+    BcRSAKeyFactory.class,
     DefaultDigestFactory.class,
-    BcSHA1DigestFactory.class,
-    BcSHA1withRsaSignerFactory.class,
-    BcDSAwithSHA1SignerFactory.class,
+    BcSHA256DigestFactory.class,
+    BcSHA256withRsaSignerFactory.class,
+    BcX509CertificateGeneratorFactory.class,
+    X509CertificateParameters.class,
     DefaultSignerFactory.class,
     BcX509CertificateFactory.class,
     DefaultBcContentVerifierProviderBuilder.class,

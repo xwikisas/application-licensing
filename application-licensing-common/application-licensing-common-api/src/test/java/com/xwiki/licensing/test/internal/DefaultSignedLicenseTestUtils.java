@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -36,11 +37,16 @@ import org.xwiki.component.phase.InitializationException;
 import org.xwiki.crypto.AsymmetricKeyFactory;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.crypto.params.cipher.asymmetric.PrivateKeyParameters;
+import org.xwiki.crypto.params.cipher.asymmetric.PublicKeyParameters;
 import org.xwiki.crypto.pkix.CertificateFactory;
+import org.xwiki.crypto.pkix.CertificateGeneratorFactory;
 import org.xwiki.crypto.pkix.CertificateProvider;
 import org.xwiki.crypto.pkix.params.CertifiedKeyPair;
 import org.xwiki.crypto.pkix.params.CertifiedPublicKey;
 import org.xwiki.crypto.pkix.params.PrincipalIndentifier;
+import org.xwiki.crypto.pkix.params.x509certificate.DistinguishedName;
+import org.xwiki.crypto.pkix.params.x509certificate.X509CertificateGenerationParameters;
+import org.xwiki.crypto.pkix.params.x509certificate.X509CertificateParameters;
 import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
 import org.xwiki.crypto.signer.SignerFactory;
 import org.xwiki.properties.converter.Converter;
@@ -58,183 +64,141 @@ import com.xwiki.licensing.test.SignedLicenseTestUtils;
 @Singleton
 public class DefaultSignedLicenseTestUtils implements SignedLicenseTestUtils, Initializable
 {
-    private static final String DSA_PRIVATE_KEY =
-        // Link to decoded ASN.1: https://goo.gl/n6abEQ
-        "MIIBTAIBADCCASwGByqGSM44BAEwggEfAoGBANQ9Oa1j9sWAhdXNyqz8HL/bA/e"
-            + "d2VrBw6TPkgMyV1Upix58RSjOHMQNrgemSGkb80dRcLqVDYbI3ObnIJh83Zx6ze"
-            + "aTpvUohGLyTa0F7UY15LkbJpyz8WFJaVykH85nz3Zo6Md9Z4X95yvF1+h9qYuak"
-            + "jWcHW31+pN4u3cJNg5FAhUAj986cVG9NgWgWzFVSLbB9pEPbFUCgYEAmQrZFH3M"
-            + "X5CLX/5vDvxyTeeRPZHLWc0ik3GwrIJExuVrOkuFInpx0aVbuJTxrEnY2fuc/+B"
-            + "yj/F56DDO31+qPu7ZxbSvvD33OOk8eFEfn+Hia3QmA+dGrhUqoMpfDf4/GBgJhn"
-            + "yQtFzMddHmYB0QnS9yX1n6DOWj/CSX0PvrlMYEFwIVAIO1GUQjAddL4btiFQnhe"
-            + "N4fxBTa";
+    private static final String RSA_PRIVATE_KEY =
+        // Link to decoded ASN.1: https://goo.gl/kgV0IB
+        "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDCmjim/3likJ4"
+            + "VF564UyygqPjIX/z090AImLl0fDLUkIyCVTSd18wJ3axr1qjLtSgNPWet0puSxO"
+            + "FH0AzFKRCJOjUkQRU8iAkz64MLAf9xrx4nBECciqeB941s01kLtG8C/UqC3O9Sw"
+            + "HSdhtUpUU8V/91SiD09yNJsnODi3WqM3oLg1QYzKhoaD2mVo2xJLQ/QXqr2XIc5"
+            + "i2Mlpfq6S5JNbFD/I+UFhBUlBNuDOEV7ttIt2eFMEUsfkCestGo0YoQYOpTLPcP"
+            + "GRS7MnSY1CLWGUYqaMSnes0nS8ke2PPD4Q0suAZz4msnhNufanscstM8tcNtsZF"
+            + "6hj0JvbZok89szAgMBAAECggEBAKWJ1SlR5ysORDtDBXRc5HiiZEbnSGIFtYXaj"
+            + "N/nCsJBWBVCb+jZeirmU9bEGoB20OQ6WOjHYCnAqraQ51wMK5HgXvZBGtSMD/AH"
+            + "pkiF4YsOYULlXiUL2aQ4NijdvEC1sz1Cw9CAKmElb83UtZ1ZGkJnjhi35giZvU5"
+            + "BQRgbK5k57DFY66yv9VDg8tuD/enI9sRsCUZfCImuShGv4nLqhPMPg+1UxDPGet"
+            + "Vs8uEaJQ017E14wLKLA0DlED13icelU1A7ufkEdeBSv/yZ7ENjervzPwa9nITK/"
+            + "19uzqaHOcYZxmDQn6UHTnaLpIEaUvpp/pbed5S97ETSsqUBC8fqEUECgYEA/Sba"
+            + "o6efydhlXDHbXtyvaJWao19sbI9OfxGC6dR2fZiBx8Do9kVDDbMtb1PYEfLhYbi"
+            + "urmKGbUtcLSFgxNbZifUmG54M92nBsnsetMCqvMVNzYl2Je83V+NrIsLJjFIZ2C"
+            + "BvZa/FKOLDTwSe35fNqaS0ExdwcGNMIT//bDQCmyECgYEAxMq6rN+HpBRuhvvst"
+            + "V99zV+lI/1DzZuXExd+c3PSchiqkJrTLaQDvcaHQir9hK7RqF9vO7tvdluJjgX+"
+            + "f/CMPNQuC5k6vY/0fS4V2NQWtln9BBSzHtocTnZzFNq8tAZqyEhZUHIbkncroXv"
+            + "eUXqtlfOnKB2aYI/+3gPEMYJlH9MCgYA4exjA9r9B65QB0+Xb7mT8cpSD6uBoAD"
+            + "lFRITu4sZlE0exZ6sSdzWUsutqMUy+BHCguvHOWpEfhXbVYuMSR9VVYGrWMpc2B"
+            + "FSBG9MoBOyTHXpUZ10C7bJtW4IlyUvqkM7PV71C9MqKar2kvaUswdPTC7pZoBso"
+            + "GB9+M6crXxdNwQKBgDUVMlGbYi1CTaYfonQyM+8IE7WnhXiatZ+ywKtH3MZmHOw"
+            + "wtzIigdfZC3cvvX7i4S73vztvjdtxSaODvmiobEukOF9sj8m+YQa7Pa1lWFML5x"
+            + "IIu2BhGS2ZCeXgMvKkoH0x9tWaUhGqD5zZmtiDrPs75CUQBypw7SDaBzwLnld9A"
+            + "oGBAPgUh90PvUzbVVkzpVCPI82cmOIVMI1rDE6uCeNzIlN6Xu80RimCSaaDsESi"
+            + "tBtoVWLRWWmuCINyqr6e9AdyvbvT6mQCjbn9+y7t6ZAhLaya5ZMUVEBLyLLqMzr"
+            + "y oi/huj7m4nV4kPZz9LKxDRu3r6o0Pah+daDsTxEYObtsKa7e";
 
-    private static final String DSA_PUBLIC_KEY =
-        // Link to decoded ASN.1: https://goo.gl/0fLEBU
-        "MIIBtzCCASwGByqGSM44BAEwggEfAoGBANQ9Oa1j9sWAhdXNyqz8HL/bA/ed2VrB"
-            + "w6TPkgMyV1Upix58RSjOHMQNrgemSGkb80dRcLqVDYbI3ObnIJh83Zx6zeaTpvUo"
-            + "hGLyTa0F7UY15LkbJpyz8WFJaVykH85nz3Zo6Md9Z4X95yvF1+h9qYuakjWcHW31"
-            + "+pN4u3cJNg5FAhUAj986cVG9NgWgWzFVSLbB9pEPbFUCgYEAmQrZFH3MX5CLX/5v"
-            + "DvxyTeeRPZHLWc0ik3GwrIJExuVrOkuFInpx0aVbuJTxrEnY2fuc/+Byj/F56DDO"
-            + "31+qPu7ZxbSvvD33OOk8eFEfn+Hia3QmA+dGrhUqoMpfDf4/GBgJhnyQtFzMddHm"
-            + "YB0QnS9yX1n6DOWj/CSX0PvrlMYDgYQAAoGAJvnuTm8oI/RRI2tiZHtPkvSQaA3F"
-            + "P4PRsVx6z1oIGg9OAxrtSS/aiQa+HWFg7fjHlMJ30Vh0yqt7igj70jaLGyDvr3MP"
-            + "DyiO++72IiGUluc6yHg6m9cQ53eeJt9i44LJfTOw1S3YMU1ST7alokSnJRTICp5W"
-            + "By0m1scwheuTo0E=";
+    private static final String RSA_PUBLIC_KEY =
+        // Link to decoded ASN.1: https://goo.gl/2YsSco
+        "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwpo4pv95YpCeFReeuFM"
+            + "soKj4yF/89PdACJi5dHwy1JCMglU0ndfMCd2sa9aoy7UoDT1nrdKbksThR9AMxS"
+            + "kQiTo1JEEVPIgJM+uDCwH/ca8eJwRAnIqngfeNbNNZC7RvAv1KgtzvUsB0nYbVK"
+            + "VFPFf/dUog9PcjSbJzg4t1qjN6C4NUGMyoaGg9plaNsSS0P0F6q9lyHOYtjJaX6"
+            + "ukuSTWxQ/yPlBYQVJQTbgzhFe7bSLdnhTBFLH5AnrLRqNGKEGDqUyz3DxkUuzJ0"
+            + "mNQi1hlGKmjEp3rNJ0vJHtjzw+ENLLgGc+JrJ4Tbn2p7HLLTPLXDbbGReoY9Cb2"
+            + "2aJPPbMwIDAQAB";
 
-    private static final String V3_CA_CERT =
-        // Generated from BcX509CertificateGeneratorFactoryTest#testGenerateIntermediateCertificateVersion3()
-        // caCertificate with adapted validity
-        // Link to decoded ASN.1: https://goo.gl/XP56Ct
-        "MIIDEDCCAfigAwIBAgIPXnmirmTeiBhYy1/i/twrMA0GCSqGSIb3DQEBBQUAMBIx"
-            + "EDAOBgNVBAMMB1Rlc3QgQ0EwHhcNMTUwOTEwMTAwMDAwWhcNNDkxMjMxMTEwMDAw"
-            + "WjASMRAwDgYDVQQDDAdUZXN0IENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB"
-            + "CgKCAQEAwpo4pv95YpCeFReeuFMsoKj4yF/89PdACJi5dHwy1JCMglU0ndfMCd2s"
-            + "a9aoy7UoDT1nrdKbksThR9AMxSkQiTo1JEEVPIgJM+uDCwH/ca8eJwRAnIqngfeN"
-            + "bNNZC7RvAv1KgtzvUsB0nYbVKVFPFf/dUog9PcjSbJzg4t1qjN6C4NUGMyoaGg9p"
-            + "laNsSS0P0F6q9lyHOYtjJaX6ukuSTWxQ/yPlBYQVJQTbgzhFe7bSLdnhTBFLH5An"
-            + "rLRqNGKEGDqUyz3DxkUuzJ0mNQi1hlGKmjEp3rNJ0vJHtjzw+ENLLgGc+JrJ4Tbn"
-            + "2p7HLLTPLXDbbGReoY9Cb22aJPPbMwIDAQABo2MwYTAfBgNVHSMEGDAWgBSIFnbz"
-            + "7l0iZJUJMLz0yIaYE84VYTAdBgNVHQ4EFgQUiBZ28+5dImSVCTC89MiGmBPOFWEw"
-            + "DwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwDQYJKoZIhvcNAQEFBQAD"
-            + "ggEBAEQnUNI1REuJGNrnEIxqLJX6w8TmgUp6g+4ytqh8fZoy1tHIH6+dhPhP87Gk"
-            + "E4QVfq5AZDb/mMuZCdGjOAaWqXsaUfJNFcJcrbKxnu0MBbfcPrHkhTTlDpoPV+N7"
-            + "P+iLBHJB3IAVcic+b/xXqeUn50Yp7VmfIVYzrIS3diA57hHntm72eMsYHLjuToxh"
-            + "QD9E/PVo3eqAH2MW71+RY0X75gZytu3in9/1v0+IbFBeTG7KrVxMAt+x2pE7CybA"
-            + "pNxs5wkFxwU0wF2jjTgef6ivAS3gn+KOk9YR1xpMk5FkHAjwCUWEve8GKvEIU/83"
-            + "0z4rffrSX2Y9mYm4gF/GtjAkgLA=";
-
-    private static final String V3_ITERCA_CERT =
-        // Generated from BcX509CertificateGeneratorFactoryTest#testGenerateIntermediateCertificateVersion3()
-        // interCAcert with adapted validity
-        // Link to decoded ASN.1: https://goo.gl/ahbPjf
-        "MIID4jCCAsqgAwIBAgIRALpeBEAtiuOWnOU9EQEPV5wwDQYJKoZIhvcNAQEFBQAw"
-            + "EjEQMA4GA1UEAwwHVGVzdCBDQTAeFw0xNTA5MTAxMDAwMDBaFw00OTEyMzExMTAw"
-            + "MDBaMB8xHTAbBgNVBAMMFFRlc3QgSW50ZXJtZWRpYXRlIENBMIIBtzCCASwGByqG"
-            + "SM44BAEwggEfAoGBALjHlfmpKj8BiEfekiLTnbYdZlo5Hz6E2dAjx+ryqv3jeGYb"
-            + "PTxh+pxrD0MIIUKF+3o8Y+TBwBpbKnnZ/G2T/P6QXs8+l7H7Q4CUJKShdQ+PhpK8"
-            + "JXYaICN4VAtKsP4PVhBMWLw/3VANh67JDwZz1Oa5soci3dAVQDWN8mc4PdbhAhUA"
-            + "oWrfRj14AUQT759T/Men1dQ9o0ECgYEAgWPlEWkpvgfkCvyBMRiRWchS0suOUUL5"
-            + "RyqYKmVFpDE2aKRMMFO5owlluJ1lm57f4zaddY8zAsT72tv0tTxz7nFAAPoX4QPO"
-            + "cSxYYapvEGRZklJRU4qrrXOPlXTia6jsWlgjnMaJ43zCBXteK2AdZ2DF7Yr9UPRu"
-            + "NukIzSYc4pcDgYQAAoGAEH/cX4auYYjapwPvipulmUPLPB9GTPcZfcefLYH4FlAs"
-            + "/W1/vfer1kGZL/+urSu+5D/FonOGNE9VRnLhVO4SyOremfJTO0ZLA7w5ciQwcQRx"
-            + "wXX3vvYzxtiFA2H7G7SHVcg8GDzyikHePQnyDwjgXf2C8dxcyasUA5FJb62YKo2j"
-            + "gZAwgY0wSAYDVR0jBEEwP4AUiBZ28+5dImSVCTC89MiGmBPOFWGhFqQUMBIxEDAO"
-            + "BgNVBAMMB1Rlc3QgQ0GCD155oq5k3ogYWMtf4v7cKzAdBgNVHQ4EFgQUbrrdokxq"
-            + "hLVQHnfZkpK1PN7kUbowEgYDVR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMC"
-            + "AQYwDQYJKoZIhvcNAQEFBQADggEBALuttCfxVloX+cVZw97ny2C0Gx1gF2iQXPUq"
-            + "7QjsTs9xWB2X2j9hMYS8x4oB8x2w59PRZpdtdlFvjxeLR9xrX1yFeqcGMZ2opEqx"
-            + "htFhSE28Inv+A+VWo/Je1T986XEgGMrIgPkW46Bc8xsNy63WHdcpj7U9xWU2Qcs8"
-            + "EPzTNV3ibevNdCS6bwXEpgn2fSV7dsscaZGt9O43Co2iyGYqXZXqjRXOJkQmLFc/"
-            + "p5xPpsPhFXERE65Ihdtl17XLiIt88mvOyfNl/X9c28lLf0+hlEqnmE1CDrvitKAy"
-            + "hHU7w1nXlQZZz6RWvilHqn0NkT3vTYhQBVXq5XiQwT8xLBjJJtw=";
-
-    private static final String V3_CERT =
-        // Generated from BcX509CertificateGeneratorFactoryTest#testGenerateIntermediateCertificateVersion3()
-        // certificate with adapted validity
-        // Link to decoded ASN.1: https://goo.gl/OPAFci
-        "MIIDMjCCAvCgAwIBAgIRAKm/hze1CY3FuwXuKd86eXgwCwYHKoZIzjgEAwUAMB8x"
-            + "HTAbBgNVBAMMFFRlc3QgSW50ZXJtZWRpYXRlIENBMB4XDTE1MDkxMDEwMDAwMFoX"
-            + "DTQ5MTIzMTExMDAwMFowGjEYMBYGA1UEAwwPVGVzdCBFbmQgRW50aXR5MIIBtzCC"
-            + "ASwGByqGSM44BAEwggEfAoGBANQ9Oa1j9sWAhdXNyqz8HL/bA/ed2VrBw6TPkgMy"
-            + "V1Upix58RSjOHMQNrgemSGkb80dRcLqVDYbI3ObnIJh83Zx6zeaTpvUohGLyTa0F"
-            + "7UY15LkbJpyz8WFJaVykH85nz3Zo6Md9Z4X95yvF1+h9qYuakjWcHW31+pN4u3cJ"
-            + "Ng5FAhUAj986cVG9NgWgWzFVSLbB9pEPbFUCgYEAmQrZFH3MX5CLX/5vDvxyTeeR"
-            + "PZHLWc0ik3GwrIJExuVrOkuFInpx0aVbuJTxrEnY2fuc/+Byj/F56DDO31+qPu7Z"
-            + "xbSvvD33OOk8eFEfn+Hia3QmA+dGrhUqoMpfDf4/GBgJhnyQtFzMddHmYB0QnS9y"
-            + "X1n6DOWj/CSX0PvrlMYDgYQAAoGAJvnuTm8oI/RRI2tiZHtPkvSQaA3FP4PRsVx6"
-            + "z1oIGg9OAxrtSS/aiQa+HWFg7fjHlMJ30Vh0yqt7igj70jaLGyDvr3MPDyiO++72"
-            + "IiGUluc6yHg6m9cQ53eeJt9i44LJfTOw1S3YMU1ST7alokSnJRTICp5WBy0m1scw"
-            + "heuTo0GjgbAwga0wSgYDVR0jBEMwQYAUbrrdokxqhLVQHnfZkpK1PN7kUbqhFqQU"
-            + "MBIxEDAOBgNVBAMMB1Rlc3QgQ0GCEQC6XgRALYrjlpzlPREBD1ecMB0GA1UdDgQW"
-            + "BBSdIuxgWLG45Mk01RHaIRUu2RadHjAOBgNVHQ8BAf8EBAMCBJAwEwYDVR0lBAww"
-            + "CgYIKwYBBQUHAwQwGwYDVR0RBBQwEoEQdGVzdEBleGFtcGxlLmNvbTALBgcqhkjO"
-            + "OAQDBQADLwAwLAIUe6xUKxqsupL5MWKKdsaY0FiGWVgCFHG3MW1tmgQ6CChIdA9K"
-            + "5fBjULkT";
-
-    private static final String SIGNED_LICENSE =
-        "MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAaCA"
-            + "JIAEggOVPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5k"
-            + "YWxvbmU9InllcyI/Pgo8bGljZW5zZSB4bWxucz0iaHR0cDovL3d3dy54d2lraS5j"
-            + "b20vbGljZW5zZSIgaWQ9IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAw"
-            + "MDAwMCI+CiAgICA8bW9kZWxWZXJzaW9uPjEuMC4wPC9tb2RlbFZlcnNpb24+CiAg"
-            + "ICA8dHlwZT5QQUlEPC90eXBlPgogICAgPGxpY2Vuc2VkPgogICAgICAgIDxmZWF0"
-            + "dXJlcz4KICAgICAgICAgICAgPGZlYXR1cmU+CiAgICAgICAgICAgICAgICA8aWQ+"
-            + "dGVzdC1hcGk8L2lkPgogICAgICAgICAgICAgICAgPHZlcnNpb24+Mi4wPC92ZXJz"
-            + "aW9uPgogICAgICAgICAgICA8L2ZlYXR1cmU+CiAgICAgICAgICAgIDxmZWF0dXJl"
-            + "PgogICAgICAgICAgICAgICAgPGlkPnRlc3QtdWk8L2lkPgogICAgICAgICAgICAg"
-            + "ICAgPHZlcnNpb24+MS4wPC92ZXJzaW9uPgogICAgICAgICAgICA8L2ZlYXR1cmU+"
-            + "CiAgICAgICAgPC9mZWF0dXJlcz4KICAgIDwvbGljZW5zZWQ+CiAgICA8cmVzdHJp"
-            + "Y3Rpb25zPgogICAgICAgIDxpbnN0YW5jZXM+CiAgICAgICAgICAgIDxpbnN0YW5j"
-            + "ZT4xMTExMTExMS0yMjIyLTMzMzMtNDQ0NC01NTU1NTU1NTU1NTU8L2luc3RhbmNl"
-            + "PgogICAgICAgICAgICA8aW5zdGFuY2U+NjY2NjY2NjYtNzc3Ny04ODg4LTk5OTkt"
-            + "MDAwMDAwMDAwMDAwPC9pbnN0YW5jZT4KICAgICAgICA8L2luc3RhbmNlcz4KICAg"
-            + "ICAgICA8ZXhwaXJlPjE5NzEtMDEtMDFUMDE6MDA6MDArMDE6MDA8L2V4cGlyZT4K"
-            + "ICAgICAgICA8dXNlcnM+MTAwPC91c2Vycz4KICAgIDwvcmVzdHJpY3Rpb25zPgog"
-            + "ICAgPGxpY2VuY2VlPgogICAgICAgIDxuYW1lPnVzZXI8L25hbWU+CiAgICAgICAg"
-            + "PGVtYWlsPnVzZXJAZXhhbXBsZS5jb208L2VtYWlsPgogICAgPC9saWNlbmNlZT4K"
-            + "PC9saWNlbnNlPgoAAAAAAACggDCCAxAwggH4oAMCAQICD155oq5k3ogYWMtf4v7c"
-            + "KzANBgkqhkiG9w0BAQUFADASMRAwDgYDVQQDDAdUZXN0IENBMB4XDTE1MDkxMDEw"
-            + "MDAwMFoXDTQ5MTIzMTExMDAwMFowEjEQMA4GA1UEAwwHVGVzdCBDQTCCASIwDQYJ"
-            + "KoZIhvcNAQEBBQADggEPADCCAQoCggEBAMKaOKb/eWKQnhUXnrhTLKCo+Mhf/PT3"
-            + "QAiYuXR8MtSQjIJVNJ3XzAndrGvWqMu1KA09Z63Sm5LE4UfQDMUpEIk6NSRBFTyI"
-            + "CTPrgwsB/3GvHicEQJyKp4H3jWzTWQu0bwL9SoLc71LAdJ2G1SlRTxX/3VKIPT3I"
-            + "0myc4OLdaozeguDVBjMqGhoPaZWjbEktD9BeqvZchzmLYyWl+rpLkk1sUP8j5QWE"
-            + "FSUE24M4RXu20i3Z4UwRSx+QJ6y0ajRihBg6lMs9w8ZFLsydJjUItYZRipoxKd6z"
-            + "SdLyR7Y88PhDSy4BnPiayeE259qexyy0zy1w22xkXqGPQm9tmiTz2zMCAwEAAaNj"
-            + "MGEwHwYDVR0jBBgwFoAUiBZ28+5dImSVCTC89MiGmBPOFWEwHQYDVR0OBBYEFIgW"
-            + "dvPuXSJklQkwvPTIhpgTzhVhMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQD"
-            + "AgEGMA0GCSqGSIb3DQEBBQUAA4IBAQBEJ1DSNURLiRja5xCMaiyV+sPE5oFKeoPu"
-            + "MraofH2aMtbRyB+vnYT4T/OxpBOEFX6uQGQ2/5jLmQnRozgGlql7GlHyTRXCXK2y"
-            + "sZ7tDAW33D6x5IU05Q6aD1fjez/oiwRyQdyAFXInPm/8V6nlJ+dGKe1ZnyFWM6yE"
-            + "t3YgOe4R57Zu9njLGBy47k6MYUA/RPz1aN3qgB9jFu9fkWNF++YGcrbt4p/f9b9P"
-            + "iGxQXkxuyq1cTALfsdqROwsmwKTcbOcJBccFNMBdo404Hn+orwEt4J/ijpPWEdca"
-            + "TJORZBwI8AlFhL3vBirxCFP/N9M+K3360l9mPZmJuIBfxrYwJICwMIID4jCCAsqg"
-            + "AwIBAgIRALpeBEAtiuOWnOU9EQEPV5wwDQYJKoZIhvcNAQEFBQAwEjEQMA4GA1UE"
-            + "AwwHVGVzdCBDQTAeFw0xNTA5MTAxMDAwMDBaFw00OTEyMzExMTAwMDBaMB8xHTAb"
-            + "BgNVBAMMFFRlc3QgSW50ZXJtZWRpYXRlIENBMIIBtzCCASwGByqGSM44BAEwggEf"
-            + "AoGBALjHlfmpKj8BiEfekiLTnbYdZlo5Hz6E2dAjx+ryqv3jeGYbPTxh+pxrD0MI"
-            + "IUKF+3o8Y+TBwBpbKnnZ/G2T/P6QXs8+l7H7Q4CUJKShdQ+PhpK8JXYaICN4VAtK"
-            + "sP4PVhBMWLw/3VANh67JDwZz1Oa5soci3dAVQDWN8mc4PdbhAhUAoWrfRj14AUQT"
-            + "759T/Men1dQ9o0ECgYEAgWPlEWkpvgfkCvyBMRiRWchS0suOUUL5RyqYKmVFpDE2"
-            + "aKRMMFO5owlluJ1lm57f4zaddY8zAsT72tv0tTxz7nFAAPoX4QPOcSxYYapvEGRZ"
-            + "klJRU4qrrXOPlXTia6jsWlgjnMaJ43zCBXteK2AdZ2DF7Yr9UPRuNukIzSYc4pcD"
-            + "gYQAAoGAEH/cX4auYYjapwPvipulmUPLPB9GTPcZfcefLYH4FlAs/W1/vfer1kGZ"
-            + "L/+urSu+5D/FonOGNE9VRnLhVO4SyOremfJTO0ZLA7w5ciQwcQRxwXX3vvYzxtiF"
-            + "A2H7G7SHVcg8GDzyikHePQnyDwjgXf2C8dxcyasUA5FJb62YKo2jgZAwgY0wSAYD"
-            + "VR0jBEEwP4AUiBZ28+5dImSVCTC89MiGmBPOFWGhFqQUMBIxEDAOBgNVBAMMB1Rl"
-            + "c3QgQ0GCD155oq5k3ogYWMtf4v7cKzAdBgNVHQ4EFgQUbrrdokxqhLVQHnfZkpK1"
-            + "PN7kUbowEgYDVR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAQYwDQYJKoZI"
-            + "hvcNAQEFBQADggEBALuttCfxVloX+cVZw97ny2C0Gx1gF2iQXPUq7QjsTs9xWB2X"
-            + "2j9hMYS8x4oB8x2w59PRZpdtdlFvjxeLR9xrX1yFeqcGMZ2opEqxhtFhSE28Inv+"
-            + "A+VWo/Je1T986XEgGMrIgPkW46Bc8xsNy63WHdcpj7U9xWU2Qcs8EPzTNV3ibevN"
-            + "dCS6bwXEpgn2fSV7dsscaZGt9O43Co2iyGYqXZXqjRXOJkQmLFc/p5xPpsPhFXER"
-            + "E65Ihdtl17XLiIt88mvOyfNl/X9c28lLf0+hlEqnmE1CDrvitKAyhHU7w1nXlQZZ"
-            + "z6RWvilHqn0NkT3vTYhQBVXq5XiQwT8xLBjJJtwwggMyMIIC8KADAgECAhEAqb+H"
-            + "N7UJjcW7Be4p3zp5eDALBgcqhkjOOAQDBQAwHzEdMBsGA1UEAwwUVGVzdCBJbnRl"
-            + "cm1lZGlhdGUgQ0EwHhcNMTUwOTEwMTAwMDAwWhcNNDkxMjMxMTEwMDAwWjAaMRgw"
-            + "FgYDVQQDDA9UZXN0IEVuZCBFbnRpdHkwggG3MIIBLAYHKoZIzjgEATCCAR8CgYEA"
-            + "1D05rWP2xYCF1c3KrPwcv9sD953ZWsHDpM+SAzJXVSmLHnxFKM4cxA2uB6ZIaRvz"
-            + "R1FwupUNhsjc5ucgmHzdnHrN5pOm9SiEYvJNrQXtRjXkuRsmnLPxYUlpXKQfzmfP"
-            + "dmjox31nhf3nK8XX6H2pi5qSNZwdbfX6k3i7dwk2DkUCFQCP3zpxUb02BaBbMVVI"
-            + "tsH2kQ9sVQKBgQCZCtkUfcxfkItf/m8O/HJN55E9kctZzSKTcbCsgkTG5Ws6S4Ui"
-            + "enHRpVu4lPGsSdjZ+5z/4HKP8XnoMM7fX6o+7tnFtK+8Pfc46Tx4UR+f4eJrdCYD"
-            + "50auFSqgyl8N/j8YGAmGfJC0XMx10eZgHRCdL3JfWfoM5aP8JJfQ++uUxgOBhAAC"
-            + "gYAm+e5Obygj9FEja2Jke0+S9JBoDcU/g9GxXHrPWggaD04DGu1JL9qJBr4dYWDt"
-            + "+MeUwnfRWHTKq3uKCPvSNosbIO+vcw8PKI777vYiIZSW5zrIeDqb1xDnd54m32Lj"
-            + "gsl9M7DVLdgxTVJPtqWiRKclFMgKnlYHLSbWxzCF65OjQaOBsDCBrTBKBgNVHSME"
-            + "QzBBgBRuut2iTGqEtVAed9mSkrU83uRRuqEWpBQwEjEQMA4GA1UEAwwHVGVzdCBD"
-            + "QYIRALpeBEAtiuOWnOU9EQEPV5wwHQYDVR0OBBYEFJ0i7GBYsbjkyTTVEdohFS7Z"
-            + "Fp0eMA4GA1UdDwEB/wQEAwIEkDATBgNVHSUEDDAKBggrBgEFBQcDBDAbBgNVHREE"
-            + "FDASgRB0ZXN0QGV4YW1wbGUuY29tMAsGByqGSM44BAMFAAMvADAsAhR7rFQrGqy6"
-            + "kvkxYop2xpjQWIZZWAIUcbcxbW2aBDoIKEh0D0rl8GNQuRMAADGCAQ4wggEKAgEB"
-            + "MDQwHzEdMBsGA1UEAwwUVGVzdCBJbnRlcm1lZGlhdGUgQ0ECEQCpv4c3tQmNxbsF"
-            + "7infOnl4MAkGBSsOAwIaBQCggYYwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAc"
-            + "BgkqhkiG9w0BCQUxDxcNMTYwNjIxMDc1OTQ4WjAjBgkqhkiG9w0BCQQxFgQUL8YM"
-            + "8wd3sUJTRPPu8y2DoqhOX1IwJwYJKoZIhvcNAQk0MRowGDAJBgUrDgMCGgUAoQsG"
-            + "ByqGSM44BAMFADALBgcqhkjOOAQDBQAELjAsAhRabcKO78K8qs2+i5h2A1vfNRxn"
-            + "FwIUffx3aUOGWzp0lKH4YU6am90kV5IAAAAAAAA=";
+    private static final String SIGNED_LICENSE = "MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgEFADCABgkqhkiG9w0B"
+        + "BwGggASCAxo8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCIgc3Rh"
+        + "bmRhbG9uZT0ieWVzIj8+CjxsaWNlbnNlIHhtbG5zPSJodHRwOi8vd3d3Lnh3aWtp"
+        + "LmNvbS9saWNlbnNlIiBpZD0iNjQ4NThiZTgtOGEyNS00YWM5LTg1ODAtNWUxYTUx"
+        + "MWIzMTE3Ij4KICAgIDxtb2RlbFZlcnNpb24+Mi4wLjA8L21vZGVsVmVyc2lvbj4K"
+        + "ICAgIDx0eXBlPkZSRUU8L3R5cGU+CiAgICA8bGljZW5zZWQ+CiAgICAgICAgPGZl"
+        + "YXR1cmVzPgogICAgICAgICAgICA8ZmVhdHVyZT4KICAgICAgICAgICAgICAgIDxp"
+        + "ZD5jb20ueHdpa2kubGljZW5zaW5nOmFwcGxpY2F0aW9uLWxpY2Vuc2luZy10ZXN0"
+        + "LWV4YW1wbGU8L2lkPgogICAgICAgICAgICA8L2ZlYXR1cmU+CiAgICAgICAgPC9m"
+        + "ZWF0dXJlcz4KICAgIDwvbGljZW5zZWQ+CiAgICA8cmVzdHJpY3Rpb25zPgogICAg"
+        + "ICAgIDxpbnN0YW5jZXM+CiAgICAgICAgICAgIDxpbnN0YW5jZT5kYTI5MGI5MC1k"
+        + "MzNkLTQ0YWUtOGY4ZC02NmQ5ZWUwZTQwZTY8L2luc3RhbmNlPgogICAgICAgIDwv"
+        + "aW5zdGFuY2VzPgogICAgICAgIDxleHBpcmU+MjAyNS0wNC0wM1QxMTo0ODowMC44"
+        + "MDIrMDM6MDA8L2V4cGlyZT4KICAgIDwvcmVzdHJpY3Rpb25zPgogICAgPGxpY2Vu"
+        + "Y2VlPgogICAgICAgIDxmaXJzdE5hbWU+SmFuZTwvZmlyc3ROYW1lPgogICAgICAg"
+        + "IDxsYXN0TmFtZT5Eb2V5PC9sYXN0TmFtZT4KICAgICAgICA8ZW1haWw+ZG93QG1h"
+        + "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";
 
     private class ArrayBasedCertificateProvider implements CertificateProvider
     {
@@ -298,8 +262,8 @@ public class DefaultSignedLicenseTestUtils implements SignedLicenseTestUtils, In
     private BinaryStringEncoder base64encoder;
 
     @Inject
-    @Named("DSA")
-    private AsymmetricKeyFactory dsaKeyFactory;
+    @Named("RSA")
+    private AsymmetricKeyFactory rsaKeyFactory;
 
     @Inject
     @Named("X509")
@@ -309,29 +273,36 @@ public class DefaultSignedLicenseTestUtils implements SignedLicenseTestUtils, In
     private Converter<License> converter;
 
     @Inject
-    @Named("DSAwithSHA1")
-    private SignerFactory dsaSignerFactory;
+    @Named("SHA256withRSAEncryption")
+    private SignerFactory rsaSignerFactory;
+
+    @Inject
+    @Named("X509")
+    private CertificateGeneratorFactory certificateFactory;
 
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-
-    private CertifiedPublicKey v3CaCert;
-    private CertifiedPublicKey v3InterCaCert;
-    private CertifiedPublicKey v3Cert;
     private CertifiedKeyPair keyPair;
     private CertificateProvider certProvider;
     private SignedLicense signedLicense;
+    private X509CertifiedPublicKey caKey;
 
 
     @Override
     public void initialize() throws InitializationException
     {
         try {
-            PrivateKeyParameters dsaPrivateKey = dsaKeyFactory.fromPKCS8(base64encoder.decode(DSA_PRIVATE_KEY));
-            v3CaCert = certFactory.decode(base64encoder.decode(V3_CA_CERT));
-            v3InterCaCert = certFactory.decode(base64encoder.decode(V3_ITERCA_CERT));
-            v3Cert = certFactory.decode(base64encoder.decode(V3_CERT));
-            keyPair = new CertifiedKeyPair(dsaPrivateKey, v3Cert);
-            certProvider = new ArrayBasedCertificateProvider(Arrays.asList(v3CaCert, v3InterCaCert, v3Cert));
+            PrivateKeyParameters rsaPrivateKey = rsaKeyFactory.fromPKCS8(base64encoder.decode(RSA_PRIVATE_KEY));
+            PublicKeyParameters rsaPublicKey = rsaKeyFactory.fromX509(base64encoder.decode(RSA_PUBLIC_KEY));
+
+            CertifiedPublicKey v3Certificate =
+                certificateFactory.getInstance(rsaSignerFactory.getInstance(true, rsaPrivateKey),
+                        new X509CertificateGenerationParameters(null))
+                    .generate(new DistinguishedName("CN=Test"), rsaPublicKey,
+                        new X509CertificateParameters());
+            caKey = (X509CertifiedPublicKey) v3Certificate;
+
+            keyPair = new CertifiedKeyPair(rsaPrivateKey, caKey);
+            certProvider = new ArrayBasedCertificateProvider(Collections.singletonList(caKey));
             signedLicense = converter.convert(License.class, base64encoder.decode(SIGNED_LICENSE));
         } catch(Exception e) {
             throw new InitializationException("Unable to initialized Signed License tests", e);
@@ -347,7 +318,7 @@ public class DefaultSignedLicenseTestUtils implements SignedLicenseTestUtils, In
     @Override
     public SignerFactory getSignerFactory()
     {
-        return dsaSignerFactory;
+        return rsaSignerFactory;
     }
 
     @Override
@@ -359,19 +330,19 @@ public class DefaultSignedLicenseTestUtils implements SignedLicenseTestUtils, In
     @Override
     public CertifiedPublicKey getRootCertificate()
     {
-        return v3CaCert;
+        return caKey;
     }
 
     @Override
     public CertifiedPublicKey getIntermediateCertificate()
     {
-        return v3InterCaCert;
+        return caKey;
     }
 
     @Override
     public CertifiedPublicKey getSigningCertificate()
     {
-        return v3Cert;
+        return caKey;
     }
 
     @Override
