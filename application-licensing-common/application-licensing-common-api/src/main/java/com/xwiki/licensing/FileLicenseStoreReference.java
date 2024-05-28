@@ -50,7 +50,7 @@ public class FileLicenseStoreReference implements LicenseStoreReference
      * Wrap a file or folder as a store reference.
      *
      * @param file a file or folder (that may not exists).
-     * @param isMulti true to force a multi key store when the file does not exists yet. Actually, Multi key store are
+     * @param isMulti true to force a multi key store when the file does not exist yet. Actually, Multi key store are
      *            always directory.
      */
     public FileLicenseStoreReference(File file, boolean isMulti)
