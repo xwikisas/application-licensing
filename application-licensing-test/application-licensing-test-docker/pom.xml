@@ -69,10 +69,9 @@
     </dependency>
     <!-- Test dependencies -->
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>application-licensing-test-dependencies</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-test-docker</artifactId>
+      <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -115,14 +114,11 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <systemProperties combine.children="append">
+              <systemPropertyVariables>
                 <!-- Tell the Docker-based test to activate the Clover profile so that the Clover JAR is added to
                      WEB-INF/lib -->
-                <property>
-                  <name>xwiki.test.ui.profiles</name>
-                  <value>clover</value>
-                </property>
-              </systemProperties>
+                <xwiki.test.ui.profiles>clover</xwiki.test.ui.profiles>
+              </systemPropertyVariables>
             </configuration>
           </plugin>
         </plugins>

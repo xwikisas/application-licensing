@@ -39,7 +39,6 @@
   </properties>
   <modules>
     <module>application-licensing-test-api</module>
-    <module>application-licensing-test-dependencies</module>
     <module>application-licensing-test-example</module>
     <module>application-licensing-test-pageobjects</module>
   </modules>
