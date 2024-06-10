@@ -195,6 +195,14 @@
   &lt;/div&gt;
 #end
 
+#macro(feedbackButton $extension)
+  #set ($jsonData = {
+    'featureId': $extension.id.id,
+    'extensionVersion': $extension.id.version.toString()
+  })
+  #licenseButton('' 'primary' 'comment' 'feedback' $jsonData)
+#end
+
 #macro (getLicenseActions $license $extension $actions)
   ## Use the JSON format in order to be parsable in JavaScript.
   #set ($jsonData = {
@@ -227,8 +235,41 @@
     &lt;/div&gt;
     &lt;div class="row"&gt;
       #autoUpgradeButton($extension.id.id)
+      #feedbackButton($extension)
     &lt;/div&gt;
   &lt;/div&gt;
+#end
+
+#macro(webmecanikForm $webmecanikID)
+  &lt;div class="webmecanikForm"&gt;
+    &lt;input type="hidden" name="webmecanikID" value="${webmecanikID}"&gt;
+    ## This is the recommended way for automatically inserting a form from Webmecanik using Mautic.
+    &lt;script type="text/javascript" src="\/\/news.xwiki.com/form/generate.js?id=${webmecanikID}"&gt;&lt;/script&gt;
+  &lt;/div&gt;
+#end
+
+#macro(feedbackForm)
+{{html clean="false" wiki="true"}}
+  &lt;div class="modal fade" id="feedbackFormModal" tabindex="-1" role="dialog" aria-labelledby="feedbackFormModal-label"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="feedbackFormModal-label"&gt;
+            $escapetool.xml($services.localization.render('licensor.feedbackLicense.title'))
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          ## This is the Pro Apps feedback form ID from Webmecanik.
+          #set ($webmecanikID = '89')
+          #webmecanikForm($webmecanikID)
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+{{/html}}
 #end
 {{/velocity}}</content>
 </xwikidoc>
