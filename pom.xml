@@ -43,16 +43,6 @@
     <system>GitHub</system>
     <url>https://github.com/xwikisas/application-licensing/issues</url>
   </issueManagement>
-  <developers>
-    <developer>
-      <id>dgervalle</id>
-      <name>Denis Gervalle</name>
-    </developer>
-    <developer>
-      <id>vmassol</id>
-      <name>Vincent Massol</name>
-    </developer>
-  </developers>
   <build>
     <pluginManagement>
       <plugins>
