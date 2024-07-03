@@ -240,13 +240,7 @@
   &lt;/div&gt;
 #end
 
-#macro(webmecanikForm)
-  ## 89 is the Pro Apps feedback form ID from Webmecanik for English, while 99 is for the French form.
-  #set ($webmecanikID = 89)
-  #set ($localeTag = $xcontext.locale.toLanguageTag())
-  #if ($localeTag == 'fr' || $localeTag.startsWith('fr-'))
-    #set ($webmecanikID = 99)
-  #end
+#macro(webmecanikForm $webmecanikID)
   &lt;div class="webmecanikForm"&gt;
     &lt;input type="hidden" name="webmecanikID" value="${webmecanikID}"&gt;
     ## This is the recommended way for automatically inserting a form from Webmecanik using Mautic.
@@ -268,7 +262,9 @@
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="modal-body"&gt;
-          #webmecanikForm()
+          ## This is the Pro Apps feedback form ID from Webmecanik.
+          #set ($webmecanikID = '89')
+          #webmecanikForm($webmecanikID)
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
