@@ -749,21 +749,31 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
     const buttonData = JSON.parse($(this).attr('data-button'));
     const ownerDetails = {};
     $('#ownerDetails').serializeArray().map(x =&gt; ownerDetails[x.name] = x.value);
+    if (typeof MauticSDK !== 'undefined') {
+      // Make sure no messages or errors remained from the previous submit.
+      const formName = $('#feedbackFormModal').find('.webmecanikForm form').attr('data-mautic-form');
+      MauticSDK.getValidator(formName).clearErrors();
+      MauticSDK.getValidator(formName).setMessage('', 'message');
+      // Prefill values.
+      const fieldPrefix = '#mauticform_input_' + formName + '_';
+      $(fieldPrefix + 'email').val(ownerDetails['email']);
+      const instanceId = $(fieldPrefix + 'instance_id');
+      instanceId.val(ownerDetails['instanceId']);
+      const featureId = $(fieldPrefix + 'name_of_the_app');
+      featureId.val(buttonData['featureId']);
 
-    // Make sure no messages or errors remained from the previous submit.
-    const formName = $('#feedbackFormModal').find('.webmecanikForm form').attr('data-mautic-form');
-    MauticSDK.getValidator(formName).clearErrors();
-    MauticSDK.getValidator(formName).setMessage('', 'message');
-    // Prefill values.
-    const fieldPrefix = '#mauticform_input_' + formName + '_';
-    $(fieldPrefix + 'email').val(ownerDetails['email']);
-    const instanceId = $(fieldPrefix + 'instance_id');
-    instanceId.val(ownerDetails['instanceId']);
-    const featureId = $(fieldPrefix + 'name_of_the_app');
-    featureId.val(buttonData['featureId']);
+      // Show the feedback form modal.
+      $('#feedbackFormModal').modal('show');
+    } else {
+      const params = $.param({
+        'email': ownerDetails['email'],
+        'instanceId': ownerDetails['instanceId'],
+        'featureId': buttonData['featureId']
+      });
 
-    // Show the feedback form modal.
-    $('#feedbackFormModal').modal('show');
+      const feedbackURL = buttonData['storeFeedbackURL'] + '?' + params;
+      window.open(feedbackURL, '_blank').focus();
+    }
   });
 
   // Set the documentation links to open in new tab.

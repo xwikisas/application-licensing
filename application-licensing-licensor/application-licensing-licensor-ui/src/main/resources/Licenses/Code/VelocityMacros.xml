@@ -196,9 +196,11 @@
 #end
 
 #macro(feedbackButton $extension)
+  #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
   #set ($jsonData = {
     'featureId': $extension.id.id,
-    'extensionVersion': $extension.id.version.toString()
+    'extensionVersion': $extension.id.version.toString(),
+    'storeFeedbackURL': $licensingConfigDoc.storeFeedbackURL
   })
   #licenseButton('' 'primary' 'comment' 'feedback' $jsonData)
 #end

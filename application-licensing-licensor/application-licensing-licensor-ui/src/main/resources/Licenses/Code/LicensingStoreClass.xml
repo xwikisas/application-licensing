@@ -78,6 +78,15 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </storeBuyURL>
+    <storeFeedbackURL>
+      <disabled>0</disabled>
+      <name>storeFeedbackURL</name>
+      <number>5</number>
+      <prettyName>storeFeedbackURL</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </storeFeedbackURL>
     <storeTrialURL>
       <customDisplay/>
       <disabled>0</disabled>
