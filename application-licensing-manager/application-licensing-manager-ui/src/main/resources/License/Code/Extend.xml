@@ -1,0 +1,105 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.3" reference="License.Code.Extend" locale="">
+  <web>License.Code</web>
+  <name>Extend</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>License.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{include reference="License.Code.LicenseDetailsMacros"/}}
+
+{{velocity}}
+#if ($hasAdmin &amp;&amp; "$!request.action" == 'add')
+#findNextUniqueDetailsPageReference($detailsPageReference)
+$detailsPageReference
+$response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'edit', $escapetool.url({
+'template': $request.template,
+'License.Code.LicenseDetailsClass_0_licenseId': $detailsPageReference.name,
+'License.Code.LicenseDetailsClass_0_issueDate': '',
+'License.Code.LicenseDetailsClass_0_hasLicense': '',
+'License.Code.LicenseDetailsClass_0_issueDate': '',
+'License.Code.LicenseDetailsClass_0_expirationDate': $request.expirationDate
+})))
+#end
+
+#if($request.page)
+ #set($page = $request.page)
+#else
+ #set($page = "License.Data.6b468aa4-32df-4bf2-a5aa-4f6822f78007")
+#end
+
+#if ($hasAdmin &amp;&amp; $page!="")
+#set($pageDoc = $xwiki.getDocument($page))
+#set($formatter = $xwiki.jodatime.getDateTimeFormatterForPattern("dd/MM/yyyy"))
+#set($currentExpirationDate = $formatter.parseDateTime($pageDoc.expirationDate))
+#set($currentExpirationDate = $currentExpirationDate.plusMonths(12))
+#set($tentativeDate = $currentExpirationDate.toString('dd/MM/yyyy'))
+
+Current License to extend:
+
+* Type: $pageDoc.type
+* Instance Id: $pageDoc.instanceId
+* Extension Id: $pageDoc.featureId
+* Users: $pageDoc.maxUserCount
+* First Name: $pageDoc.firstName
+* Last Name: $pageDoc.lastName
+* eMail: $pageDoc.email
+* Issue Date: $pageDoc.issueDate
+* Current Expiration Date: $pageDoc.expirationDate
+* Proposed new Expiration Date: $tentativeDate
+
+
+
+{{html}}
+&lt;form&gt;
+&lt;input type='hidden' name='action' value='add'/&gt;
+&lt;input type='hidden' name='extend' value='1'/&gt;
+&lt;input type='hidden' name='template' value='${escapetool.xml($page)}'/&gt;
+#set ($dateTimePickerParams = {
+        'id': 'expirationDate',
+        'name': 'expirationDate',
+        'data-format': 'dd/MM/yyyy',
+        'placeholder': 'Select the end date',
+        'value' : $tentativeDate
+      })
+#dateTimePicker($dateTimePickerParams)
+&lt;span class='buttonwrapper'&gt;
+&lt;input class='button' type='submit' value='Add License Details'/&gt;
+&lt;/span&gt;
+&lt;/form&gt;
+{{/html}}
+#else
+No previous license has been selected
+#end
+{{/velocity}}</content>
+</xwikidoc>
