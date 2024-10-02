@@ -166,7 +166,7 @@ public class TrialLicenseGenerator
     }
 
     /**
-     * Retrieve license updates from the XWiki Store.
+     * Retrieve license updates from the XWiki Store. In progress: move it to another component.
      */
     @SuppressWarnings("unchecked")
     public void updateLicenses()
