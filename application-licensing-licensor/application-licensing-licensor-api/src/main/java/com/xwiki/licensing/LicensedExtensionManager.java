@@ -20,9 +20,11 @@
 package com.xwiki.licensing;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.InstalledExtension;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -70,4 +72,14 @@ public interface LicensedExtensionManager
      * @since 1.21.1
      */
     void invalidateMandatoryLicensedExtensionsCache();
+
+    /**
+     * Get the list of licensed dependencies of an extension from a specific namespace.
+     *
+     * @param installedExtension the installed extension for which to look for licensed dependencies
+     * @param namespace the namespace where to look for dependencies
+     * @return a set of installed licensed dependencies
+     * @since 1.27
+     */
+    Set<ExtensionId> getLicensedDependencies(InstalledExtension installedExtension, String namespace);
 }

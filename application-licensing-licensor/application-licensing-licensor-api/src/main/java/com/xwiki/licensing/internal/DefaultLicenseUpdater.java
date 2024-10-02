@@ -19,12 +19,14 @@
  */
 package com.xwiki.licensing.internal;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Set;
-import java.util.Stack;
+import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -32,22 +34,30 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.extension.ExtensionDependency;
+import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.extension.ExtensionId;
-import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.instance.InstanceIdManager;
+import org.xwiki.properties.converter.Converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xpn.xwiki.XWikiContext;
+import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseManager;
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
+import com.xwiki.licensing.Licensor;
 
 /**
- * In progress: these methods might be moved to other components at the refactoring step.
+ * Handle license updates processes. Description in progress.
+ *
+ * @version $Id$
+ * @since 1.27
  */
-@Component(roles = LicenseRenew.class)
+@Component
 @Singleton
-public class LicenseRenew
+public class DefaultLicenseUpdater implements LicenseUpdater
 {
     private static final String FEATURE_ID = "featureId";
 
@@ -72,37 +82,25 @@ public class LicenseRenew
     private Provider<InstanceIdManager> instanceIdManagerProvider;
 
     @Inject
-    private TrialLicenseGenerator trialLicenseGenerator;
+    private Provider<Licensor> licensorProvider;
 
-    public void getLicensedDependencies(Set<ExtensionId> licensedDependencies, Stack<ExtensionId> dependencyPath,
-        InstalledExtension installedExtension, String namespace)
-    {
-        Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+    @Inject
+    private Provider<LicenseManager> licenseManagerProvider;
 
-        for (ExtensionDependency dep : dependencies) {
-            InstalledExtension installedDep =
-                installedExtensionRepository.getInstalledExtension(dep.getId(), namespace);
-            if (installedDep == null || licensedDependencies.contains(installedDep.getId())
-                || dependencyPath.search(installedDep.getId()) > 0)
-            {
-                return;
-            }
+    @Inject
+    @Named("Base64")
+    private BinaryStringEncoder base64decoder;
 
-            if (licensedExtensionManager.getLicensedExtensions().contains(installedDep.getId())) {
-                licensedDependencies.add(installedDep.getId());
-            }
+    @Inject
+    private Converter<License> converter;
 
-            dependencyPath.push(installedDep.getId());
-            getLicensedDependencies(licensedDependencies, dependencyPath, installedDep, namespace);
-        }
-    }
-
+    @Override
     public void renewLicense(ExtensionId extensionId)
     {
         try {
             URL licenseRenewURL = getLicenseRenewURL(extensionId);
             if (licenseRenewURL == null) {
-                logger.debug("Failed to add renew license for [{}] because the licensor configuration is not complete. "
+                logger.debug("Failed to renew license for [{}] because the licensor configuration is not complete. "
                     + "Check your store license renew URL and owner details.", extensionId.getId());
                 return;
             }
@@ -114,13 +112,71 @@ public class LicenseRenew
                 logger.debug("Failed to renew license for [{}] on store.", extensionId.getId());
             } else {
                 logger.debug("License renewed for [{}]", extensionId.getId());
-                // This will be moved to other component
-                //trialLicenseGenerator.updateLicenses();
+                // getLicensesUpdates();
             }
         } catch (Exception e) {
             logger.warn("Failed to update license for [{}]. Root cause is [{}]", extensionId,
                 ExceptionUtils.getRootCauseMessage(e));
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void getLicensesUpdates()
+    {
+        try {
+            URL licensesUpdateURL = getLicensesUpdatesURL();
+            if (licensesUpdateURL == null) {
+                logger.warn("Failed to update licenses because the licensor configuration is not complete. "
+                    + "Check your store update URL.");
+                return;
+            }
+
+            XWikiContext xcontext = contextProvider.get();
+            String licensesUpdateResponse = xcontext.getWiki().getURLContent(licensesUpdateURL.toString(), xcontext);
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            List<String> retriedLicenses = (List<String>) objectMapper.readValue(licensesUpdateResponse, Object.class);
+            for (String license : retriedLicenses) {
+                License retrivedLicense = converter.convert(License.class, base64decoder.decode(license));
+                if (retrivedLicense != null) {
+                    licenseManagerProvider.get().add(retrivedLicense);
+                }
+            }
+        } catch (URISyntaxException | IOException e) {
+            logger.warn("Error while updating licenses. Root cause [{}]", ExceptionUtils.getRootCauseMessage(e));
+        }
+    }
+
+    /**
+     * Construct the URL for updating licenses.
+     *
+     * @return the URL for updating licenses, or null if it cannot be constructed
+     * @throws URISyntaxException if the URL is not valid
+     * @throws MalformedURLException if an error occurred while constructing the URL
+     */
+    private URL getLicensesUpdatesURL() throws URISyntaxException, MalformedURLException
+    {
+        String storeUpdateURL = licensingConfig.getStoreUpdateURL();
+        // In case the property has no filled value, the URL cannot be constructed.
+        if (storeUpdateURL == null) {
+            return null;
+        }
+
+        URIBuilder builder = new URIBuilder(storeUpdateURL);
+        builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
+        builder.addParameter("outputSyntax", "plain");
+
+        for (ExtensionId paidExtensionId : licensedExtensionManager.getMandatoryLicensedExtensions()) {
+            builder.addParameter(FEATURE_ID, paidExtensionId.getId());
+
+            License license = licensorProvider.get().getLicense(paidExtensionId);
+            if (license != null && !License.UNLICENSED.equals(license)) {
+                builder.addParameter(String.format("expirationDate:%s", paidExtensionId.getId()),
+                    Long.toString(license.getExpirationDate()));
+            }
+        }
+        return builder.build().toURL();
     }
 
     private URL getLicenseRenewURL(ExtensionId extensionId) throws Exception

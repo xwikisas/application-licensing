@@ -10,6 +10,7 @@ com.xwiki.licensing.internal.DefaultLicenseValidator
 com.xwiki.licensing.internal.DefaultLicensingConfiguration
 com.xwiki.licensing.internal.LicenseManagerEventListener
 com.xwiki.licensing.internal.LicenseRenewListener
+com.xwiki.licensing.internal.DefaultLicenseUpdater
 com.xwiki.licensing.internal.UserCounter
 com.xwiki.licensing.internal.UserCounter$UserListener
 com.xwiki.licensing.script.LicensorScriptService

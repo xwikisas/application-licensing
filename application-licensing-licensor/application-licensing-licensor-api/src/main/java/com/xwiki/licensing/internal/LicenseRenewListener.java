@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -43,6 +42,12 @@ import org.xwiki.observation.event.Event;
 
 import com.xwiki.licensing.LicensedExtensionManager;
 
+/**
+ * Description in progress.
+ *
+ * @version $Id$
+ * @since 1.27
+ */
 @Component
 @Named(LicenseRenewListener.NAME)
 @Singleton
@@ -60,10 +65,7 @@ public class LicenseRenewListener implements EventListener
     private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
-    private TrialLicenseGenerator trialLicenseGenerator;
-
-    @Inject
-    private LicenseRenew licenseRenew;
+    private DefaultLicenseUpdater licenseUpdater;
 
     @Override
     public List<Event> getEvents()
@@ -77,46 +79,47 @@ public class LicenseRenewListener implements EventListener
         return NAME;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        // Retrieve license updates. This method will be moved to another component.
-        trialLicenseGenerator.updateLicenses();
+        // Retrieve license updates from store.
+        licenseUpdater.getLicensesUpdates();
 
         ExtensionEvent extensionEvent = (ExtensionEvent) event;
         if (licensedExtensionManager.getLicensedExtensions().contains(extensionEvent.getExtensionId())) {
-            // Handle the new extension version.
             InstalledExtension installedExtension = (InstalledExtension) source;
             if (installedExtension == null) {
                 return;
             }
-            Set<ExtensionId> newLicensedDependencies = new HashSet<>();
-            Stack<ExtensionId> dependencyPath = new Stack<>();
-            licenseRenew.getLicensedDependencies(newLicensedDependencies, dependencyPath, installedExtension,
-                extensionEvent.getNamespace());
-            System.out.println(newLicensedDependencies);
+            Set<ExtensionId> licensedDependencies =
+                licensedExtensionManager.getLicensedDependencies(installedExtension, extensionEvent.getNamespace());
+            System.out.println(licensedDependencies);
 
-            // Handle the old extension version.
-            if (data == null) {
-                return;
-            }
-            for (InstalledExtension oldExtension : (Collection<InstalledExtension>) data) {
-                if (oldExtension.getId().getId().equals(installedExtension.getId().getId())) {
-                    Set<ExtensionId> oldLicensedDependencies = new HashSet<>();
-                    dependencyPath = new Stack<>();
-                    licenseRenew.getLicensedDependencies(oldLicensedDependencies, dependencyPath, oldExtension,
-                        extensionEvent.getNamespace());
-                    System.out.println(oldLicensedDependencies);
+            Set<ExtensionId> previousDependencies =
+                getPreviousDependencies(data, installedExtension, extensionEvent.getNamespace());
+            System.out.println(previousDependencies);
 
-                    // In progress: ! removed for testing purposes.
-                    if (newLicensedDependencies.equals(oldLicensedDependencies)) {
-                        licenseRenew.renewLicense(installedExtension.getId());
-                    }
-                }
+            // In progress: ! removed for testing purposes.
+            if (licensedDependencies.equals(previousDependencies)) {
+                licenseUpdater.renewLicense(installedExtension.getId());
             }
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private Set<ExtensionId> getPreviousDependencies(Object data, InstalledExtension installedExtension,
+        String namespace)
+    {
+        if (data == null) {
+            return new HashSet<>();
+        }
 
+        for (InstalledExtension previousInstalledExtension : (Collection<InstalledExtension>) data) {
+            if (previousInstalledExtension.getId().getId().equals(installedExtension.getId().getId())) {
+                return licensedExtensionManager.getLicensedDependencies(previousInstalledExtension, namespace);
+            }
+        }
+
+        return new HashSet<>();
+    }
 }

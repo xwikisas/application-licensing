@@ -19,6 +19,29 @@
  */
 package com.xwiki.licensing;
 
-public interface LicensedExtensionUpdateManager
+import org.xwiki.component.annotation.Role;
+import org.xwiki.extension.ExtensionId;
+import org.xwiki.stability.Unstable;
+
+/**
+ * Description in progress.
+ *
+ * @version $Id$
+ * @since 1.27
+ */
+@Role
+@Unstable
+public interface LicenseUpdater
 {
+    /**
+     * Make request to store for renewing this extension's license. Description in progress.
+     *
+     * @param extensionId extension for which the license needs an update
+     */
+    void renewLicense(ExtensionId extensionId);
+
+    /**
+     * Retrieve licenses updates from the XWiki Store.
+     */
+    void getLicensesUpdates();
 }

@@ -62,6 +62,7 @@ public interface LicensingConfiguration
      * Get the URL used in renewing an existing license of an extension from store.
      *
      * @return the URL used in renewing an existing license or null if the value of the property is not filled up
+     * @since 1.27
      */
     String getStoreLicenseRenewURL();
 

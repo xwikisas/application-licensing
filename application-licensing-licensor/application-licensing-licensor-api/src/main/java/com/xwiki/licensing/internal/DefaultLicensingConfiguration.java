@@ -131,6 +131,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
         return this.ownerConfig.getProperty("email");
     }
 
+    @Override
+    public String getStoreLicenseRenewURL()
+    {
+        return this.storeConfig.getProperty("storeLicenseRenewURL");
+    }
+
     @SuppressWarnings("unchecked")
     private List<String> convertObjectToStringList(Object list)
     {
