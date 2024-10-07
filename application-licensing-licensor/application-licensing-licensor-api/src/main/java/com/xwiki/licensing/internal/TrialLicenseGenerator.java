@@ -42,8 +42,8 @@ import com.xwiki.licensing.Licensor;
 /**
  * Helper methods for generating a trial license and updating it.
  *
- * @since 1.17
  * @version $Id$
+ * @since 1.17
  */
 @Component(roles = TrialLicenseGenerator.class)
 @Singleton
@@ -87,7 +87,7 @@ public class TrialLicenseGenerator
         try {
             URL trialURL = getTrialURL(extensionId);
             if (trialURL == null) {
-                logger.debug("Failed to add trial license for [{}] because the licensor configuration is not complete. "
+                logger.warn("Failed to add trial license for [{}] because the licensor configuration is not complete. "
                     + "Check your store trial URL and owner details.", extensionId.getId());
                 return;
             }
@@ -96,7 +96,7 @@ public class TrialLicenseGenerator
             String getTrialResponse = xcontext.getWiki().getURLContent(trialURL.toString(), xcontext);
 
             if (getTrialResponse.contains("error")) {
-                logger.debug("Failed to generate trial license for [{}] on store.", extensionId.getId());
+                logger.warn("Failed to generate trial license for [{}] on store.", extensionId.getId());
             } else {
                 logger.debug("Trial license added for [{}]", extensionId.getId());
                 licenseUpdater.getLicensesUpdates();
@@ -152,7 +152,7 @@ public class TrialLicenseGenerator
     /**
      * Check if for the given licensed extension a license is mandatory, meaning that it is not covered by the license
      * of other extension (it's not dependency of other licensed extension).
-     * 
+     *
      * @param extensionId the extension to be checked
      * @return true if is a mandatory licensed extension, false otherwise
      */
@@ -166,8 +166,8 @@ public class TrialLicenseGenerator
      */
     private Boolean isOwnerDataComplete()
     {
-        return !(StringUtils.isEmpty(licensingConfig.getLicensingOwnerLastName())
-            || StringUtils.isEmpty(licensingConfig.getLicensingOwnerFirstName())
-            || StringUtils.isEmpty(licensingConfig.getLicensingOwnerEmail()));
+        return !(StringUtils.isEmpty(licensingConfig.getLicensingOwnerLastName()) || StringUtils.isEmpty(
+            licensingConfig.getLicensingOwnerFirstName()) || StringUtils.isEmpty(
+            licensingConfig.getLicensingOwnerEmail()));
     }
 }

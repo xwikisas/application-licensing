@@ -19,142 +19,133 @@
  */
 package com.xwiki.licensing.internal;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.Collections;
+
+import javax.inject.Provider;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.Mock;
+import org.xwiki.extension.ExtensionId;
+import org.xwiki.instance.InstanceId;
+import org.xwiki.instance.InstanceIdManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
+import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicensedExtensionManager;
+import com.xwiki.licensing.LicensingConfiguration;
+import com.xwiki.licensing.Licensor;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-
-import javax.inject.Provider;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.xwiki.component.util.DefaultParameterizedType;
-import org.xwiki.crypto.BinaryStringEncoder;
-import org.xwiki.extension.ExtensionId;
-import org.xwiki.instance.InstanceId;
-import org.xwiki.instance.InstanceIdManager;
-import org.xwiki.properties.converter.Converter;
-import org.xwiki.test.mockito.MockitoComponentMockingRule;
-
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xwiki.licensing.License;
-import com.xwiki.licensing.LicenseManager;
-import com.xwiki.licensing.LicensedExtensionManager;
-import com.xwiki.licensing.LicensingConfiguration;
-import com.xwiki.licensing.Licensor;
-
 /**
- * Unit tests for {@link GetTrialLicenseHandler}.
- * 
+ * Unit tests for {@link TrialLicenseGenerator}.
+ *
  * @version $Id$
  */
+@ComponentTest
 public class TrialLicenseGeneratorTest
 {
-    @Rule
-    public MockitoComponentMockingRule<TrialLicenseGenerator> mocker =
-        new MockitoComponentMockingRule<>(TrialLicenseGenerator.class);
+    @InjectMockComponents
+    TrialLicenseGenerator trialLicenseGenerator;
 
-    InstanceId instanceId;
+    @Mock
+    InstanceIdManager instanceIdManager;
 
-    LicensedExtensionManager licensedExtensionManager;
-
-    LicenseManager licenseManager;
-
+    @Mock
     XWikiContext xcontext;
 
+    @Mock
     XWiki xwiki;
 
-    LicensingConfiguration licensingConfig;
-
+    @Mock
     Licensor licensor;
 
-    Converter<License> converter;
+    @Mock
+    License license;
 
-    BinaryStringEncoder decoder;
+    InstanceId instanceId;
 
     ExtensionId extension1 = new ExtensionId("application-test1", "1.0");
 
     ExtensionId extension2 = new ExtensionId("application-test2", "2.0");
 
-    @Before
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+
+    @MockComponent
+    private Provider<InstanceIdManager> instanceIdManagerProvider;
+
+    @MockComponent
+    private UserCounter userCounter;
+
+    @MockComponent
+    private LicensedExtensionManager licensedExtensionManager;
+
+    @MockComponent
+    private LicensingConfiguration licensingConfig;
+
+    @MockComponent
+    private Provider<Licensor> licensorProvider;
+
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
+    @MockComponent
+    private DefaultLicenseUpdater licenseUpdater;
+
+    @BeforeEach
     public void configure() throws Exception
     {
-        this.licensingConfig = this.mocker.getInstance(LicensingConfiguration.class);
         when(this.licensingConfig.getLicensingOwnerFirstName()).thenReturn("Doe");
         when(this.licensingConfig.getLicensingOwnerLastName()).thenReturn("John");
         when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn("test@mail.com");
 
-        this.licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
-        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Arrays.asList(this.extension1));
+        when(this.licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(
+            Collections.singletonList(this.extension1));
 
         this.instanceId = new InstanceId("7237b65d-e5d6-4249-aa4f-7c732cba27e2");
-        InstanceIdManager instanceIdManager = mock(InstanceIdManager.class);
-        DefaultParameterizedType instanceIdManagerType =
-            new DefaultParameterizedType(null, Provider.class, InstanceIdManager.class);
-        Provider<InstanceIdManager> instanceIdManagerProvider =
-            this.mocker.registerMockComponent(instanceIdManagerType);
         when(instanceIdManagerProvider.get()).thenReturn(instanceIdManager);
         when(instanceIdManager.getInstanceId()).thenReturn(instanceId);
 
-        UserCounter userCounter = this.mocker.getInstance(UserCounter.class);
         when(userCounter.getUserCount()).thenReturn(Long.valueOf(5));
 
-        this.licensor = mock(Licensor.class);
-        DefaultParameterizedType licensorType = new DefaultParameterizedType(null, Provider.class, Licensor.class);
-        Provider<Licensor> licensorProvider = this.mocker.registerMockComponent(licensorType);
         when(licensorProvider.get()).thenReturn(this.licensor);
 
-        this.xcontext = mock(XWikiContext.class);
-        this.xwiki = mock(XWiki.class);
-        Provider<XWikiContext> xcontextProvider = this.mocker.registerMockComponent(XWikiContext.TYPE_PROVIDER);
-        when(xcontextProvider.get()).thenReturn(this.xcontext);
+        when(contextProvider.get()).thenReturn(this.xcontext);
         when(this.xcontext.getWiki()).thenReturn(this.xwiki);
-
-        this.licenseManager = mock(LicenseManager.class);
-        DefaultParameterizedType licenseManagerType =
-            new DefaultParameterizedType(null, Provider.class, LicenseManager.class);
-        Provider<LicenseManager> licenseManagerProvider = this.mocker.registerMockComponent(licenseManagerType);
-        when(licenseManagerProvider.get()).thenReturn(this.licenseManager);
-
-        DefaultParameterizedType licenseConverterType =
-            new DefaultParameterizedType(null, Converter.class, License.class);
-        this.converter = this.mocker.getInstance(licenseConverterType);
-        this.decoder = this.mocker.getInstance(BinaryStringEncoder.class, "Base64");
     }
 
     @Test
     public void generateTrialLicense() throws Exception
     {
         when(this.licensingConfig.getStoreTrialURL()).thenReturn("https://storeTrial.com");
-        when(this.licensingConfig.getStoreUpdateURL()).thenReturn("https://storeUpdate.com");
 
-        String trialUrl =
-            "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail.com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion=1.0&licenseType=TRIAL&userCount=5";
+        String trialUrl = "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail"
+            + ".com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion"
+            + "=1.0&licenseType=TRIAL&userCount=5";
         when(this.xwiki.getURLContent(trialUrl, this.xcontext)).thenReturn("success");
 
         License license = mock(License.class, "oldLicense");
         when(this.licensor.getLicense(this.extension1)).thenReturn(license);
         when(license.getExpirationDate()).thenReturn(Long.valueOf("12"));
 
-        String updateUrl =
-            "https://storeUpdate.com?instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&outputSyntax=plain&featureId=application-test1&expirationDate%3Aapplication-test1=12";
-        String licenseResponse = "[\"trialLicense\"]";
-        when(this.xwiki.getURLContent(updateUrl, this.xcontext)).thenReturn(licenseResponse);
+        trialLicenseGenerator.generateTrialLicense(this.extension1);
 
-        License retrivedLicense = mock(License.class, "newLicense");
-        byte[] trialLicenseBytes = "trialLicense".getBytes();
-        when(this.decoder.decode("trialLicense")).thenReturn(trialLicenseBytes);
-        when(this.converter.convert(License.class, trialLicenseBytes)).thenReturn(retrivedLicense);
-
-        this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
-
-        verify(this.licenseManager, times(1)).add(retrivedLicense);
+        verify(this.licenseUpdater, times(1)).getLicensesUpdates();
     }
 
     @Test
@@ -162,11 +153,11 @@ public class TrialLicenseGeneratorTest
     {
         when(this.licensingConfig.getStoreTrialURL()).thenReturn(null);
 
-        this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
+        trialLicenseGenerator.generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1))
-            .debug("Failed to add trial license for [{}] because the licensor configuration is not complete. Check "
-                + "your store trial URL and owner details.", this.extension1.getId());
+        assertEquals(String.format("Failed to add trial license for [%s] because the licensor configuration is not "
+                + "complete. Check your store trial URL and owner details.", this.extension1.getId()),
+            logCapture.getMessage(0));
     }
 
     @Test
@@ -174,32 +165,15 @@ public class TrialLicenseGeneratorTest
     {
         when(this.licensingConfig.getStoreTrialURL()).thenReturn("https://storeTrial.com");
 
-        String trialUrl =
-            "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail.com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion=1.0&licenseType=TRIAL&userCount=5";
+        String trialUrl = "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail"
+            + ".com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion"
+            + "=1.0&licenseType=TRIAL&userCount=5";
         when(this.xwiki.getURLContent(trialUrl, this.xcontext)).thenReturn("error");
 
-        this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
+        trialLicenseGenerator.generateTrialLicense(this.extension1);
 
-        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to generate trial license for [{}] on store.",
-            this.extension1.getId());
-    }
-
-    @Test
-    public void generateTrialLicenseWithNullUpdateURL() throws Exception
-    {
-        when(this.licensingConfig.getStoreTrialURL()).thenReturn("https://storeTrial.com");
-
-        String trialUrl =
-            "https://storeTrial.com?firstName=Doe&lastName=John&email=test%40mail.com&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2&featureId=application-test1&extensionVersion=1.0&licenseType=TRIAL&userCount=5";
-        when(this.xwiki.getURLContent(trialUrl, this.xcontext)).thenReturn("success");
-
-        when(this.licensingConfig.getStoreUpdateURL()).thenReturn(null);
-
-        this.mocker.getComponentUnderTest().generateTrialLicense(this.extension1);
-
-        verify(this.mocker.getMockedLogger(), times(1)).debug("Trial license added for [{}]", extension1.getId());
-        verify(this.mocker.getMockedLogger(), times(1)).debug("Failed to update licenses because the licensor "
-            + "configuration is not complete. Check your store update URL.");
+        assertEquals(String.format("Failed to generate trial license for [%s] on store.", this.extension1.getId()),
+            logCapture.getMessage(0));
     }
 
     @Test
@@ -207,9 +181,7 @@ public class TrialLicenseGeneratorTest
     {
         when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
 
-        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
-
-        assertTrue(this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1));
+        assertTrue(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
     }
 
     @Test
@@ -219,9 +191,7 @@ public class TrialLicenseGeneratorTest
 
         when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn(null);
 
-        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
-
-        assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(extension1));
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(extension1));
     }
 
     @Test
@@ -229,19 +199,14 @@ public class TrialLicenseGeneratorTest
     {
         when(this.licensor.getLicense(this.extension2)).thenReturn(null);
 
-        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
-
-        assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(extension2));
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(extension2));
     }
 
     @Test
     public void canGenerateTrialLicenseWithExistingLicense() throws Exception
     {
-        License license = mock(License.class);
         when(this.licensor.getLicense(this.extension1)).thenReturn(license);
 
-        this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1);
-
-        assertFalse(this.mocker.getComponentUnderTest().canGenerateTrialLicense(this.extension1));
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
     }
 }

@@ -100,7 +100,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
         try {
             URL licenseRenewURL = getLicenseRenewURL(extensionId);
             if (licenseRenewURL == null) {
-                logger.debug("Failed to renew license for [{}] because the licensor configuration is not complete. "
+                logger.warn("Failed to renew license for [{}] because the licensor configuration is not complete. "
                     + "Check your store license renew URL and owner details.", extensionId.getId());
                 return;
             }
@@ -109,10 +109,12 @@ public class DefaultLicenseUpdater implements LicenseUpdater
             String getLicenseRenewResponse = xcontext.getWiki().getURLContent(licenseRenewURL.toString(), xcontext);
 
             if (getLicenseRenewResponse.contains("error")) {
-                logger.debug("Failed to renew license for [{}] on store.", extensionId.getId());
+                logger.warn("Failed to renew license for [{}] on store.", extensionId.getId());
             } else {
                 logger.debug("License renewed for [{}]", extensionId.getId());
-                // getLicensesUpdates();
+                // After renewing the license on store, right now we retrieve new updates from store. Maybe we should
+                // simply return the updated license from the start, to not make a new request?
+//                getLicensesUpdates();
             }
         } catch (Exception e) {
             logger.warn("Failed to update license for [{}]. Root cause is [{}]", extensionId,
@@ -136,8 +138,9 @@ public class DefaultLicenseUpdater implements LicenseUpdater
             String licensesUpdateResponse = xcontext.getWiki().getURLContent(licensesUpdateURL.toString(), xcontext);
             ObjectMapper objectMapper = new ObjectMapper();
 
-            List<String> retriedLicenses = (List<String>) objectMapper.readValue(licensesUpdateResponse, Object.class);
-            for (String license : retriedLicenses) {
+            List<String> retrievedLicenses =
+                (List<String>) objectMapper.readValue(licensesUpdateResponse, Object.class);
+            for (String license : retrievedLicenses) {
                 License retrivedLicense = converter.convert(License.class, base64decoder.decode(license));
                 if (retrivedLicense != null) {
                     licenseManagerProvider.get().add(retrivedLicense);
@@ -195,7 +198,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
         builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
         builder.addParameter(FEATURE_ID, extensionId.getId());
         builder.addParameter("extensionVersion", extensionId.getVersion().getValue());
-        // In progress: take it from existing license.
+        // TODO: take it from existing license.
         builder.addParameter("licenseType", "TRIAL");
 
         return builder.build().toURL();
