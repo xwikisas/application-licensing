@@ -37,6 +37,7 @@ import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
@@ -65,7 +66,7 @@ public class GetTrialLicenseListener implements EventListener
     private LicensedExtensionManager licensedExtensionManager;
 
     @Inject
-    private DefaultLicenseUpdater licenseUpdater;
+    private LicenseUpdater licenseUpdater;
 
     @Override
     public List<Event> getEvents()

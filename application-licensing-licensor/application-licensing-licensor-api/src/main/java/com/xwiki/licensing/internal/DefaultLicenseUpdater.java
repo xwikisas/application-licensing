@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -98,6 +99,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     public void renewLicense(ExtensionId extensionId)
     {
         try {
+            logger.debug("Try renewing the license of [{}], in order to include new found changes.", extensionId);
             URL licenseRenewURL = getLicenseRenewURL(extensionId);
             if (licenseRenewURL == null) {
                 logger.warn("Failed to renew license for [{}] because the licensor configuration is not complete. "
@@ -106,15 +108,31 @@ public class DefaultLicenseUpdater implements LicenseUpdater
             }
 
             XWikiContext xcontext = contextProvider.get();
-            String getLicenseRenewResponse = xcontext.getWiki().getURLContent(licenseRenewURL.toString(), xcontext);
+            String licenseRenewResponseStr = xcontext.getWiki().getURLContent(licenseRenewURL.toString(), xcontext);
 
-            if (getLicenseRenewResponse.contains("error")) {
-                logger.warn("Failed to renew license for [{}] on store.", extensionId.getId());
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<?, ?> licenseRenewResponse = objectMapper.readValue(licenseRenewResponseStr, Map.class);
+
+            if (String.valueOf(licenseRenewResponse.get("status")).equals("error")) {
+                logger.warn(
+                    "Failed to renew license for [{}] on store. Cause: [{}]. Please contact sales@xwiki.com for "
+                        + "eventual problems.", licenseRenewResponse.get("data"), extensionId.getId());
             } else {
-                logger.debug("License renewed for [{}]", extensionId.getId());
-                // After renewing the license on store, right now we retrieve new updates from store. Maybe we should
-                // simply return the updated license from the start, to not make a new request?
-//                getLicensesUpdates();
+                logger.debug(
+                    "Successful response from store after license renew. Trying to update local licenses too.");
+
+                String license = String.valueOf(licenseRenewResponse.get("license"));
+                if (license != null) {
+                    License retrivedLicense = converter.convert(License.class, base64decoder.decode(license));
+                    if (retrivedLicense != null) {
+                        licenseManagerProvider.get().add(retrivedLicense);
+                        logger.debug("License renewed for [{}].", extensionId.getId());
+                    }
+                } else {
+                    logger.debug("No license received in store response. Updating all licenses in case there might "
+                        + "have been updates anyway.");
+                    getLicensesUpdates();
+                }
             }
         } catch (Exception e) {
             logger.warn("Failed to update license for [{}]. Root cause is [{}]", extensionId,
@@ -184,7 +202,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
 
     private URL getLicenseRenewURL(ExtensionId extensionId) throws Exception
     {
-        String storeLicenseRenewURL = licensingConfig.getStoreLicenseRenewURL();
+        String storeLicenseRenewURL = licensingConfig.getStoreRenewURL();
         // In case the property has no filled value, the URL cannot be constructed.
         if (storeLicenseRenewURL == null) {
             return null;
@@ -198,8 +216,6 @@ public class DefaultLicenseUpdater implements LicenseUpdater
         builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
         builder.addParameter(FEATURE_ID, extensionId.getId());
         builder.addParameter("extensionVersion", extensionId.getVersion().getValue());
-        // TODO: take it from existing license.
-        builder.addParameter("licenseType", "TRIAL");
 
         return builder.build().toURL();
     }

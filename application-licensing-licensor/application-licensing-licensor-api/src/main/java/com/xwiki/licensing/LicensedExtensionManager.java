@@ -81,5 +81,6 @@ public interface LicensedExtensionManager
      * @return a set of installed licensed dependencies
      * @since 1.27
      */
+    @Unstable
     Set<ExtensionId> getLicensedDependencies(InstalledExtension installedExtension, String namespace);
 }

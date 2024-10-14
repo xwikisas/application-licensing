@@ -132,9 +132,9 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     }
 
     @Override
-    public String getStoreLicenseRenewURL()
+    public String getStoreRenewURL()
     {
-        return this.storeConfig.getProperty("storeLicenseRenewURL");
+        return this.storeConfig.getProperty("storeRenewURL");
     }
 
     @SuppressWarnings("unchecked")

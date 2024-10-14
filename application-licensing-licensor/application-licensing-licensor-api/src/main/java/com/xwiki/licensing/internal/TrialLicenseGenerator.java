@@ -35,6 +35,7 @@ import org.xwiki.instance.InstanceIdManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
@@ -75,7 +76,7 @@ public class TrialLicenseGenerator
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-    private DefaultLicenseUpdater licenseUpdater;
+    private LicenseUpdater licenseUpdater;
 
     /**
      * Generate trial license for the given extension.

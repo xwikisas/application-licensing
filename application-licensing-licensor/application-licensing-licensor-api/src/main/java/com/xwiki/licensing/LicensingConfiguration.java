@@ -64,7 +64,7 @@ public interface LicensingConfiguration
      * @return the URL used in renewing an existing license or null if the value of the property is not filled up
      * @since 1.27
      */
-    String getStoreLicenseRenewURL();
+    String getStoreRenewURL();
 
     /**
      * @return the first name of the licensing owner or null if the value of the property is not filled up

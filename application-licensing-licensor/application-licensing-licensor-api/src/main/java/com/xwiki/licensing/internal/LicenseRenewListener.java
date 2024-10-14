@@ -20,8 +20,8 @@
 package com.xwiki.licensing.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,16 +30,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.event.ExtensionEvent;
-import org.xwiki.extension.event.ExtensionInstalledEvent;
 import org.xwiki.extension.event.ExtensionUpgradedEvent;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
@@ -56,7 +57,7 @@ public class LicenseRenewListener implements EventListener
     protected static final String NAME = "com.xwiki.licensing.internal.LicenseRenewListener";
 
     protected static final List<Event> EVENTS =
-        new ArrayList<>(Arrays.asList(new ExtensionInstalledEvent(), new ExtensionUpgradedEvent()));
+        new ArrayList<>(Collections.singletonList(new ExtensionUpgradedEvent()));
 
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
@@ -65,7 +66,10 @@ public class LicenseRenewListener implements EventListener
     private InstalledExtensionRepository installedExtensionRepository;
 
     @Inject
-    private DefaultLicenseUpdater licenseUpdater;
+    private LicenseUpdater licenseUpdater;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public List<Event> getEvents()
@@ -87,20 +91,21 @@ public class LicenseRenewListener implements EventListener
 
         ExtensionEvent extensionEvent = (ExtensionEvent) event;
         if (licensedExtensionManager.getLicensedExtensions().contains(extensionEvent.getExtensionId())) {
+            logger.debug("The licensed extension [{}] has been updated. Check if there are dependencies changes, in "
+                + "case its license needs to be updated too.", extensionEvent.getExtensionId());
             InstalledExtension installedExtension = (InstalledExtension) source;
             if (installedExtension == null) {
                 return;
             }
             Set<ExtensionId> licensedDependencies =
                 licensedExtensionManager.getLicensedDependencies(installedExtension, extensionEvent.getNamespace());
-            System.out.println(licensedDependencies);
 
             Set<ExtensionId> previousDependencies =
                 getPreviousDependencies(data, installedExtension, extensionEvent.getNamespace());
-            System.out.println(previousDependencies);
 
-            // In progress: ! removed for testing purposes.
-            if (licensedDependencies.equals(previousDependencies)) {
+            if (!licensedDependencies.equals(previousDependencies)) {
+                logger.debug("New licensed dependencies found: from [{}] to [{}]", previousDependencies,
+                    licensedDependencies);
                 licenseUpdater.renewLicense(installedExtension.getId());
             }
         }

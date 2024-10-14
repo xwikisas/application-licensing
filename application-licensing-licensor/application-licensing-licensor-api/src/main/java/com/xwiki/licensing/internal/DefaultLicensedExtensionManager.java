@@ -40,7 +40,6 @@ import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
-import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensedFeatureId;
@@ -199,7 +198,6 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     }
 
     @Override
-    @Unstable
     public Set<ExtensionId> getLicensedDependencies(InstalledExtension installedExtension, String namespace)
     {
         Set<ExtensionId> licensedDependencies = new HashSet<>();

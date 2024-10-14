@@ -39,6 +39,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
@@ -105,7 +106,7 @@ public class TrialLicenseGeneratorTest
     private Provider<XWikiContext> contextProvider;
 
     @MockComponent
-    private DefaultLicenseUpdater licenseUpdater;
+    private LicenseUpdater licenseUpdater;
 
     @BeforeEach
     public void configure() throws Exception

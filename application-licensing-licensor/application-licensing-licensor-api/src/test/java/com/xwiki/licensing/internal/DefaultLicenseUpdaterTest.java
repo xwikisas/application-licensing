@@ -125,7 +125,7 @@ public class DefaultLicenseUpdaterTest
     @Test
     void renewLicenseWithNullURL() throws Exception
     {
-        when(licensingConfig.getStoreLicenseRenewURL()).thenReturn(null);
+        when(licensingConfig.getStoreRenewURL()).thenReturn(null);
 
         ExtensionId extensionId = new ExtensionId("application-test", "1.0");
         licenseUpdater.renewLicense(extensionId);
@@ -139,7 +139,7 @@ public class DefaultLicenseUpdaterTest
     @Test
     void renewLicenseWithSuccess() throws Exception
     {
-        when(licensingConfig.getStoreLicenseRenewURL()).thenReturn("https://storeRenew.com");
+        when(licensingConfig.getStoreRenewURL()).thenReturn("https://storeRenew.com");
         when(licensingConfig.getLicensingOwnerFirstName()).thenReturn("John");
         when(licensingConfig.getLicensingOwnerLastName()).thenReturn("Doe");
         String renewURL =
@@ -158,7 +158,7 @@ public class DefaultLicenseUpdaterTest
     @Test
     void renewLicenseWithError() throws Exception
     {
-        when(licensingConfig.getStoreLicenseRenewURL()).thenReturn("https://storeRenew.com");
+        when(licensingConfig.getStoreRenewURL()).thenReturn("https://storeRenew.com");
         when(licensingConfig.getLicensingOwnerFirstName()).thenReturn("John");
         when(licensingConfig.getLicensingOwnerLastName()).thenReturn("Doe");
         String renewURL =
