@@ -20,11 +20,13 @@
 package com.xwiki.licensing.internal;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +34,13 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
@@ -41,6 +50,8 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.instance.InstanceIdManager;
 import org.xwiki.properties.converter.Converter;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
@@ -60,6 +71,9 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class DefaultLicenseUpdater implements LicenseUpdater
 {
+    private static final String ERROR_BASE =
+        "Failed to update license for [{}]. Please contact sales@xwiki.com for eventual problems.";
+
     private static final String FEATURE_ID = "featureId";
 
     private static final String INSTANCE_ID = "instanceId";
@@ -100,28 +114,25 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     {
         try {
             logger.debug("Try renewing the license of [{}], in order to include new found changes.", extensionId);
-            URL licenseRenewURL = getLicenseRenewURL(extensionId);
+            URI licenseRenewURL = getLicenseRenewURL(extensionId);
             if (licenseRenewURL == null) {
                 logger.warn("Failed to renew license for [{}] because the licensor configuration is not complete. "
                     + "Check your store license renew URL and owner details.", extensionId.getId());
                 return;
             }
 
-            XWikiContext xcontext = contextProvider.get();
-            String licenseRenewResponseStr = xcontext.getWiki().getURLContent(licenseRenewURL.toString(), xcontext);
+            JsonNode licenseRenewResponse = licenseRenewRequest(licenseRenewURL, extensionId);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<?, ?> licenseRenewResponse = objectMapper.readValue(licenseRenewResponseStr, Map.class);
-
-            if (String.valueOf(licenseRenewResponse.get("status")).equals("error")) {
-                logger.warn(
-                    "Failed to renew license for [{}] on store. Cause: [{}]. Please contact sales@xwiki.com for "
-                        + "eventual problems.", licenseRenewResponse.get("data"), extensionId.getId());
+            if (licenseRenewResponse == null) {
+                return;
+            }
+            if (licenseRenewResponse.get("status").textValue().equals("error")) {
+                logger.warn(ERROR_BASE + " Cause: [{}]", licenseRenewResponse.get("data").textValue(), extensionId.getId());
             } else {
                 logger.debug(
                     "Successful response from store after license renew. Trying to update local licenses too.");
 
-                String license = String.valueOf(licenseRenewResponse.get("license"));
+                String license = licenseRenewResponse.get("license").textValue();
                 if (license != null) {
                     License retrivedLicense = converter.convert(License.class, base64decoder.decode(license));
                     if (retrivedLicense != null) {
@@ -135,8 +146,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
                 }
             }
         } catch (Exception e) {
-            logger.warn("Failed to update license for [{}]. Root cause is [{}]", extensionId,
-                ExceptionUtils.getRootCauseMessage(e));
+            logger.warn(ERROR_BASE + " Root cause is [{}]", extensionId, ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
@@ -169,6 +179,57 @@ public class DefaultLicenseUpdater implements LicenseUpdater
         }
     }
 
+    private JsonNode licenseRenewRequest(URI licenseRenewURL, ExtensionId extensionId)
+    {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            JsonFactory jsonFactory = new JsonFactory();
+            ObjectMapper objectMapper = new ObjectMapper(jsonFactory);
+
+            HttpPost httpPost = initializePostMethod(licenseRenewURL, extensionId);
+
+            return client.execute(httpPost, response -> {
+                final HttpEntity responseEntity = response.getEntity();
+                if (responseEntity == null) {
+                    return null;
+                }
+                try (InputStream inputStream = responseEntity.getContent()) {
+                    return objectMapper.readTree(inputStream);
+                }
+            });
+        } catch (IOException e) {
+            logger.error(ERROR_BASE, extensionId);
+        }
+        return null;
+    }
+
+    private HttpPost initializePostMethod(URI licenseRenewURL, ExtensionId extensionId)
+    {
+        HttpPost httpPost = new HttpPost(licenseRenewURL);
+        List<NameValuePair> requestData =
+            Arrays.asList(new BasicNameValuePair("firstName", licensingConfig.getLicensingOwnerFirstName()),
+                new BasicNameValuePair("lastName", licensingConfig.getLicensingOwnerLastName()),
+                new BasicNameValuePair("email", licensingConfig.getLicensingOwnerEmail()),
+                new BasicNameValuePair(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString()),
+                new BasicNameValuePair(FEATURE_ID, extensionId.getId()),
+                new BasicNameValuePair("extensionVersion", extensionId.getVersion().getValue()));
+        httpPost.setEntity(new UrlEncodedFormEntity(requestData));
+        return httpPost;
+    }
+
+    private URI getLicenseRenewURL(ExtensionId extensionId) throws Exception
+    {
+        String storeLicenseRenewURL = licensingConfig.getStoreRenewURL();
+        // In case the property has no filled value, the URL cannot be constructed.
+        if (storeLicenseRenewURL == null) {
+            return null;
+        }
+
+        URIBuilder builder = new URIBuilder(storeLicenseRenewURL);
+        builder.addParameter("outputSyntax", "plain");
+
+        return builder.build();
+    }
+
     /**
      * Construct the URL for updating licenses.
      *
@@ -186,7 +247,6 @@ public class DefaultLicenseUpdater implements LicenseUpdater
 
         URIBuilder builder = new URIBuilder(storeUpdateURL);
         builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
-        builder.addParameter("outputSyntax", "plain");
 
         for (ExtensionId paidExtensionId : licensedExtensionManager.getMandatoryLicensedExtensions()) {
             builder.addParameter(FEATURE_ID, paidExtensionId.getId());
@@ -197,26 +257,6 @@ public class DefaultLicenseUpdater implements LicenseUpdater
                     Long.toString(license.getExpirationDate()));
             }
         }
-        return builder.build().toURL();
-    }
-
-    private URL getLicenseRenewURL(ExtensionId extensionId) throws Exception
-    {
-        String storeLicenseRenewURL = licensingConfig.getStoreRenewURL();
-        // In case the property has no filled value, the URL cannot be constructed.
-        if (storeLicenseRenewURL == null) {
-            return null;
-        }
-
-        URIBuilder builder = new URIBuilder(storeLicenseRenewURL);
-
-        builder.addParameter("firstName", licensingConfig.getLicensingOwnerFirstName());
-        builder.addParameter("lastName", licensingConfig.getLicensingOwnerLastName());
-        builder.addParameter("email", licensingConfig.getLicensingOwnerEmail());
-        builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
-        builder.addParameter(FEATURE_ID, extensionId.getId());
-        builder.addParameter("extensionVersion", extensionId.getVersion().getValue());
-
         return builder.build().toURL();
     }
 }
