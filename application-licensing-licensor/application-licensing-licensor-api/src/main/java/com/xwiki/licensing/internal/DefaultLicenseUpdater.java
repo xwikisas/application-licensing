@@ -20,7 +20,6 @@
 package com.xwiki.licensing.internal;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,9 +35,6 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -50,7 +46,6 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.instance.InstanceIdManager;
 import org.xwiki.properties.converter.Converter;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xpn.xwiki.XWikiContext;
@@ -60,6 +55,7 @@ import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
+import com.xwiki.licensing.internal.helpers.HttpClientUtils;
 
 /**
  * Handle license updates processes. Description in progress.
@@ -71,7 +67,13 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class DefaultLicenseUpdater implements LicenseUpdater
 {
-    private static final String ERROR_BASE =
+    private static final String OUTPUT_SYNTAX = "outputSyntax";
+
+    private static final String PLAIN = "plain";
+
+    private static final String DATA = "data";
+
+    private static final String ERROR =
         "Failed to update license for [{}]. Please contact sales@xwiki.com for eventual problems.";
 
     private static final String FEATURE_ID = "featureId";
@@ -109,25 +111,25 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     @Inject
     private Converter<License> converter;
 
+    @Inject
+    private HttpClientUtils httpUtils;
+
     @Override
     public void renewLicense(ExtensionId extensionId)
     {
         try {
             logger.debug("Try renewing the license of [{}], in order to include new found changes.", extensionId);
-            URI licenseRenewURL = getLicenseRenewURL(extensionId);
-            if (licenseRenewURL == null) {
-                logger.warn("Failed to renew license for [{}] because the licensor configuration is not complete. "
-                    + "Check your store license renew URL and owner details.", extensionId.getId());
-                return;
-            }
 
-            JsonNode licenseRenewResponse = licenseRenewRequest(licenseRenewURL, extensionId);
-
+            String errorMsg = String.format(
+                "Failed to update license for [%s]. Please contact sales@xwiki.com for eventual problems.",
+                extensionId);
+            JsonNode licenseRenewResponse = httpUtils.httpPost(initializeLicenseRenewPost(extensionId), errorMsg);
             if (licenseRenewResponse == null) {
                 return;
             }
+
             if (licenseRenewResponse.get("status").textValue().equals("error")) {
-                logger.warn(ERROR_BASE + " Cause: [{}]", licenseRenewResponse.get("data").textValue(), extensionId.getId());
+                logger.warn(ERROR + " Cause: [{}]", extensionId.getId(), licenseRenewResponse.get(DATA).textValue());
             } else {
                 logger.debug(
                     "Successful response from store after license renew. Trying to update local licenses too.");
@@ -141,12 +143,12 @@ public class DefaultLicenseUpdater implements LicenseUpdater
                     }
                 } else {
                     logger.debug("No license received in store response. Updating all licenses in case there might "
-                        + "have been updates anyway.");
+                        + "have been updates anyway. Cause: [{}]", licenseRenewResponse.get(DATA));
                     getLicensesUpdates();
                 }
             }
         } catch (Exception e) {
-            logger.warn(ERROR_BASE + " Root cause is [{}]", extensionId, ExceptionUtils.getRootCauseMessage(e));
+            logger.warn(ERROR + " Root cause is [{}]", extensionId, ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
@@ -179,31 +181,15 @@ public class DefaultLicenseUpdater implements LicenseUpdater
         }
     }
 
-    private JsonNode licenseRenewRequest(URI licenseRenewURL, ExtensionId extensionId)
+    private HttpPost initializeLicenseRenewPost(ExtensionId extensionId) throws Exception
     {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            JsonFactory jsonFactory = new JsonFactory();
-            ObjectMapper objectMapper = new ObjectMapper(jsonFactory);
-
-            HttpPost httpPost = initializePostMethod(licenseRenewURL, extensionId);
-
-            return client.execute(httpPost, response -> {
-                final HttpEntity responseEntity = response.getEntity();
-                if (responseEntity == null) {
-                    return null;
-                }
-                try (InputStream inputStream = responseEntity.getContent()) {
-                    return objectMapper.readTree(inputStream);
-                }
-            });
-        } catch (IOException e) {
-            logger.error(ERROR_BASE, extensionId);
+        URI licenseRenewURL = getLicenseRenewURL(extensionId);
+        if (licenseRenewURL == null) {
+            logger.warn("Failed to renew license for [{}] because the licensor configuration is not complete. "
+                + "Check your store license renew URL and owner details.", extensionId.getId());
+            return null;
         }
-        return null;
-    }
 
-    private HttpPost initializePostMethod(URI licenseRenewURL, ExtensionId extensionId)
-    {
         HttpPost httpPost = new HttpPost(licenseRenewURL);
         List<NameValuePair> requestData =
             Arrays.asList(new BasicNameValuePair("firstName", licensingConfig.getLicensingOwnerFirstName()),
@@ -225,7 +211,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
         }
 
         URIBuilder builder = new URIBuilder(storeLicenseRenewURL);
-        builder.addParameter("outputSyntax", "plain");
+        builder.addParameter(OUTPUT_SYNTAX, PLAIN);
 
         return builder.build();
     }
@@ -247,6 +233,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
 
         URIBuilder builder = new URIBuilder(storeUpdateURL);
         builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
+        builder.addParameter(OUTPUT_SYNTAX, PLAIN);
 
         for (ExtensionId paidExtensionId : licensedExtensionManager.getMandatoryLicensedExtensions()) {
             builder.addParameter(FEATURE_ID, paidExtensionId.getId());

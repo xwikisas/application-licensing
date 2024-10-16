@@ -18,6 +18,7 @@ com.xwiki.licensing.internal.GetTrialLicenseListener
 com.xwiki.licensing.internal.TrialLicenseGenerator
 com.xwiki.licensing.internal.helpers.LicensingStoreConfigurationSource
 com.xwiki.licensing.internal.helpers.LicensingOwnerConfigurationSource
+com.xwiki.licensing.internal.helpers.HttpClientUtils
 com.xwiki.licensing.internal.upgrades.UpgradeExtensionHandler
 com.xwiki.licensing.internal.upgrades.AutomaticUpgradesConfigurationSource
 com.xwiki.licensing.internal.upgrades.LicensedExtensionUpgradeManager

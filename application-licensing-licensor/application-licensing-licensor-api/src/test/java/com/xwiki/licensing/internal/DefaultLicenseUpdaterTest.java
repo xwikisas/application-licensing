@@ -26,9 +26,11 @@ import java.util.List;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.extension.ExtensionId;
@@ -42,6 +44,10 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
@@ -49,6 +55,7 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
+import com.xwiki.licensing.internal.helpers.HttpClientUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,6 +99,9 @@ public class DefaultLicenseUpdaterTest
 
     @MockComponent
     private Converter<License> converter;
+
+    @MockComponent
+    private HttpClientUtils httpUtils;
 
     @Mock
     private XWiki xwiki;
@@ -137,22 +147,26 @@ public class DefaultLicenseUpdaterTest
     }
 
     @Test
-    void renewLicenseWithSuccess() throws Exception
+    void renewLicenseWithSuccessAndReturnedLicense() throws Exception
     {
         when(licensingConfig.getStoreRenewURL()).thenReturn("https://storeRenew.com");
         when(licensingConfig.getLicensingOwnerFirstName()).thenReturn("John");
         when(licensingConfig.getLicensingOwnerLastName()).thenReturn("Doe");
-        String renewURL =
-            "https://storeRenew.com?firstName=John&lastName=Doe&email&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2"
-                + "&featureId=application-test&extensionVersion=1.0&licenseType=TRIAL";
-        String getLicenseRenewResponse = "success";
-        when(xwiki.getURLContent(renewURL, xcontext)).thenReturn(getLicenseRenewResponse);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("status", "success");
+        objectNode.put("license", "license");
+        when(httpUtils.httpPost(any(HttpPost.class), any(String.class))).thenReturn(objectNode);
+
+        byte[] licenseBytes = "license".getBytes();
+        when(base64decoder.decode("license")).thenReturn(licenseBytes);
+        when(converter.convert(License.class, licenseBytes)).thenReturn(license);
 
         ExtensionId extensionId = new ExtensionId("application-test", "1.0");
         licenseUpdater.renewLicense(extensionId);
 
-        // After renewing the license on store, right now we retrieve new updates from store. Maybe we should simply
-        // return the updated license from the start, to not make a new request?
+        verify(licenseManager).add(license);
     }
 
     @Test
@@ -161,19 +175,19 @@ public class DefaultLicenseUpdaterTest
         when(licensingConfig.getStoreRenewURL()).thenReturn("https://storeRenew.com");
         when(licensingConfig.getLicensingOwnerFirstName()).thenReturn("John");
         when(licensingConfig.getLicensingOwnerLastName()).thenReturn("Doe");
-        String renewURL =
-            "https://storeRenew.com?firstName=John&lastName=Doe&email&instanceId=7237b65d-e5d6-4249-aa4f-7c732cba27e2"
-                + "&featureId=application-test&extensionVersion=1.0&licenseType=TRIAL";
-        String getLicenseRenewResponse = "error";
-        when(xwiki.getURLContent(renewURL, xcontext)).thenReturn(getLicenseRenewResponse);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("status", "error");
+        objectNode.put("data", "error cause");
+        when(httpUtils.httpPost(any(HttpPost.class), any(String.class))).thenReturn(objectNode);
 
         ExtensionId extensionId = new ExtensionId("application-test", "1.0");
         licenseUpdater.renewLicense(extensionId);
 
-        assertEquals(String.format("Failed to renew license for [%s] on store.", extensionId.getId()),
+        assertEquals(String.format("Failed to update license for [%s]. Please contact sales@xwiki.com for eventual "
+                + "problems. Cause: [error cause]", extensionId.getId()),
             logCaptureWarn.getMessage(0));
-        // After renewing the license on store, right now we retrieve new updates from store. Maybe we should simply
-        // return the updated license from the start, to not make a new request?
     }
 
     @Test
