@@ -21,7 +21,6 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -102,21 +101,24 @@ public class LicenseRenewListener implements EventListener
                 return;
             }
 
-            if (event instanceof ExtensionUpgradedEvent) {
+            License license = licensorProvider.get().getLicense(installedExtension.getId());
+            boolean hasLicense = license != null && !License.UNLICENSED.equals(license);
+
+            if (event instanceof ExtensionUpgradedEvent && hasLicense) {
                 extensionUpgraded(installedExtension, data, extensionEvent);
             } else if (event instanceof ExtensionInstalledEvent) {
-                extensionInstalled(installedExtension, extensionEvent);
+                extensionInstalled(installedExtension, extensionEvent, hasLicense);
             }
         }
     }
 
-    private void extensionInstalled(InstalledExtension installedExtension, ExtensionEvent extensionEvent)
+    private void extensionInstalled(InstalledExtension installedExtension, ExtensionEvent extensionEvent,
+        boolean hasLicense)
     {
-        License license = licensorProvider.get().getLicense(installedExtension.getId());
-        if (license != null && !License.UNLICENSED.equals(license)) {
-            logger.debug("The licensed extension [{}] has been installed and it has a license associated already. "
-                    + "Check if there are license changes for this new extension version.",
-                extensionEvent.getExtensionId());
+        if (hasLicense) {
+            logger.debug(
+                "[{}] has been installed and it has a license associated to it. Check if there are license changes "
+                    + "for this new extension version.", extensionEvent.getExtensionId());
 
             // Since we don't have information on the old installed version, we trigger a license renew and let store
             // check if this license needs changes.
@@ -126,14 +128,25 @@ public class LicenseRenewListener implements EventListener
 
     private void extensionUpgraded(InstalledExtension installedExtension, Object data, ExtensionEvent extensionEvent)
     {
-        logger.debug("The licensed extension [{}] has been upgraded. Check if there are dependencies changes, in "
-            + "case its license needs to be updated too.", extensionEvent.getExtensionId());
+        InstalledExtension prevInstalledExtension =
+            getPreviousInstalledExtension(data, installedExtension, extensionEvent.getNamespace());
+        // Stop if previous version is actually higher, because we don't want to regenerate a license downgrade.
+        if (prevInstalledExtension != null
+            && prevInstalledExtension.getId().getVersion().compareTo(installedExtension.getId().getVersion()) > 0)
+        {
+            logger.debug("The licensed extension [{}] has been downgraded. No license renew it's triggered.",
+                extensionEvent.getExtensionId());
+            return;
+        }
+
+        logger.debug("[{}] has been upgraded and it has a license associated to it. Checking if there are dependencies"
+            + "changes, in order to update its license too.", extensionEvent.getExtensionId());
 
         Set<ExtensionId> licensedDependencies =
             licensedExtensionManager.getLicensedDependencies(installedExtension, extensionEvent.getNamespace());
 
         Set<ExtensionId> previousDependencies =
-            getPreviousDependencies(data, installedExtension, extensionEvent.getNamespace());
+            licensedExtensionManager.getLicensedDependencies(prevInstalledExtension, extensionEvent.getNamespace());
 
         if (!licensedDependencies.equals(previousDependencies)) {
             logger.debug("New licensed dependencies found: from [{}] to [{}]", previousDependencies,
@@ -143,19 +156,14 @@ public class LicenseRenewListener implements EventListener
     }
 
     @SuppressWarnings("unchecked")
-    private Set<ExtensionId> getPreviousDependencies(Object data, InstalledExtension installedExtension,
+    private InstalledExtension getPreviousInstalledExtension(Object data, InstalledExtension installedExtension,
         String namespace)
     {
-        if (data == null) {
-            return new HashSet<>();
-        }
-
         for (InstalledExtension previousInstalledExtension : (Collection<InstalledExtension>) data) {
             if (previousInstalledExtension.getId().getId().equals(installedExtension.getId().getId())) {
-                return licensedExtensionManager.getLicensedDependencies(previousInstalledExtension, namespace);
+                return previousInstalledExtension;
             }
         }
-
-        return new HashSet<>();
+        return null;
     }
 }

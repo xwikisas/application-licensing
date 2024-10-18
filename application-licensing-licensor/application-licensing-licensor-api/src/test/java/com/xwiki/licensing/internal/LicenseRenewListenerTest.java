@@ -104,6 +104,7 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensor.getLicense(extensionId)).thenReturn(license);
 
         when(installedExtension.getId()).thenReturn(extensionId);
         Set<ExtensionId> dependencies = new HashSet<>();
@@ -124,11 +125,31 @@ public class LicenseRenewListenerTest
     }
 
     @Test
+    void onEventWithExtensionDowngradeEvent() throws Exception
+    {
+        ExtensionId extensionId = new ExtensionId("application-test", "1.2");
+        ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
+        when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensor.getLicense(extensionId)).thenReturn(license);
+
+        when(installedExtension.getId()).thenReturn(extensionId);
+
+        ExtensionId prevExtensionId = new ExtensionId("application-test", "1.3");
+        when(prevInstalledExtension.getId()).thenReturn(prevExtensionId);
+
+        renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
+
+        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater, never()).renewLicense(extensionId);
+    }
+
+    @Test
     void onEventWithExtensionUpgradedEventAndNoChanges() throws Exception
     {
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensor.getLicense(extensionId)).thenReturn(license);
 
         when(installedExtension.getId()).thenReturn(extensionId);
         Set<ExtensionId> dependencies = new HashSet<>();
@@ -138,6 +159,20 @@ public class LicenseRenewListenerTest
         ExtensionId prevExtensionId = new ExtensionId("application-test", "1.1");
         when(prevInstalledExtension.getId()).thenReturn(prevExtensionId);
         when(licensedExtensionManager.getLicensedDependencies(prevInstalledExtension, null)).thenReturn(dependencies);
+
+        renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
+
+        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater, never()).renewLicense(extensionId);
+    }
+
+    @Test
+    void onEventWithExtensionUpgradedEventAndNoLicense() throws Exception
+    {
+        ExtensionId extensionId = new ExtensionId("application-test", "1.2");
+        ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
+        when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensor.getLicense(extensionId)).thenReturn(null);
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
