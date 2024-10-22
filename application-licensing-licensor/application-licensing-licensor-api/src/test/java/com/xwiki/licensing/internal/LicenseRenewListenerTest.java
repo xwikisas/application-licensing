@@ -40,6 +40,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
+import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.Licensor;
 
 import static org.mockito.Mockito.never;
@@ -99,7 +100,7 @@ public class LicenseRenewListenerTest
     }
 
     @Test
-    void onEventWithExtensionUpgradedEventAndChanges() throws Exception
+    void onEventWithExtensionUpgradedEventAndChangesOnVersions() throws Exception
     {
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
@@ -117,6 +118,36 @@ public class LicenseRenewListenerTest
         prevDependencies.add(new ExtensionId("application-dep1", "1.2"));
         when(licensedExtensionManager.getLicensedDependencies(prevInstalledExtension, null)).thenReturn(
             prevDependencies);
+
+        renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
+
+        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).renewLicense(extensionId);
+        verify(license, never()).getFeatureIds();
+    }
+
+    @Test
+    void onEventWithExtensionUpgradedEventAndChangesOnLicense() throws Exception
+    {
+        ExtensionId extensionId = new ExtensionId("application-test", "1.2");
+        ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
+        when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensor.getLicense(extensionId)).thenReturn(license);
+
+        when(installedExtension.getId()).thenReturn(extensionId);
+        Set<ExtensionId> dependencies = new HashSet<>();
+        dependencies.add(new ExtensionId("application-dep1", "2.0"));
+        when(licensedExtensionManager.getLicensedDependencies(installedExtension, null)).thenReturn(dependencies);
+
+        ExtensionId prevExtensionId = new ExtensionId("application-test", "1.1");
+        when(prevInstalledExtension.getId()).thenReturn(prevExtensionId);
+        when(licensedExtensionManager.getLicensedDependencies(prevInstalledExtension, null)).thenReturn(
+            dependencies);
+
+        // Since dependencies are the same between the previous installed extension and the current one, the licensed
+        // feature ids are checked.
+        LicensedFeatureId featureId = new LicensedFeatureId("application-dep2", "2.1");
+        when(license.getFeatureIds()).thenReturn(Collections.singletonList(featureId));
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
@@ -153,12 +184,16 @@ public class LicenseRenewListenerTest
 
         when(installedExtension.getId()).thenReturn(extensionId);
         Set<ExtensionId> dependencies = new HashSet<>();
-        dependencies.add(new ExtensionId("application-dep2", "2.0"));
+        ExtensionId dependency = new ExtensionId("application-dep", "2.0");
+        dependencies.add(dependency);
         when(licensedExtensionManager.getLicensedDependencies(installedExtension, null)).thenReturn(dependencies);
 
         ExtensionId prevExtensionId = new ExtensionId("application-test", "1.1");
         when(prevInstalledExtension.getId()).thenReturn(prevExtensionId);
         when(licensedExtensionManager.getLicensedDependencies(prevInstalledExtension, null)).thenReturn(dependencies);
+
+        LicensedFeatureId featureId = new LicensedFeatureId(dependency.getId(), dependency.getVersion().getValue());
+        when(license.getFeatureIds()).thenReturn(Collections.singletonList(featureId));
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 

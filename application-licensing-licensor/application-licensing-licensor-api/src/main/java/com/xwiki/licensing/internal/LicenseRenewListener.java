@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -43,6 +44,7 @@ import org.xwiki.observation.event.Event;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
+import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.Licensor;
 
 /**
@@ -105,7 +107,7 @@ public class LicenseRenewListener implements EventListener
             boolean hasLicense = license != null && !License.UNLICENSED.equals(license);
 
             if (event instanceof ExtensionUpgradedEvent && hasLicense) {
-                extensionUpgraded(installedExtension, data, extensionEvent);
+                extensionUpgraded(installedExtension, data, extensionEvent, license);
             } else if (event instanceof ExtensionInstalledEvent) {
                 extensionInstalled(installedExtension, extensionEvent, hasLicense);
             }
@@ -126,7 +128,8 @@ public class LicenseRenewListener implements EventListener
         }
     }
 
-    private void extensionUpgraded(InstalledExtension installedExtension, Object data, ExtensionEvent extensionEvent)
+    private void extensionUpgraded(InstalledExtension installedExtension, Object data, ExtensionEvent extensionEvent,
+        License license)
     {
         InstalledExtension prevInstalledExtension =
             getPreviousInstalledExtension(data, installedExtension, extensionEvent.getNamespace());
@@ -140,7 +143,7 @@ public class LicenseRenewListener implements EventListener
         }
 
         logger.debug("[{}] has been upgraded and it has a license associated to it. Checking if there are dependencies"
-            + "changes, in order to update its license too.", extensionEvent.getExtensionId());
+            + " changes, in order to update its license too.", extensionEvent.getExtensionId());
 
         Set<ExtensionId> licensedDependencies =
             licensedExtensionManager.getLicensedDependencies(installedExtension, extensionEvent.getNamespace());
@@ -148,11 +151,32 @@ public class LicenseRenewListener implements EventListener
         Set<ExtensionId> previousDependencies =
             licensedExtensionManager.getLicensedDependencies(prevInstalledExtension, extensionEvent.getNamespace());
 
-        if (!licensedDependencies.equals(previousDependencies)) {
-            logger.debug("New licensed dependencies found: from [{}] to [{}]", previousDependencies,
-                licensedDependencies);
+        // Besides comparing differences between previous and current version, consider also the licensed feature ids.
+        // This is needed because during a license renew there could be issues and only on the licensed feature ids
+        // we can check that there were changes at some point, since these 2 versions now have the same
+        // dependencies.
+        if (!licensedDependencies.equals(previousDependencies) || licensedFeatureIdsChanges(license, installedExtension,
+            licensedDependencies))
+        {
+            logger.debug("New licensed dependencies found.");
             licenseUpdater.renewLicense(installedExtension.getId());
         }
+    }
+
+    private boolean licensedFeatureIdsChanges(License license, InstalledExtension installedExtension,
+        Set<ExtensionId> licensedDependencies)
+    {
+        List<String> licenseFeatureIds =
+            license.getFeatureIds().stream().map(LicensedFeatureId::getId).collect(Collectors.toList());
+        licenseFeatureIds.removeIf(ext -> ext.equals(installedExtension.getId().getId()));
+        List<String> licensedDependenciesIds =
+            licensedDependencies.stream().map(ExtensionId::getId).collect(Collectors.toList());
+
+        boolean changedDependencies = !licensedDependenciesIds.equals(licenseFeatureIds);
+        if (!changedDependencies) {
+            logger.debug("License contains outdated feature ids [{}]", licenseFeatureIds);
+        }
+        return changedDependencies;
     }
 
     @SuppressWarnings("unchecked")
