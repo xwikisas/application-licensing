@@ -97,7 +97,11 @@ public class LicenseRenewListener implements EventListener
         licenseUpdater.getLicensesUpdates();
 
         ExtensionEvent extensionEvent = (ExtensionEvent) event;
-        if (licensedExtensionManager.getLicensedExtensions().contains(extensionEvent.getExtensionId())) {
+        // Only treat top level licensed extensions. If it's not a top level extension, then its license it's handled
+        // by another extension's license.
+        if (licensedExtensionManager.getLicensedExtensions().contains(extensionEvent.getExtensionId())
+            && isMandatoryLicensedExtension(extensionEvent.getExtensionId()))
+        {
             InstalledExtension installedExtension = (InstalledExtension) source;
             if (installedExtension == null) {
                 return;
@@ -173,7 +177,7 @@ public class LicenseRenewListener implements EventListener
             licensedDependencies.stream().map(ExtensionId::getId).collect(Collectors.toList());
 
         boolean changedDependencies = !licensedDependenciesIds.equals(licenseFeatureIds);
-        if (!changedDependencies) {
+        if (changedDependencies) {
             logger.debug("License contains outdated feature ids [{}]", licenseFeatureIds);
         }
         return changedDependencies;
@@ -189,5 +193,11 @@ public class LicenseRenewListener implements EventListener
             }
         }
         return null;
+    }
+
+    private boolean isMandatoryLicensedExtension(ExtensionId extensionId)
+    {
+        return licensedExtensionManager.getMandatoryLicensedExtensions().stream().map(ExtensionId::getId)
+            .collect(Collectors.toList()).contains(extensionId.getId());
     }
 }

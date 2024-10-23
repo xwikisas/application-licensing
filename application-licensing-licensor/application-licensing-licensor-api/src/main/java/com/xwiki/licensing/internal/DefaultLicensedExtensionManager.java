@@ -223,7 +223,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             if (installedDep == null || licensedDependencies.contains(installedDep.getId())
                 || verifiedExtensions.contains(installedDep.getId()))
             {
-                return;
+                continue;
             }
 
             if (installedLicensedExtensions.contains(installedDep.getId())) {

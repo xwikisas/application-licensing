@@ -89,6 +89,7 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.0");
         ExtensionInstalledEvent event = new ExtensionInstalledEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
 
         when(installedExtension.getId()).thenReturn(extensionId);
         when(licensor.getLicense(extensionId)).thenReturn(license);
@@ -105,6 +106,9 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        // This extension should be considered mandatory no matter the specified version.
+        ExtensionId extensionIdV2 = new ExtensionId("application-test", "2.0");
+        when(licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Collections.singletonList(extensionIdV2));
         when(licensor.getLicense(extensionId)).thenReturn(license);
 
         when(installedExtension.getId()).thenReturn(extensionId);
@@ -132,6 +136,7 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
         when(licensor.getLicense(extensionId)).thenReturn(license);
 
         when(installedExtension.getId()).thenReturn(extensionId);
@@ -161,6 +166,7 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
         when(licensor.getLicense(extensionId)).thenReturn(license);
 
         when(installedExtension.getId()).thenReturn(extensionId);
@@ -180,6 +186,7 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
         when(licensor.getLicense(extensionId)).thenReturn(license);
 
         when(installedExtension.getId()).thenReturn(extensionId);
@@ -207,7 +214,9 @@ public class LicenseRenewListenerTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.2");
         ExtensionUpgradedEvent event = new ExtensionUpgradedEvent(extensionId, null);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
+        when(licensedExtensionManager.getMandatoryLicensedExtensions()).thenReturn(Collections.singletonList(extensionId));
         when(licensor.getLicense(extensionId)).thenReturn(null);
+        when(installedExtension.getId()).thenReturn(extensionId);
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
