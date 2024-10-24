@@ -24,7 +24,7 @@ import org.xwiki.extension.ExtensionId;
 import org.xwiki.stability.Unstable;
 
 /**
- * Description in progress.
+ * Receive licenses updates from store or renew existing licenses if properties have changed.
  *
  * @version $Id$
  * @since 1.27
@@ -34,7 +34,8 @@ import org.xwiki.stability.Unstable;
 public interface LicenseUpdater
 {
     /**
-     * Make request to store for renewing this extension's license. Description in progress.
+     * Renew this extension's license for including new properties (e.g. new licensed feature ids after changed
+     * dependencies). Request the license renewal to store and update the license locally as well.
      *
      * @param extensionId extension for which the license needs an update
      */

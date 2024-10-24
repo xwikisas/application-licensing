@@ -30,6 +30,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
@@ -48,7 +49,10 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.Licensor;
 
 /**
- * Description in progress.
+ * Listen to licensed extensions upgrades or install in order to trigger a license renewal if needed. A license renew
+ * it's needed if licensed dependencies (direct or transitive) have changed between versions, or if the currnt license
+ * has outdated feature ids. Listen also for the install event in case a license was already generated for an older
+ * uninstalled version.
  *
  * @version $Id$
  * @since 1.27
@@ -162,7 +166,7 @@ public class LicenseRenewListener implements EventListener
         if (!licensedDependencies.equals(previousDependencies) || licensedFeatureIdsChanges(license, installedExtension,
             licensedDependencies))
         {
-            logger.debug("New licensed dependencies found.");
+            logger.debug("There are licensed dependencies changes between old and current extension version.");
             licenseUpdater.renewLicense(installedExtension.getId());
         }
     }
@@ -176,9 +180,10 @@ public class LicenseRenewListener implements EventListener
         List<String> licensedDependenciesIds =
             licensedDependencies.stream().map(ExtensionId::getId).collect(Collectors.toList());
 
-        boolean changedDependencies = !licensedDependenciesIds.equals(licenseFeatureIds);
+        boolean changedDependencies = !CollectionUtils.isEqualCollection(licensedDependenciesIds, licenseFeatureIds);
         if (changedDependencies) {
-            logger.debug("License contains outdated feature ids [{}]", licenseFeatureIds);
+            logger.debug("License contains outdated feature ids: [{}]. New feature ids:  [{}]", licenseFeatureIds,
+                licensedDependenciesIds);
         }
         return changedDependencies;
     }

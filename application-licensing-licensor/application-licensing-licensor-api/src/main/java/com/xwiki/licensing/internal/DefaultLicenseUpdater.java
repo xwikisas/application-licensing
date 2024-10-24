@@ -58,7 +58,7 @@ import com.xwiki.licensing.Licensor;
 import com.xwiki.licensing.internal.helpers.HttpClientUtils;
 
 /**
- * Handle license updates processes. Description in progress.
+ * Default implementation of {@link LicenseUpdater}.
  *
  * @version $Id$
  * @since 1.27
