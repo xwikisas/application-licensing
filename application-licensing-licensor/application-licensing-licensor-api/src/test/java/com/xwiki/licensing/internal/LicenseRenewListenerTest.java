@@ -96,7 +96,7 @@ public class LicenseRenewListenerTest
 
         renewListener.onEvent(event, installedExtension, null);
 
-        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater).renewLicense(extensionId);
     }
 
@@ -125,7 +125,7 @@ public class LicenseRenewListenerTest
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
-        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater).renewLicense(extensionId);
         verify(license, never()).getFeatureIds();
     }
@@ -156,7 +156,7 @@ public class LicenseRenewListenerTest
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
-        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater).renewLicense(extensionId);
     }
 
@@ -176,7 +176,7 @@ public class LicenseRenewListenerTest
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
-        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater, never()).renewLicense(extensionId);
     }
 
@@ -204,7 +204,7 @@ public class LicenseRenewListenerTest
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
-        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater, never()).renewLicense(extensionId);
     }
 
@@ -220,7 +220,7 @@ public class LicenseRenewListenerTest
 
         renewListener.onEvent(event, installedExtension, Collections.singletonList(prevInstalledExtension));
 
-        verify(licenseUpdater).getLicensesUpdates();
+        verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater, never()).renewLicense(extensionId);
     }
 }

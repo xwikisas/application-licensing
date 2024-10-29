@@ -74,7 +74,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     private static final String DATA = "data";
 
     private static final String ERROR =
-        "Failed to update license for [{}]. Please contact sales@xwiki.com for eventual problems.";
+        "Failed to update license for [%s]. Please contact your administrator for eventual problems.";
 
     private static final String FEATURE_ID = "featureId";
 
@@ -117,19 +117,18 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     @Override
     public void renewLicense(ExtensionId extensionId)
     {
+        String errorMsg = String.format(ERROR, extensionId);
+
         try {
             logger.debug("Try renewing the license of [{}], in order to include new found changes.", extensionId);
 
-            String errorMsg = String.format(
-                "Failed to update license for [%s]. Please contact sales@xwiki.com for eventual problems.",
-                extensionId);
             JsonNode licenseRenewResponse = httpUtils.httpPost(initializeLicenseRenewPost(extensionId), errorMsg);
             if (licenseRenewResponse == null) {
                 return;
             }
 
             if (licenseRenewResponse.get("status").textValue().equals("error")) {
-                logger.warn(ERROR + " Cause: [{}]", extensionId.getId(), licenseRenewResponse.get(DATA).textValue());
+                logger.warn("{} Cause: [{}]", errorMsg, licenseRenewResponse.get(DATA).textValue());
             } else {
                 logger.debug(
                     "Successful response from store after license renew. Trying to update local licenses too.");
@@ -144,17 +143,17 @@ public class DefaultLicenseUpdater implements LicenseUpdater
                 } else {
                     logger.debug("No license received in store response. Updating all licenses in case there might "
                         + "have been updates anyway. Cause: [{}]", licenseRenewResponse.get(DATA));
-                    getLicensesUpdates();
+                    updateLicenses();
                 }
             }
         } catch (Exception e) {
-            logger.warn(ERROR + " Root cause is [{}]", extensionId, ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("{} Root cause is [{}]", errorMsg, ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void getLicensesUpdates()
+    public void updateLicenses()
     {
         try {
             URL licensesUpdateURL = getLicensesUpdatesURL();

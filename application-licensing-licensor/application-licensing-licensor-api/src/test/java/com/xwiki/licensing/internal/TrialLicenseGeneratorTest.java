@@ -146,7 +146,7 @@ public class TrialLicenseGeneratorTest
 
         trialLicenseGenerator.generateTrialLicense(this.extension1);
 
-        verify(this.licenseUpdater, times(1)).getLicensesUpdates();
+        verify(this.licenseUpdater, times(1)).updateLicenses();
     }
 
     @Test

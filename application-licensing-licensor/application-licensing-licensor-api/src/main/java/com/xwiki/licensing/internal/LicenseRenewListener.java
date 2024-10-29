@@ -98,7 +98,7 @@ public class LicenseRenewListener implements EventListener
     public void onEvent(Event event, Object source, Object data)
     {
         // Retrieve license updates from store.
-        licenseUpdater.getLicensesUpdates();
+        licenseUpdater.updateLicenses();
 
         ExtensionEvent extensionEvent = (ExtensionEvent) event;
         // Only treat top level licensed extensions. If it's not a top level extension, then its license it's handled
@@ -107,9 +107,6 @@ public class LicenseRenewListener implements EventListener
             && isMandatoryLicensedExtension(extensionEvent.getExtensionId()))
         {
             InstalledExtension installedExtension = (InstalledExtension) source;
-            if (installedExtension == null) {
-                return;
-            }
 
             License license = licensorProvider.get().getLicense(installedExtension.getId());
             boolean hasLicense = license != null && !License.UNLICENSED.equals(license);
@@ -142,6 +139,9 @@ public class LicenseRenewListener implements EventListener
         InstalledExtension prevInstalledExtension =
             getPreviousInstalledExtension(data, installedExtension, extensionEvent.getNamespace());
         // Stop if previous version is actually higher, because we don't want to regenerate a license downgrade.
+        // If at some point a dependency was deleted, then a downgrade shouldn't add it back on the license. On the
+        // same note, if a dependency was added for the app, then downgrading to a version that doesn't have it will
+        // actually perform an unnecessary change to the license.
         if (prevInstalledExtension != null
             && prevInstalledExtension.getId().getVersion().compareTo(installedExtension.getId().getVersion()) > 0)
         {

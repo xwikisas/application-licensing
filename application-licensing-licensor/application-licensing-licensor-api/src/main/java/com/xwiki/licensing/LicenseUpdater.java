@@ -44,5 +44,5 @@ public interface LicenseUpdater
     /**
      * Retrieve licenses updates from the XWiki Store.
      */
-    void getLicensesUpdates();
+    void updateLicenses();
 }

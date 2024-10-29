@@ -100,7 +100,7 @@ public class TrialLicenseGenerator
                 logger.warn("Failed to generate trial license for [{}] on store.", extensionId.getId());
             } else {
                 logger.debug("Trial license added for [{}]", extensionId.getId());
-                licenseUpdater.getLicensesUpdates();
+                licenseUpdater.updateLicenses();
             }
         } catch (Exception e) {
             logger.warn("Failed to get trial license for [{}]. Root cause is [{}]", extensionId,

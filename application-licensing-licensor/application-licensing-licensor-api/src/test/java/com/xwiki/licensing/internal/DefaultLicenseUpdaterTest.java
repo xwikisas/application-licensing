@@ -30,7 +30,6 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.extension.ExtensionId;
@@ -44,8 +43,6 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.xpn.xwiki.XWiki;
@@ -185,24 +182,23 @@ public class DefaultLicenseUpdaterTest
         ExtensionId extensionId = new ExtensionId("application-test", "1.0");
         licenseUpdater.renewLicense(extensionId);
 
-        assertEquals(String.format("Failed to update license for [%s]. Please contact sales@xwiki.com for eventual "
-                + "problems. Cause: [error cause]", extensionId.getId()),
-            logCaptureWarn.getMessage(0));
+        assertEquals(String.format("Failed to update license for [%s]. Please contact your administrator for eventual "
+            + "problems. Cause: [error cause]", extensionId), logCaptureWarn.getMessage(0));
     }
 
     @Test
-    void getLicensesUpdatesWithNullURL() throws Exception
+    void updateLicensesWithNullURL() throws Exception
     {
         when(licensingConfig.getStoreUpdateURL()).thenReturn(null);
 
-        licenseUpdater.getLicensesUpdates();
+        licenseUpdater.updateLicenses();
 
         assertEquals("Failed to update licenses because the licensor configuration is not complete. "
             + "Check your store update URL.", logCaptureWarn.getMessage(0));
     }
 
     @Test
-    void getLicensesUpdatesWithUpdates() throws Exception
+    void updateLicensesWithUpdates() throws Exception
     {
         when(licensingConfig.getStoreUpdateURL()).thenReturn("https://storeUpdate.com");
 
@@ -223,13 +219,13 @@ public class DefaultLicenseUpdaterTest
         License convertedLicense = new License();
         when(converter.convert(License.class, licenseBytes)).thenReturn(convertedLicense);
 
-        licenseUpdater.getLicensesUpdates();
+        licenseUpdater.updateLicenses();
 
         verify(licenseManager).add(convertedLicense);
     }
 
     @Test
-    void getLicensesUpdatesWithoutUpdates() throws IOException
+    void updateLicensesWithoutUpdates() throws IOException
     {
         when(licensingConfig.getStoreUpdateURL()).thenReturn("https://storeUpdate.com");
 
@@ -245,7 +241,7 @@ public class DefaultLicenseUpdaterTest
         when(licensor.getLicense(licensedExtension)).thenReturn(license);
         when(license.getExpirationDate()).thenReturn(Long.valueOf("12"));
 
-        licenseUpdater.getLicensesUpdates();
+        licenseUpdater.updateLicenses();
 
         verify(licenseManager, times(0)).add(any(License.class));
     }
