@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.licensing</groupId>
     <artifactId>application-licensing-test</artifactId>
-    <version>1.26.1-SNAPSHOT</version>
+    <version>1.27</version>
   </parent>
   <artifactId>application-licensing-test-example</artifactId>
   <packaging>xar</packaging>
