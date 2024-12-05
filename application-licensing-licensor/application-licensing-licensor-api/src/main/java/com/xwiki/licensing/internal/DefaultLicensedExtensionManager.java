@@ -196,4 +196,43 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     {
         this.cachedMandatoryLicensedExtensions = null;
     }
+
+    @Override
+    public Set<ExtensionId> getLicensedDependencies(InstalledExtension installedExtension, String namespace)
+    {
+        Set<ExtensionId> licensedDependencies = new HashSet<>();
+        Set<ExtensionId> verifiedExtensions = new HashSet<>();
+
+        getLicensedDependencies(installedExtension, namespace, getLicensedExtensions(), licensedDependencies,
+            verifiedExtensions);
+        logger.debug("Found licensed dependencies for extension [{}] : [{}]", installedExtension.getId(),
+            licensedDependencies);
+
+        return licensedDependencies;
+    }
+
+    private void getLicensedDependencies(InstalledExtension installedExtension, String namespace,
+        Collection<ExtensionId> installedLicensedExtensions, Set<ExtensionId> licensedDependencies,
+        Set<ExtensionId> verifiedExtensions)
+    {
+        Collection<ExtensionDependency> dependencies = installedExtension.getDependencies();
+
+        for (ExtensionDependency dep : dependencies) {
+            InstalledExtension installedDep =
+                installedExtensionRepository.getInstalledExtension(dep.getId(), namespace);
+            if (installedDep == null || licensedDependencies.contains(installedDep.getId())
+                || verifiedExtensions.contains(installedDep.getId()))
+            {
+                continue;
+            }
+
+            if (installedLicensedExtensions.contains(installedDep.getId())) {
+                licensedDependencies.add(installedDep.getId());
+            }
+
+            verifiedExtensions.add(installedDep.getId());
+            getLicensedDependencies(installedDep, namespace, installedLicensedExtensions, licensedDependencies,
+                verifiedExtensions);
+        }
+    }
 }

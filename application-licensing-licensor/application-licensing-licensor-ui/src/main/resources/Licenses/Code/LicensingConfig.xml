@@ -194,6 +194,20 @@
         <unmodifiable>0</unmodifiable>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </storeFeedbackURL>
+      <storeRenewURL>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>storeRenewURL</name>
+        <number>6</number>
+        <picker>1</picker>
+        <prettyName>storeRenewURL</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </storeRenewURL>
       <storeTrialURL>
         <customDisplay/>
         <disabled>0</disabled>
@@ -229,6 +243,9 @@
     </property>
     <property>
       <storeFeedbackURL>https://store.xwiki.com/xwiki/bin/view/Store/GiveFeedback</storeFeedbackURL>
+    </property>
+    <property>
+      <storeRenewURL>https://store.xwiki.com/xwiki/bin/get/Store/RenewLicense</storeRenewURL>
     </property>
     <property>
       <storeTrialURL>https://store.xwiki.com/xwiki/bin/get/Store/GetTrialLicense</storeTrialURL>

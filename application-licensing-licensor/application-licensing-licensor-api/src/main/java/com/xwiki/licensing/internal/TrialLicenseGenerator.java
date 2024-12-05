@@ -19,14 +19,9 @@
  */
 package com.xwiki.licensing.internal;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -35,15 +30,12 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.instance.InstanceIdManager;
-import org.xwiki.properties.converter.Converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
-import com.xwiki.licensing.LicenseManager;
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
@@ -51,8 +43,8 @@ import com.xwiki.licensing.Licensor;
 /**
  * Helper methods for generating a trial license and updating it.
  *
- * @since 1.17
  * @version $Id$
+ * @since 1.17
  */
 @Component(roles = TrialLicenseGenerator.class)
 @Singleton
@@ -81,17 +73,10 @@ public class TrialLicenseGenerator
     private Provider<Licensor> licensorProvider;
 
     @Inject
-    private Provider<LicenseManager> licenseManagerProvider;
-
-    @Inject
-    @Named("Base64")
-    private BinaryStringEncoder base64decoder;
-
-    @Inject
-    private Converter<License> converter;
-
-    @Inject
     private Provider<XWikiContext> contextProvider;
+
+    @Inject
+    private LicenseUpdater licenseUpdater;
 
     /**
      * Generate trial license for the given extension.
@@ -103,7 +88,7 @@ public class TrialLicenseGenerator
         try {
             URL trialURL = getTrialURL(extensionId);
             if (trialURL == null) {
-                logger.debug("Failed to add trial license for [{}] because the licensor configuration is not complete. "
+                logger.warn("Failed to add trial license for [{}] because the licensor configuration is not complete. "
                     + "Check your store trial URL and owner details.", extensionId.getId());
                 return;
             }
@@ -112,10 +97,10 @@ public class TrialLicenseGenerator
             String getTrialResponse = xcontext.getWiki().getURLContent(trialURL.toString(), xcontext);
 
             if (getTrialResponse.contains("error")) {
-                logger.debug("Failed to generate trial license for [{}] on store.", extensionId.getId());
+                logger.warn("Failed to generate trial license for [{}] on store.", extensionId.getId());
             } else {
                 logger.debug("Trial license added for [{}]", extensionId.getId());
-                updateLicenses();
+                licenseUpdater.updateLicenses();
             }
         } catch (Exception e) {
             logger.warn("Failed to get trial license for [{}]. Root cause is [{}]", extensionId,
@@ -166,72 +151,9 @@ public class TrialLicenseGenerator
     }
 
     /**
-     * Retrieve license updates from the XWiki Store.
-     */
-    @SuppressWarnings("unchecked")
-    public void updateLicenses()
-    {
-        try {
-            URL licensesUpdateURL = getLicensesUpdateURL();
-            if (licensesUpdateURL == null) {
-                logger.debug("Failed to update licenses because the licensor configuration is not complete. "
-                    + "Check your store update URL.");
-                return;
-            }
-
-            XWikiContext xcontext = contextProvider.get();
-            String licensesUpdateResponse = xcontext.getWiki().getURLContent(licensesUpdateURL.toString(), xcontext);
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            List<String> retrivedLicenses = (List<String>) objectMapper.readValue(licensesUpdateResponse, Object.class);
-            for (String license : retrivedLicenses) {
-                License retrivedLicense = converter.convert(License.class, base64decoder.decode(license));
-                if (retrivedLicense != null) {
-                    licenseManagerProvider.get().add(retrivedLicense);
-                }
-            }
-        } catch (URISyntaxException | IOException e) {
-            logger.warn("Error while updating licenses. Root cause [{}]", ExceptionUtils.getRootCauseMessage(e));
-        }
-
-    }
-
-    /**
-     * Construct the URL for updating licenses.
-     *
-     * @return the URL for updating licenses, or null if it cannot be constructed
-     * @throws URISyntaxException if the URL is not valid
-     * @throws MalformedURLException if an error occurred while constructing the URL
-     */
-    private URL getLicensesUpdateURL() throws URISyntaxException, MalformedURLException
-    {
-        String storeUpdateURL = licensingConfig.getStoreUpdateURL();
-        // In case the property has no filled value, the URL cannot be constructed.
-        if (storeUpdateURL == null) {
-            return null;
-        }
-
-        URIBuilder builder = new URIBuilder(storeUpdateURL);
-        builder.addParameter(INSTANCE_ID, instanceIdManagerProvider.get().getInstanceId().toString());
-        builder.addParameter("outputSyntax", "plain");
-
-        for (ExtensionId paidExtensionId : licensedExtensionManager.getMandatoryLicensedExtensions()) {
-            builder.addParameter(FEATURE_ID, paidExtensionId.getId());
-
-            License license = licensorProvider.get().getLicense(paidExtensionId);
-            if (license != null && !License.UNLICENSED.equals(license)) {
-                builder.addParameter(String.format("expirationDate:%s", paidExtensionId.getId()),
-                    Long.toString(license.getExpirationDate()));
-            }
-        }
-        URL updateURL = builder.build().toURL();
-        return updateURL;
-    }
-
-    /**
      * Check if for the given licensed extension a license is mandatory, meaning that it is not covered by the license
      * of other extension (it's not dependency of other licensed extension).
-     * 
+     *
      * @param extensionId the extension to be checked
      * @return true if is a mandatory licensed extension, false otherwise
      */
@@ -245,8 +167,8 @@ public class TrialLicenseGenerator
      */
     private Boolean isOwnerDataComplete()
     {
-        return !(StringUtils.isEmpty(licensingConfig.getLicensingOwnerLastName())
-            || StringUtils.isEmpty(licensingConfig.getLicensingOwnerFirstName())
-            || StringUtils.isEmpty(licensingConfig.getLicensingOwnerEmail()));
+        return !(StringUtils.isEmpty(licensingConfig.getLicensingOwnerLastName()) || StringUtils.isEmpty(
+            licensingConfig.getLicensingOwnerFirstName()) || StringUtils.isEmpty(
+            licensingConfig.getLicensingOwnerEmail()));
     }
 }

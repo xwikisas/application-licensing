@@ -37,6 +37,7 @@ import org.xwiki.job.event.JobFinishedEvent;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
+import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
@@ -64,6 +65,9 @@ public class GetTrialLicenseListener implements EventListener
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
 
+    @Inject
+    private LicenseUpdater licenseUpdater;
+
     @Override
     public List<Event> getEvents()
     {
@@ -83,7 +87,7 @@ public class GetTrialLicenseListener implements EventListener
 
         licensedExtensionManager.invalidateMandatoryLicensedExtensionsCache();
         // Retrieve license updates to be sure that we don't override an existing license.
-        trialLicenseGenerator.updateLicenses();
+        licenseUpdater.updateLicenses();
 
         for (ExtensionId extensionId : extensions) {
             InstalledExtension installedExtension = installedExtensionRepository.getInstalledExtension(extensionId);

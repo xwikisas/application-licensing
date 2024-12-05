@@ -123,7 +123,7 @@
         #set ($discard = $detailsObject.set('hasLicense', '1'))
         #set ($discard = $detailsObject.set('licenseId', $signedLicense.id.id))
         ## If the issue date is not set, compute it.
-        #if ("$!issueDate" == '')
+        #if ("$!licenseDetails.issueDate" == '')
           #set ($discard = $detailsObject.set('issueDate', $datetool.date))
         #end
         #set ($discard = $detailsDocument.save('License generated', true))
@@ -208,21 +208,34 @@
 #end
 
 #macro (setExtraLicenseDetails $licenseDetails)
-  #if ("$!licenseDetails.dependentFeatureIds" == '' || $licenseDetails.dependentFeatureIds.isEmpty())
-    #getLicensedExtension($licenseDetails)
-    #if ($extension)
+  ## Update the dependentFeatureIds if they have changed.
+  #getLicensedExtension($licenseDetails)
+  #if ($extension)
+    ## CollectionsTool is deprecated since 12.1RC1.
+    #if ($collectiontool)
       #set ($dependentFeatureIds = $collectiontool.set)
-      #set ($packageId = $extension.getProperty('xwiki.extension.licensing.packageId'))
-      #if ("$!packageId" != '')
-        #set ($packageVersion = $extension.getProperty('xwiki.extension.licensing.packageVersion', $extension.id.version.toString()))
-        #set ($package = $services.extension.resolve($packageId, $packageVersion))
-        #if ($package)
-          ## Add the paid modules from the specified package.
-          #getDependentFeatureIds($package $dependentFeatureIds)
-        #end
+    #else
+      #set ($dependentFeatureIds = $collectionstool.set)
+    #end
+    #set ($packageId = $extension.getProperty('xwiki.extension.licensing.packageId'))
+    #if ("$!packageId" != '')
+      ## See XWIKI-15051: SafeExtension#getProperty(key, defaultValue) ignores the default value
+      #set ($packageVersion = $extension.getProperty('xwiki.extension.licensing.packageVersion'))
+      #if ("$!packageVersion" == '')
+        #set ($packageVersion = $extension.id.version.toString())
       #end
-      ## Add the paid modules that are transitive dependencies.
-      #getDependentFeatureIds($extension $dependentFeatureIds)
+      #set ($package = $services.extension.resolve($packageId, $packageVersion))
+      #if ($package)
+        ## Add the paid modules from the specified package.
+        #getDependentFeatureIds($package $dependentFeatureIds)
+      #end
+    #end
+    ## Add the paid modules that are transitive dependencies.
+    #getDependentFeatureIds($extension $dependentFeatureIds)
+    #set ($dependentFeatureIdsList = [])
+    #set ($discard = $dependentFeatureIdsList.addAll($dependentFeatureIds))
+    #if ("$!licenseDetails.dependentFeatureIds" == '' ||
+        !$collectiontool.disjunction($licenseDetails.dependentFeatureIds, $dependentFeatureIdsList).isEmpty())
       ## The code that uses the license details expects dependentFeatureIds to be a list not a set.
       #set ($licenseDetails.dependentFeatureIds = [])
       #set ($discard = $licenseDetails.dependentFeatureIds.addAll($dependentFeatureIds))
@@ -437,9 +450,14 @@
 #**
  * Regenerate the specified license, adding 1 second to the expiration date and using a newer certificate.
  *#
-#macro (regenerateLicense $licenseId)
+#macro (regenerateLicense $licenseId $licenseAsString $extensionVersion)
   #set ($licenseDetailsDocument = $xwiki.getDocument("License.Data.$licenseId"))
   #readLicenseDetailsFromDocument($licenseDetailsDocument)
+  ## When generating the licensed dependencies for this new license, the latest available extension version will be used
+  ## if there isn't a version specified.
+  #if ("$extensionVersion" != '')
+    #set ($discard = $licenseDetails.put('extensionVersion', $extensionVersion))
+  #end
   ## Add 1 second to the expiration date to make the new license better (anything less than 1 second will be discarded
   ## at the database level so won't make the new license better).
   #set ($licenseDetails.expirationDate = $datetool.toDate($mathtool.add($licenseDetails.expirationDate.time, 1000)))
