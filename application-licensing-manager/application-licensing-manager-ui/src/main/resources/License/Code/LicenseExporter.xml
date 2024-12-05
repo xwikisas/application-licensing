@@ -1,0 +1,105 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="License.Code.LicenseExporter" locale="">
+  <web>License.Code</web>
+  <name>LicenseExporter</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>License.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+#set ($dateFormat = 'yyyy-MM-dd HH:mm')
+#if ($request.startDate)
+  ## List licenses to export.
+  #set ($statement = "from doc.object(License.Code.LicenseDetailsClass) as licenseObj where doc.creationDate &gt; :startDate AND doc.creationDate &lt; :endDate")
+  #set ($startDate = $datetool.toDate($dateFormat, $request.startDate))
+  #set ($endDate = $datetool.toDate($dateFormat, $request.endDate))
+  #set ($query = $services.query.xwql($statement))
+  #set ($query = $query.bindValue('startDate', $startDate).bindValue('endDate', $endDate))
+  {{html clean="false"}}
+  #set ($exportURL = $doc.getURL('export', 'format=xar'))
+  &lt;form action="$exportURL" class="xform"&gt;
+    #set ($licenseDocuments = $query.execute())
+    &lt;p&gt;Found $licenseDocuments.size() licenses to export.&lt;/p&gt;
+    &lt;dl&gt;
+    #foreach ($item in $licenseDocuments)
+      &lt;dt&gt;
+        &lt;label&gt;
+          &lt;input type="checkbox" name="pages" value="$item" checked /&gt;
+          #set ($licenseDocument = $xwiki.getDocument($item))
+          $item
+        &lt;/label&gt;
+        &lt;span class="xHint"&gt;Created on $licenseDocument.creationDate&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;&lt;/dd&gt;
+    #end
+    &lt;/dl&gt;
+    &lt;p&gt;
+      &lt;button #if($licenseDocuments.isEmpty())disabled#end&gt;Export&lt;/button&gt;
+    &lt;/p&gt;
+  &lt;/form&gt;
+  {{/html}}
+#else
+  ## Ask for start and end date.
+  {{html clean="false"}}
+  &lt;form class="xform"&gt;
+    &lt;p&gt;Specify the license pages to export.&lt;/p&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;
+        &lt;label for="licenseExporterStartDate"&gt;Start Date&lt;/label&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        #dateTimePicker({
+          'id': 'licenseExporterStartDate',
+          'name': 'startDate',
+          'data-format': $dateFormat
+        })
+      &lt;/dd&gt;
+      &lt;dt&gt;
+        &lt;label for="licenseExporterEndDate"&gt;End Date&lt;/label&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        #dateTimePicker({
+          'id': 'licenseExporterEndDate',
+          'name': 'endDate',
+          'data-format': $dateFormat
+        })
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+    &lt;p&gt;
+      &lt;button&gt;Search&lt;/button&gt;
+    &lt;/p&gt;
+  &lt;/form&gt;
+  {{/html}}
+#end
+{{/velocity}}</content>
+</xwikidoc>

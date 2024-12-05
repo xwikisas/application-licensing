@@ -29,7 +29,7 @@
   </parent>
   <groupId>com.xwiki.licensing</groupId>
   <artifactId>application-licensing</artifactId>
-  <version>1.25.1-SNAPSHOT</version>
+  <version>1.28-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Licensing Application - Parent POM</name>
   <description>Application allowing the licensing of XWiki extensions</description>
@@ -46,16 +46,6 @@
     <system>GitHub</system>
     <url>https://github.com/xwikisas/application-licensing/issues</url>
   </issueManagement>
-  <developers>
-    <developer>
-      <id>dgervalle</id>
-      <name>Denis Gervalle</name>
-    </developer>
-    <developer>
-      <id>vmassol</id>
-      <name>Vincent Massol</name>
-    </developer>
-  </developers>
   <build>
     <pluginManagement>
       <plugins>

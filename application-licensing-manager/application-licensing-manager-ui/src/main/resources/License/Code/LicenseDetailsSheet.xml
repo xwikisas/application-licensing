@@ -43,11 +43,31 @@
   (% class="xform" %)(((
     ## The license id is generated.
     $doc.display('licenseId', 'hidden')
+    #if ($doc.isNew())
+      ## The list of dependencies that are covered by the license is generated automatically when left empty. For new
+      ## license details documents this field is supposed to be empty initially, unless a template is specified in the
+      ## URL (e.g. when a license is extended or re-generated), in which case we want to discard the value coming from
+      ## the template (in order to force the list to be generated automatically).
+      {{html clean="false"}}
+      &lt;input type="hidden" name="License.Code.LicenseDetailsClass_0_dependentFeatureIds" value="" /&gt;
+      {{/html}}
+    #end
     ## Display the fields that are editable.
     #foreach ($propertyName in ['type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId', 'support',
         'maxUserCount', 'sendEmails'])
       ; $doc.displayPrettyName($propertyName)
       : $doc.display($propertyName)
+    #end
+    #if($request.template)
+      #if($request.getParameter("License.Code.LicenseDetailsClass_0_issueDate"))
+      ; $doc.displayPrettyName("issueDate")
+      : $doc.display("issueDate")
+      #end
+      #if($request.getParameter("License.Code.LicenseDetailsClass_0_expirationDate"))
+      ; $doc.displayPrettyName("expirationDate")
+      : $doc.display("expirationDate")
+      #end
+      $doc.display("hasLicense", "hidden")
     #end
   )))
 #end
@@ -89,6 +109,10 @@
 
         #displayGenerateButton()
       #end
+
+      #if ("$!hasLicense" == '1')
+        #displayExtendButton()
+      #end
     #else
 
       ## No license ID, we consider that no license has been generated yet. Propose to generate one.
@@ -101,6 +125,15 @@
   {{html clean="false"}}
   &lt;form&gt;
     &lt;button name="action" value="generate" class="btn btn-primary"&gt;Generate License&lt;/button&gt;
+  &lt;/form&gt;
+  {{/html}}
+#end
+
+#macro (displayExtendButton)
+  {{html clean="false"}}
+  &lt;form action="$xwiki.getURL("License.Code.Extend")" method="GET"&gt;
+    &lt;input name="page" type="hidden" value="${escapetool.xml($doc.fullName)}" /&gt;
+    &lt;button name="action" value="generate" class="btn btn-primary"&gt;Copy and Extend License&lt;/button&gt;
   &lt;/form&gt;
   {{/html}}
 #end

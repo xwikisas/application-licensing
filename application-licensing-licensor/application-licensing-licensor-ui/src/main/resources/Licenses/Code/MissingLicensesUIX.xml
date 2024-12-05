@@ -175,7 +175,7 @@
 #if ($xcontext.action == 'view' &amp;&amp; $services.security.authorization.hasAccess('view'))
   #set ($unlicensedSheets = $services.licensing.licensor.getUnlicensedSheets($doc.documentReference, $xcontext.action))
   #set ($documentSheets = $services.sheet.getSheets($doc, $xcontext.action))
-  #if ($documentSheets.isEmpty() &amp;&amp; $unlicensedSheets.size() &gt; 0)
+  #if ($documentSheets.isEmpty() &amp;&amp; $unlicensedSheets &amp;&amp; !$unlicensedSheets.isEmpty())
     #set ($extensions = $collectiontool.set)
     #foreach ($sheet in $unlicensedSheets)
       #foreach ($extension in $services.extension.xar.getInstalledExtensions($sheet))
