@@ -38,6 +38,8 @@
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
     <checkstyle.suppressions.location>${basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
     <xwiki.jacoco.instructionRatio>0.50</xwiki.jacoco.instructionRatio>
+    <!-- Added for the licensor-ui dependency, since a JAR extension shouldn't depend on a XAR one. -->
+    <xwiki.enforcer.banneddependencytype-xar.skip>true</xwiki.enforcer.banneddependencytype-xar.skip>
   </properties>
   <dependencies>
     <dependency>
