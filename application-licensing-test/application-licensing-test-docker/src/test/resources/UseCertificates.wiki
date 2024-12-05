@@ -21,7 +21,7 @@ for (def certificate : certificateStore.getAllCertificates()) {
     if (request.proceed == '1') {
       certificates.put(licenseType, [binaryEncoder.encode(certificate.subjectKeyIdentifier)])
     } else {
-      println licenseType + ': ' + binaryEncoder.encode(certificate.subjectKeyIdentifier)
+      println licenseType.toString() + ': ' + binaryEncoder.encode(certificate.subjectKeyIdentifier)
     }
   }
 }

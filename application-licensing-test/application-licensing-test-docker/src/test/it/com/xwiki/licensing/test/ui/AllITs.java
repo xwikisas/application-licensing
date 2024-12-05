@@ -61,7 +61,7 @@ import org.xwiki.test.docker.junit5.UITest;
         // The JodaTime plugin needs to be in WEB-INF/lib since it's defined in xwiki.cfg and plugins are loaded by
         // XWiki at startup, i.e. before extensions are provisioned for the tests.
         "org.xwiki.platform:xwiki-platform-jodatime:14.10"
-    } , resolveExtraJARs = true, vnc = false
+    } , resolveExtraJARs = true
 )
 class AllITs
 {
