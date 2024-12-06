@@ -98,7 +98,9 @@ class LicensingIT
         setup.updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
             "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
             "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense", "storeBuyURL",
-            "http://localhost:8080/xwiki/bin/view/Store/BuyLicense");
+            "http://localhost:8080/xwiki/bin/view/Store/BuyLicense", "storeUpdateURL",
+            "http://localhost:8080/xwiki/bin/view/Store/GetLicenses", "storeAccessURL",
+            "http://localhost:8080/xwiki/bin/view/Store/Access");
     }
 
     @Test

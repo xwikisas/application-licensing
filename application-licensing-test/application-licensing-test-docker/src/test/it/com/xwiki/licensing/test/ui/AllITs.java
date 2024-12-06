@@ -31,7 +31,7 @@ import org.xwiki.test.docker.junit5.UITest;
 @UITest(
     properties = {
         // Need to see the instance id in the License UI.
-        "xwikiDbHbmCommonExtraMappings=instance.hbm.xml,eventstream.hbm.xml,notification-filter-preferences.hbm.xml",
+        "xwikiDbHbmCommonExtraMappings=instance.hbm.xml,notification-filter-preferences.hbm.xml",
 
         // Disable the PR checker for the Licensing tests. There are pages that require programming rights, but the
         // Licensing application will be installed all the time on root, so there shouldn't be any issues.
@@ -42,28 +42,25 @@ import org.xwiki.test.docker.junit5.UITest;
     },
     extraJARs = {
         // Required for the instance.hbm.xml file.
-        "org.xwiki.platform:xwiki-platform-instance:13.10",
-
-        // Required for the eventstream.hbm.xml file.
-        "org.xwiki.platform:xwiki-platform-eventstream-store-hibernate:13.10",
-        "org.xwiki.platform:xwiki-platform-eventstream-store-solr:13.10",
-        "org.xwiki.platform:xwiki-platform-eventstream-store-hibernate:13.10",
+        "org.xwiki.platform:xwiki-platform-instance:14.10",
+        "org.xwiki.platform:xwiki-platform-eventstream-api:14.10",
+        "org.xwiki.platform:xwiki-platform-eventstream-store-solr:14.10",
 
         // Required for the notification-filter-preferences.hbm.xml file.
-        "org.xwiki.platform:xwiki-platform-notifications-filters-default:13.10",
+        "org.xwiki.platform:xwiki-platform-notifications-filters-default:14.10",
 
         // The component manager fails to load WikiMacroEventListener when wikimacro-api and wikimacro-store are
         // installed at runtime. We force them as core extensions.
-        "org.xwiki.platform:xwiki-platform-rendering-wikimacro-store:13.10",
+        "org.xwiki.platform:xwiki-platform-rendering-wikimacro-store:14.10",
 
         // Required by the Crypto Store script service, which is a core extension and injects the filesystem and wiki
         // implementations directly (so the root component manager is used).
-        "org.xwiki.commons:xwiki-commons-crypto-store-filesystem:13.10",
-        "org.xwiki.platform:xwiki-platform-crypto-store-wiki:13.10",
+        "org.xwiki.commons:xwiki-commons-crypto-store-filesystem:14.10",
+        "org.xwiki.platform:xwiki-platform-crypto-store-wiki:14.10",
 
         // The JodaTime plugin needs to be in WEB-INF/lib since it's defined in xwiki.cfg and plugins are loaded by
         // XWiki at startup, i.e. before extensions are provisioned for the tests.
-        "org.xwiki.platform:xwiki-platform-jodatime:13.10"
+        "org.xwiki.platform:xwiki-platform-jodatime:14.10"
     } , resolveExtraJARs = true
 )
 class AllITs
