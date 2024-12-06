@@ -284,7 +284,9 @@
       <contentType>No content</contentType>
     </property>
     <property>
-      <defaultCategories/>
+      <defaultCategories>
+        <value>Internal</value>
+      </defaultCategories>
     </property>
     <property>
       <description>Display an error message when the extension does not have a valid license.</description>
