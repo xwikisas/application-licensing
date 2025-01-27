@@ -25,5 +25,5 @@
 // See https://github.com/jenkinsci/workflow-cps-global-lib-plugin for details.
 
 xwikisasModule {
-  javaTool = 'java8'
+  javaTool = 'java11'
 }
