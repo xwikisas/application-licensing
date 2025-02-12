@@ -28,6 +28,7 @@
     <version>1.28-rc-2-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-test</artifactId>
+  <version>1.28-rc-2-SNAPSHOT</version>
   <name>Licensing Application - Tests - Parent POM</name>
   <packaging>pom</packaging>
   <description>Tests for the Licensing module</description>

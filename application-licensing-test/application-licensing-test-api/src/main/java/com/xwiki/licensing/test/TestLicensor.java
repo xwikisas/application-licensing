@@ -25,11 +25,13 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.reference.EntityReference;
 
+import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.Licensor;
 
 /**
  * Licensor implementation used when running the functional tests.
- * 
+ *
  * @version $Id$
  * @since 1.21
  */
@@ -37,6 +39,14 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class TestLicensor implements Licensor
 {
+    private final License freeLicense;
+
+    public TestLicensor()
+    {
+        freeLicense = new License();
+        freeLicense.setType(LicenseType.FREE);
+    }
+
     @Override
     public boolean hasLicensure(EntityReference reference)
     {
@@ -47,5 +57,29 @@ public class TestLicensor implements Licensor
     public boolean hasLicensure(ExtensionId extensionId)
     {
         return true;
+    }
+
+    @Override
+    public boolean hasLicensure()
+    {
+        return true;
+    }
+
+    @Override
+    public License getLicense()
+    {
+        return freeLicense;
+    }
+
+    @Override
+    public License getLicense(ExtensionId extensionId)
+    {
+        return freeLicense;
+    }
+
+    @Override
+    public License getLicense(EntityReference reference)
+    {
+        return freeLicense;
     }
 }
