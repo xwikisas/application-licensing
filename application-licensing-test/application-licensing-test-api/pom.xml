@@ -53,5 +53,10 @@
       <artifactId>xwiki-commons-extension-api</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-common-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>
