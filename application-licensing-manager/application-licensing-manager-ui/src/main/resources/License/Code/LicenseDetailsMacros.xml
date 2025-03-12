@@ -253,18 +253,19 @@
   ## rely on a range loop (limiting the number of dependencies that we analyze).
   #foreach ($i in [0..1000])
     #set ($dependency = $dependencies.poll())
-    #if ($dependency)
+    #if (!$dependency)
+      #break
+    #end
+    #if (!$dependency.isOptional())
       #set ($resolvedDependency = $services.extension.resolve($dependency, $namespace))
       #foreach ($childDependency in $resolvedDependency.dependencies)
-        #if ($childDependency.id == $licensorId)
+        #if ($childDependency.id == $licensorId &amp;&amp; !$childDependency.isOptional())
           #set ($discard = $dependentFeatureIds.add($resolvedDependency.id.id))
         ## Filter the package in order to speed up the search.
         #elseif ($childDependency.id.startsWith('com.xwiki.'))
           #set ($discard = $dependencies.add($childDependency))
         #end
       #end
-    #else
-      #break
     #end
   #end
   #set ($discard = $dependentFeatureIds.remove($extension.id.id))
