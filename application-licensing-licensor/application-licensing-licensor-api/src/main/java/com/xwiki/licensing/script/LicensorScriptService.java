@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.xwiki.licensing.LicensedExtensionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
@@ -94,6 +95,9 @@ public class LicensorScriptService implements ScriptService, Initializable
 
     @Inject
     private DocumentAccessBridge documentAccessBridge;
+
+    @Inject
+    private LicensedExtensionManager licensedExtensionManager;
 
     @Override
     public void initialize() throws InitializationException
@@ -186,6 +190,17 @@ public class LicensorScriptService implements ScriptService, Initializable
     {
         if (contextualAuthorizationManager.hasAccess(Right.PROGRAM)) {
             return licenseManager;
+        }
+        return null;
+    }
+
+    /**
+     * @return the {@link LicensedExtensionManager} (programming rights is required).
+     */
+    public LicensedExtensionManager getLicensedExtensionManager()
+    {
+        if (contextualAuthorizationManager.hasAccess(Right.PROGRAM)) {
+            return licensedExtensionManager;
         }
         return null;
     }

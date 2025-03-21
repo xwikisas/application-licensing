@@ -39,7 +39,7 @@
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
 
 {{velocity output="false"}}
-#macro (addPaidExtensionRow $extension $rows)
+#macro (addPaidExtensionRow $extension $rows $backwardsLicensedDeps)
   #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
   ##
   ## Expiration Date
@@ -87,6 +87,20 @@
   #end
   #set ($userLimit = "&lt;span class=""text-$!userLimitStatus""&gt;$!escapetool.xml($userLimit)&lt;/span&gt;")
   ##
+  ## Extension installed as dependency. Note that we consider optional depedencies as being not covered
+  ## by the license of the parent extension, as it can be uninstalled.
+  ##
+  #set ($isInstalledAsDependency = $backwardsLicensedDeps.get($extension.id.id).size() &gt; 0)
+  #set ($requiredBy = $escapetool.xml($services.localization.render(
+    'licensor.installedAsDependency.value.topExtension')))
+  #if ($isInstalledAsDependency)
+    #set ($depList = $stringtool.join($backwardsLicensedDeps.get($extension.id.id), ', '))
+    #set ($requiredBy = $escapetool.xml($services.localization.render(
+      'licensor.installedAsDependency.value.requiredBy')) + $depList)
+  #end
+  #set ($requiredByInfo = "&lt;span class='required-by-info' title=""$requiredBy""&gt;$services.icon.renderHTML('info')&lt;/span&gt;&lt;/span&gt;")
+  #set ($installedAsDependency = "&lt;span&gt;$isInstalledAsDependency&lt;/span&gt; " + $requiredByInfo)
+  ##
   ## Namespaces and Version
   ##
   #set ($namespaces = [])
@@ -120,6 +134,7 @@
     'status': $expDate,
     'support': $support,
     'userLimit': $userLimit,
+    'installedAsDependency': $installedAsDependency,
     'wiki': $stringtool.join($namespaces, ', '),
     'actions': "#licenseActions($license $extension)"
   }))
@@ -130,16 +145,18 @@
 #if ($xcontext.action == 'get')
   #set ($discard = $response.setContentType('application/json'))
 #end
-#if ($request.showAllPaidExtensions == 'true')
+#getVisiblePaidExtensions
+#if ($request.showTopLevelExtensions == true)
+  #set ($extensions = $visiblePaidExtensions)
+#else
   #getPaidExtensions
   #set ($extensions = $paidExtensions)
-#else
-  #getVisiblePaidExtensions
-  #set ($extensions = $visiblePaidExtensions)
 #end
+#set ($discard = $services.licensing.licensor.getLicensedExtensionManager().invalidateBackwardsLicensedDeps())
+#set ($backwardsLicensedDeps = $services.licensing.licensor.getLicensedExtensionManager().getBackwardLicensedDependencies(true))
 #set ($rows = [])
 #foreach ($extension in $extensions)
-  #addPaidExtensionRow($extension $rows)
+  #addPaidExtensionRow($extension $rows $backwardsLicensedDeps)
 #end
 #set ($rows = $collectiontool.sort($rows, 'name'))
 #set ($offset = $mathtool.sub($numbertool.toNumber($request.offset).intValue(), 1))
