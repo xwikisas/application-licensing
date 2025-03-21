@@ -20,6 +20,7 @@
 package com.xwiki.licensing;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.xwiki.component.annotation.Role;
@@ -27,9 +28,11 @@ import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.stability.Unstable;
 
+import com.xwiki.licensing.internal.LicensedDependenciesMap;
+
 /**
  * Component used to manage the extensions that require a license.
- * 
+ *
  * @version $Id$
  * @since 1.13.6
  */
@@ -39,20 +42,20 @@ public interface LicensedExtensionManager
 {
     /**
      * @return all the installed extensions (from all the namespaces) that require a license (even if there's no license
-     *         available for them yet)
+     *     available for them yet)
      */
     Collection<ExtensionId> getLicensedExtensions();
 
     /**
      * @param namespace the namespace where to look for licensed extensions
      * @return all the extensions installed on the specified namespaces that require a license (even if there's no
-     *         license available for them yet)
+     *     license available for them yet)
      */
     Collection<ExtensionId> getLicensedExtensions(String namespace);
 
     /**
      * Use this to determine which installed extensions (from any namespace) are covered by a given license.
-     * 
+     *
      * @param licensedFeatureId a licensed feature id
      * @return the installed extensions (from all the namespaces) that are covered by the specified licensed feature
      */
@@ -69,6 +72,7 @@ public interface LicensedExtensionManager
 
     /**
      * Invalidate the cached list of mandatory licensed extensions.
+     *
      * @since 1.21.1
      */
     void invalidateMandatoryLicensedExtensionsCache();
@@ -83,4 +87,20 @@ public interface LicensedExtensionManager
      */
     @Unstable
     Set<ExtensionId> getLicensedDependencies(InstalledExtension installedExtension, String namespace);
+
+    /**
+     * Get a dependency map for licensed applications. The scope is to know for licensed applications that where
+     * installed as dependencies, on which licensed application (and license) they depend on, considering transitive
+     * dependencies. Optional dependencies will not be included.
+     *
+     * @return a dependency map for licensed applications
+     * @since 1.29
+     */
+    @Unstable
+    Map<String, Set<LicensedDependenciesMap.LicensedExtensionParent>> getLicensedDependenciesMap();
+
+    /**
+     * Invalidate the cached dependency map for licensed applications.
+     */
+    void invalidateLicensedDependenciesMap();
 }

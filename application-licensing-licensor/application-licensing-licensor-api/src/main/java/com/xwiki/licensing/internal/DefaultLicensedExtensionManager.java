@@ -20,8 +20,10 @@
 package com.xwiki.licensing.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 /**
  * The default implementation of {@link LicensedExtensionManager} that looks for backward dependencies of the licensor
  * API extension.
- * 
+ *
  * @version $Id$
  * @since 1.13.6
  */
@@ -70,6 +72,9 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
 
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
+
+    @Inject
+    private LicensedDependenciesMap licensedDependenciesMap;
 
     @Override
     public Collection<ExtensionId> getLicensedExtensions()
@@ -175,7 +180,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
         for (ExtensionDependency dependency : dependencies) {
             InstalledExtension installedDependency =
                 this.installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
-            if (installedDependency == null) {
+            if (installedDependency == null || dependency.isOptional()) {
                 continue;
             }
 
@@ -211,6 +216,18 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
         return licensedDependencies;
     }
 
+    @Override
+    public Map<String, Set<LicensedDependenciesMap.LicensedExtensionParent>> getLicensedDependenciesMap()
+    {
+        return licensedDependenciesMap.get(getLicensedExtensions());
+    }
+
+    @Override
+    public void invalidateLicensedDependenciesMap()
+    {
+        this.licensedDependenciesMap.invalidateCache();
+    }
+
     private void getLicensedDependencies(InstalledExtension installedExtension, String namespace,
         Collection<ExtensionId> installedLicensedExtensions, Set<ExtensionId> licensedDependencies,
         Set<ExtensionId> verifiedExtensions)
@@ -226,7 +243,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
                 continue;
             }
 
-            if (installedLicensedExtensions.contains(installedDep.getId())) {
+            if (installedLicensedExtensions.contains(installedDep.getId()) && !dep.isOptional()) {
                 licensedDependencies.add(installedDep.getId());
             }
 
