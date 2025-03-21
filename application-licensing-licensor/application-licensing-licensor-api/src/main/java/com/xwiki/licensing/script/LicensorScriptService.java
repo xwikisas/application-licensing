@@ -196,6 +196,7 @@ public class LicensorScriptService implements ScriptService, Initializable
 
     /**
      * @return the {@link LicensedExtensionManager} (programming rights is required).
+     * @since 1.29
      */
     public LicensedExtensionManager getLicensedExtensionManager()
     {

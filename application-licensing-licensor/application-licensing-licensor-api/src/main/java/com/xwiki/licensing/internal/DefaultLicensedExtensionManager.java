@@ -67,22 +67,14 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
      */
     private Set<ExtensionId> cachedMandatoryLicensedExtensions;
 
-    /**
-     * The cached map that includes licensed extensions that were installed as dependencies, and on which licensed
-     * extension they depend on.
-     */
-    private Map<String, Set<String>> cachedLicensedDependenciesMap;
-
-    /**
-     * to add.
-     */
-    private boolean licensedDependenciesMapPrettyName;
-
     @Inject
     private Logger logger;
 
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
+
+    @Inject
+    private LicensedDependenciesMap licensedDependenciesMap;
 
     @Override
     public Collection<ExtensionId> getLicensedExtensions()
@@ -225,27 +217,15 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
     }
 
     @Override
-    public Map<String, Set<String>> getLicensedDependenciesMap()
+    public Map<String, Set<LicensedDependenciesMap.LicensedExtensionParent>> getLicensedDependenciesMap()
     {
-        return getLicensedDependenciesMap(false);
-    }
-
-    @Override
-    public Map<String, Set<String>> getLicensedDependenciesMap(boolean prettyName)
-    {
-        Map<String, Set<String>> licensedExtensionsDepChain = this.cachedLicensedDependenciesMap;
-        if (licensedExtensionsDepChain == null) {
-            this.licensedDependenciesMapPrettyName = prettyName;
-            licensedExtensionsDepChain = computeLicensedDependenciesMap(prettyName);
-            this.cachedLicensedDependenciesMap = licensedExtensionsDepChain;
-        }
-        return licensedExtensionsDepChain;
+        return licensedDependenciesMap.get(getLicensedExtensions());
     }
 
     @Override
     public void invalidateLicensedDependenciesMap()
     {
-        this.cachedLicensedDependenciesMap = null;
+        this.licensedDependenciesMap.invalidateCache();
     }
 
     private void getLicensedDependencies(InstalledExtension installedExtension, String namespace,
@@ -271,93 +251,5 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             getLicensedDependencies(installedDep, namespace, installedLicensedExtensions, licensedDependencies,
                 verifiedExtensions);
         }
-    }
-
-    private synchronized Map<String, Set<String>> computeLicensedDependenciesMap(boolean prettyName)
-    {
-        Map<String, Set<String>> backwardLicensedDependencies = this.cachedLicensedDependenciesMap;
-        if (backwardLicensedDependencies != null && prettyName == licensedDependenciesMapPrettyName) {
-            return backwardLicensedDependencies;
-        }
-
-        Collection<ExtensionId> allLicensedExtensions = getLicensedExtensions();
-        backwardLicensedDependencies = new HashMap<>();
-        // Extensions for which it was verified if the dependencies contain licensed extensions.
-        Set<ExtensionId> verifiedExtensions = new HashSet<ExtensionId>();
-
-        for (ExtensionId extensionId : allLicensedExtensions) {
-            InstalledExtension installedExtension =
-                this.installedExtensionRepository.getInstalledExtension(extensionId);
-            if (installedExtension == null) {
-                continue;
-            }
-
-            verifiedExtensions.add(extensionId);
-            Collection<String> namespaces = installedExtension.getNamespaces();
-            if (namespaces == null) {
-                InstalledExtension installedExtension1 =
-                    this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), null);
-                getLicensedDependenciesMap(
-                    getInstalledExtensionName(installedExtension1, this.licensedDependenciesMapPrettyName),
-                    installedExtension1.getDependencies(), null, allLicensedExtensions, verifiedExtensions,
-                    backwardLicensedDependencies);
-            } else {
-                for (String namespace : namespaces) {
-                    InstalledExtension installedExtension1 =
-                        this.installedExtensionRepository.getInstalledExtension(extensionId.getId(), namespace);
-                    getLicensedDependenciesMap(
-                        getInstalledExtensionName(installedExtension1, this.licensedDependenciesMapPrettyName),
-                        installedExtension1.getDependencies(), namespace, allLicensedExtensions, verifiedExtensions,
-                        backwardLicensedDependencies);
-                }
-            }
-        }
-
-        return backwardLicensedDependencies;
-    }
-
-    private void getLicensedDependenciesMap(String topLevelExtensionName,
-        Collection<ExtensionDependency> dependencies, String namespace,
-        Collection<ExtensionId> installedLicensedExtensions, Set<ExtensionId> verifiedExtensions,
-        Map<String, Set<String>> licensedDependenciesChain)
-    {
-        for (ExtensionDependency dep : dependencies) {
-            InstalledExtension installedDep =
-                installedExtensionRepository.getInstalledExtension(dep.getId(), namespace);
-            if (installedDep == null || dep.isOptional()) {
-                continue;
-            }
-
-            String extensionName = topLevelExtensionName;
-            if (installedLicensedExtensions.contains(installedDep.getId())) {
-                addBackwardDependency(topLevelExtensionName, licensedDependenciesChain, installedDep.getId().getId());
-                // Only if it's mandatory?
-                extensionName = getInstalledExtensionName(installedDep, this.licensedDependenciesMapPrettyName);
-            }
-
-            // We already checked its dependencies, but we wanted to save its backwards dependency.
-            if (verifiedExtensions.contains(installedDep.getId())) {
-                continue;
-            }
-
-            verifiedExtensions.add(installedDep.getId());
-            getLicensedDependenciesMap(extensionName, installedDep.getDependencies(), namespace,
-                installedLicensedExtensions, verifiedExtensions, licensedDependenciesChain);
-        }
-    }
-
-    private void addBackwardDependency(String topLevelExtensionName, Map<String, Set<String>> licensedDependenciesChain,
-        String installedDepId)
-    {
-        if (licensedDependenciesChain.containsKey(installedDepId)) {
-            licensedDependenciesChain.get(installedDepId).add(topLevelExtensionName);
-        } else {
-            licensedDependenciesChain.put(installedDepId, new HashSet<>(Arrays.asList(topLevelExtensionName)));
-        }
-    }
-
-    private String getInstalledExtensionName(InstalledExtension installedExtension, boolean prettyName)
-    {
-        return prettyName ? installedExtension.getName() : installedExtension.getId().getId();
     }
 }

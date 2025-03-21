@@ -39,6 +39,13 @@
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
 
 {{velocity output="false"}}
+#macro(getExtensionParentNames $extensionParentNames)
+  #set ($extensionParents = [])
+  #foreach ($parent in $backwardsLicensedDeps.get($extension.id.id))
+    #set ($discard = $extensionParents.add($parent.getExtensionName()))
+  #end
+  #set ($extensionParentNames = $stringtool.join($extensionParents, ', '))
+#end
 #macro (addPaidExtensionRow $extension $rows $backwardsLicensedDeps)
   #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
   ##
@@ -94,9 +101,9 @@
   #set ($requiredBy = $escapetool.xml($services.localization.render(
     'licensor.installedAsDependency.value.topExtension')))
   #if ($isInstalledAsDependency)
-    #set ($depList = $stringtool.join($backwardsLicensedDeps.get($extension.id.id), ', '))
+    #getExtensionParentNames($extensionParentNames)
     #set ($requiredBy = $escapetool.xml($services.localization.render(
-      'licensor.installedAsDependency.value.requiredBy')) + $depList)
+      'licensor.installedAsDependency.value.requiredBy')) + $extensionParentNames)
   #end
   #set ($requiredByInfo = "&lt;span class='required-by-info' title=""$requiredBy""&gt;$services.icon.renderHTML('info')&lt;/span&gt;&lt;/span&gt;")
   #set ($installedAsDependency = "&lt;span&gt;$isInstalledAsDependency&lt;/span&gt; " + $requiredByInfo)
@@ -152,11 +159,11 @@
   #getPaidExtensions
   #set ($extensions = $paidExtensions)
 #end
-#set ($discard = $services.licensing.licensor.getLicensedExtensionManager().invalidateBackwardsLicensedDeps())
-#set ($backwardsLicensedDeps = $services.licensing.licensor.getLicensedExtensionManager().getBackwardLicensedDependencies(true))
+#set ($discard = $services.licensing.licensor.getLicensedExtensionManager().invalidateLicensedDependenciesMap())
+#set ($licensedDependenciesMap = $services.licensing.licensor.getLicensedExtensionManager().getLicensedDependenciesMap())
 #set ($rows = [])
 #foreach ($extension in $extensions)
-  #addPaidExtensionRow($extension $rows $backwardsLicensedDeps)
+  #addPaidExtensionRow($extension $rows $licensedDependenciesMap)
 #end
 #set ($rows = $collectiontool.sort($rows, 'name'))
 #set ($offset = $mathtool.sub($numbertool.toNumber($request.offset).intValue(), 1))

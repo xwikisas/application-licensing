@@ -28,6 +28,8 @@ import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.stability.Unstable;
 
+import com.xwiki.licensing.internal.LicensedDependenciesMap;
+
 /**
  * Component used to manage the extensions that require a license.
  *
@@ -87,27 +89,15 @@ public interface LicensedExtensionManager
     Set<ExtensionId> getLicensedDependencies(InstalledExtension installedExtension, String namespace);
 
     /**
-     * Same as {@link LicensedExtensionManager#getLicensedDependenciesMap()} , without having the option to
-     * display results using the name of the extensions.
-     *
-     * @return a dependency map for licensed applications
-     * @since 1.29
-     */
-    @Unstable
-    Map<String, Set<String>> getLicensedDependenciesMap();
-
-    /**
      * Get a dependency map for licensed applications. The scope is to know for licensed applications that where
      * installed as dependencies, on which licensed application (and license) they depend on, considering transitive
      * dependencies. Optional dependencies will not be included.
      *
-     * @param prettyName {@code true} if the extension name should be saved for the top extensions, {@code false} if
-     *     the extension ID will be saved
      * @return a dependency map for licensed applications
      * @since 1.29
      */
     @Unstable
-    Map<String, Set<String>> getLicensedDependenciesMap(boolean prettyName);
+    Map<String, Set<LicensedDependenciesMap.LicensedExtensionParent>> getLicensedDependenciesMap();
 
     /**
      * Invalidate the cached dependency map for licensed applications.
