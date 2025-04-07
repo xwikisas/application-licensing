@@ -106,7 +106,7 @@ public class NewVersionNotificationManager
     {
         try {
             XWikiContext xcontext = contextProvider.get();
-            XWikiDocument configDoc = xcontext.getWiki().getDocument(LICENSING_CONFIG_DOC, xcontext);
+            XWikiDocument configDoc = xcontext.getWiki().getDocument(LICENSING_CONFIG_DOC, xcontext).clone();
             List<BaseObject> versionNotifObjects = configDoc.getXObjects(NEW_VERSION_NOTIFICATION_CLASS);
 
             boolean notificationObjectExists = false;
