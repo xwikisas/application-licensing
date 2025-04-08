@@ -132,7 +132,7 @@ class NewVersionNotificationManagerTest
             xcontext)).thenReturn(0);
         when(this.licensingDoc.getXObject(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS, 0)).thenReturn(
             this.newVersionObject1);
-
+        when(this.licensingDoc.clone()).thenReturn(licensingDoc);
         this.newVersionNotificationManager.markNotificationAsSent("extension1", "root", "2.1");
 
         verify(this.newVersionObject1, times(1)).setStringValue(NewVersionNotificationManager.EXTENSION_ID,
@@ -152,6 +152,7 @@ class NewVersionNotificationManagerTest
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("root");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.0");
+        when(this.licensingDoc.clone()).thenReturn(licensingDoc);
 
         this.newVersionNotificationManager.markNotificationAsSent("extension1", "root", "1.1");
 
@@ -169,6 +170,7 @@ class NewVersionNotificationManagerTest
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.EXTENSION_ID)).thenReturn("extension1");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.NAMESPACE)).thenReturn("root");
         when(newVersionObject1.getStringValue(NewVersionNotificationManager.VERSION)).thenReturn("1.0");
+        when(this.licensingDoc.clone()).thenReturn(licensingDoc);
 
         when(this.licensingDoc.createXObject(NewVersionNotificationManager.NEW_VERSION_NOTIFICATION_CLASS,
             xcontext)).thenReturn(1);
