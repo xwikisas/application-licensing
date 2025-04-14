@@ -44,11 +44,14 @@
   &lt;fieldset class="header"&gt;
     &lt;legend&gt;$services.localization.render('licensor.licenseManager.heading')&lt;/legend&gt;
     $services.localization.render('licensor.licenseManager.hint')
+    &lt;div class="required-by-hint"&gt;
+      $services.icon.renderHTML('warning') : $services.localization.render('licensor.licenseManager.installedAsDependency.hint')
+    &lt;/div
   &lt;/fieldset&gt;
   {{/html}}
   #set ($columns = ['name', 'version', 'status', 'support', 'userLimit', 'wiki', 'actions'])
   #set ($columnsProperties = {
-    'name': {'filterable': false, 'sortable': false, 'link': 'auto'},
+    'name': {'filterable': false, 'sortable': false, 'link': 'auto', 'html': true},
     'version': {'filterable': false, 'sortable': false},
     'status': {'filterable': false, 'sortable': false, 'html': true},
     'support': {'filterable': false, 'sortable': false},
@@ -59,7 +62,7 @@
   #set ($options = {
     'resultPage':'Licenses.Code.LicenseJSON',
     'translationPrefix' : 'licensor.',
-    'extraParams': "&amp;showAllPaidExtensions=$!escapetool.url($request.showAllPaidExtensions)"
+    'extraParams': "&amp;showTopLevelExtensions=$!escapetool.url($request.showTopLevelExtensions)"
   })
   #livetable('licenseManager' $columns $columnsProperties $options)
   {{html clean="false"}}
@@ -109,6 +112,7 @@
   #displayLicensesLiveTable
   #displayAddLicenseForm
   #feedbackForm
+  #installedAsDependency
 #end
 {{/velocity}}</content>
   <object>
@@ -668,19 +672,10 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
     });
   };
 
-  // Manages the license buttons from the licenses livetable. If a trial is requested, it is automatically generated
-  // and installed, else the user is redirected to a page to buy a license.
-  $('#licenseManager').on('click', '.licenseButton', function(e) {
-    e.preventDefault();
+  // Trigger Get Trial / Extend trial or Buy license actions.
+  var triggerLicenseAction = function(buttonData) {
     var ownerDetailsForm = $('#ownerDetails');
-    if (!validateOwnerDetails(ownerDetailsForm)) {
-      return;
-    }
-    // Update the owner details.
-    var ownerDetails = ownerDetailsForm.serializeArray();
-    licensor.updateOwnerDetails(ownerDetails);
-    // Get the data from the license button.
-    var buttonData = JSON.parse($(this).attr('data-button'));
+    let ownerDetails = ownerDetailsForm.serializeArray();
     if (buttonData.licenseType === 'TRIAL') {
       ownerDetails.push.apply(ownerDetails, $.map(buttonData, function(value, name) {
         return {name: name, value: value};
@@ -693,6 +688,35 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
       ownerDetailsForm.append(extraFields).submit();
       extraFields.remove();
     };
+  };
+
+  // Manages the license buttons from the licenses livetable. If a trial is requested, it is automatically generated
+  // and installed, else the user is redirected to a page to buy a license.
+  $('#licenseManager').on('click', '.licenseButton', function(e) {
+    e.preventDefault();
+    var ownerDetailsForm = $('#ownerDetails');
+    if (!validateOwnerDetails(ownerDetailsForm)) {
+      return;
+    }
+    // Update the owner details.
+    var ownerDetails = ownerDetailsForm.serializeArray();
+    licensor.updateOwnerDetails(ownerDetails);
+    // Get data from the license button.
+    var buttonData = JSON.parse($(this).attr('data-button'));
+    // If this extension was installed as dependency, ask for a confirmation before continuing this action, since it
+    // would be better for the user to get a license for the top level licensed extension.
+    const requiredByInfo = $($($(this).parents('td.actions')[0]).siblings('td.name')[0]).find('.required-by-info');
+    if (requiredByInfo.size() &gt; 0) {
+      const parentExtensionNode = $('#installed-as-dependency').find('.parent-extensions');
+      parentExtensionNode.empty();
+      requiredByInfo.data('parent-extensions').split(',').forEach((extension) =&gt; {
+        parentExtensionNode.append("&lt;li&gt;"+ extension.trim() + "&lt;/li&gt;");
+      });
+      $('#installed-as-dependency').data('buttonData', buttonData);
+      $('#installed-as-dependency').modal('show');
+    } else {
+      triggerLicenseAction(buttonData);
+    }
   });
 
   // Show a popover on the "Check for Updates" button to let the user know what to do after he pays for the license.
@@ -777,9 +801,20 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
     }
   });
 
+  // Continue license action after user confirmation.
+  $(document).on('click', '#installed-as-dependency .btn-primary', function(e) {
+    e.preventDefault();
+    triggerLicenseAction($('#installed-as-dependency').data('buttonData'));
+  });
+
+  $(document).on('hide.bs.modal', '#installed-as-dependency', function() {
+    $('#installed-as-dependency').removeData('buttonData');
+    $('#installed-as-dependency').find('.parent-extensions').empty();
+  });
+
   // Set the documentation links to open in new tab.
   $('#licenseManager-display td.name a').each(function() {
-    $(this).attr('target', '_blank')
+    $(this).attr('target', '_blank');
   });
 });</code>
     </property>
@@ -911,6 +946,19 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
 .dropdown-left {
   right: 0;
   left: auto;
+}
+
+#licenseManager-display .required-by-info:hover {
+  color: @gray;
+}
+
+.required-by-hint {
+  padding-top: 2%;
+}
+
+#installed-as-dependency .parent-extensions li {
+  padding-top: 1%;
+  font-weight: bold;
 }
 
 .licenseButton-paid .action-icon, .licenseButton-extendPaid .action-icon, .isAutoUpgrade {

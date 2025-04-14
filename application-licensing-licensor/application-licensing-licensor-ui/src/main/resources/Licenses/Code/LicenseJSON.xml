@@ -94,20 +94,6 @@
   #end
   #set ($userLimit = "&lt;span class=""text-$!userLimitStatus""&gt;$!escapetool.xml($userLimit)&lt;/span&gt;")
   ##
-  ## Extension installed as dependency. Note that we consider optional depedencies as being not covered
-  ## by the license of the parent extension, as it can be uninstalled.
-  ##
-  #set ($isInstalledAsDependency = $backwardsLicensedDeps.get($extension.id.id).size() &gt; 0)
-  #set ($requiredBy = $escapetool.xml($services.localization.render(
-    'licensor.installedAsDependency.value.topExtension')))
-  #if ($isInstalledAsDependency)
-    #getExtensionParentNames($extensionParentNames)
-    #set ($requiredBy = $escapetool.xml($services.localization.render(
-      'licensor.installedAsDependency.value.requiredBy')) + $extensionParentNames)
-  #end
-  #set ($requiredByInfo = "&lt;span class='required-by-info' title=""$requiredBy""&gt;$services.icon.renderHTML('info')&lt;/span&gt;&lt;/span&gt;")
-  #set ($installedAsDependency = "&lt;span&gt;$isInstalledAsDependency&lt;/span&gt; " + $requiredByInfo)
-  ##
   ## Namespaces and Version
   ##
   #set ($namespaces = [])
@@ -122,7 +108,9 @@
   #end
   #set ($namespaces = $collectiontool.sort($namespaces))
   ##
-  ## Other
+  ## Extension name. A warning will be displayed for extensions installed as depedencies.Note
+  ## that we consider optional depedencies as being not covered by the license of the parent
+  ## extension, as they can be uninstalled, so a warning will be displayed for them.
   ##
   #set ($queryString = $escapetool.url({
     'instanceId': $services.instance.instanceId,
@@ -133,9 +121,21 @@
     'email': $ownerObj.getValue('email')
   }))
   #set ($documentationURL = "${storeAccessURL}?${queryString}")
+  #set ($extensionName = "&lt;a href=""$documentationURL"" target='_blank'&gt;$extension.name&lt;/a&gt;")
+  #if ($backwardsLicensedDeps.get($extension.id.id).size() &gt; 0)
+    #getExtensionParentNames($extensionParentNames)
+    #set ($requiredByTitle = $escapetool.xml($services.localization.render(
+      'licensor.installedAsDependency.value.requiredBy')) + $extensionParentNames)
+    #set ($extensionNameValue = "$services.icon.renderHTML('warning') ${extensionName}")
+    #set ($extensionName = "&lt;span class='required-by-info' data-parent-extensions=""$extensionParentNames""
+      title=""$requiredByTitle""&gt;${extensionNameValue}&lt;/span&gt;")
+  #end
+  ##
+  ## Rows
+  ##
   #set ($discard = $rows.add({
     'doc_viewable': true,
-    'name': $extension.name,
+    'name': $extensionName,
     'name_url': $documentationURL,
     'version': $extension.id.version.toString(),
     'status': $expDate,
@@ -163,7 +163,9 @@
 #set ($licensedDependenciesMap = $services.licensing.licensor.getLicensedExtensionManager().getLicensedDependenciesMap())
 #set ($rows = [])
 #foreach ($extension in $extensions)
-  #addPaidExtensionRow($extension $rows $licensedDependenciesMap)
+  #if ($extension.type != 'jar')
+    #addPaidExtensionRow($extension $rows $licensedDependenciesMap)
+  #end
 #end
 #set ($rows = $collectiontool.sort($rows, 'name'))
 #set ($offset = $mathtool.sub($numbertool.toNumber($request.offset).intValue(), 1))

@@ -55,6 +55,9 @@ public class LicensedDependenciesMap
      */
     private Map<String, Set<LicensedExtensionParent>> cachedLicensedDependenciesMap;
 
+    /**
+     * To add. Maybe move outside?
+     */
     public static class LicensedExtensionParent
     {
         private final String extensionName;
@@ -63,23 +66,39 @@ public class LicensedDependenciesMap
 
         private final String namespace;
 
-        public LicensedExtensionParent(String name, String extensionId, String namespace)
+        /**
+         * Constructor.
+         *
+         * @param extensionName extension name
+         * @param extensionId extension ID
+         * @param namespace extension namespace
+         */
+        public LicensedExtensionParent(String extensionName, String extensionId, String namespace)
         {
-            this.extensionName = name;
+            this.extensionName = extensionName;
             this.extensionId = extensionId;
             this.namespace = namespace;
         }
 
+        /**
+         * @return extension ID
+         */
         public String getExtensionId()
         {
             return extensionId;
         }
 
+        /**
+         * @return extension name
+         */
         public String getExtensionName()
         {
             return extensionName;
         }
 
+        /**
+         * @return extension namespace
+         */
         public String getExtensionNamespace()
         {
             return namespace;
@@ -93,6 +112,10 @@ public class LicensedDependenciesMap
 
     private InstalledExtensionRepository installedExtensionRepository;
 
+    /**
+     * @param licensedExtensions the list of all licensed extensions
+     * @return the licensed dependencies map
+     */
     public Map<String, Set<LicensedExtensionParent>> get(Collection<ExtensionId> licensedExtensions)
     {
         if (this.cachedLicensedDependenciesMap == null) {
@@ -102,6 +125,9 @@ public class LicensedDependenciesMap
         return this.cachedLicensedDependenciesMap;
     }
 
+    /**
+     * Invalidate the cached map of licensed dependencies.
+     */
     public void invalidateCache()
     {
         logger.debug("Clear licensed dependency map cache.");

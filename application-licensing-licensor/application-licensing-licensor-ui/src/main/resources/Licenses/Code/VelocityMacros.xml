@@ -64,7 +64,6 @@
   #end
 #end
 
-
 #macro (getLicensesAdminSectionURL)
   ## We target the main wiki explicitly because licenses are managed globally.
   #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
@@ -232,6 +231,38 @@
           ## This is the Pro Apps feedback form ID from Webmecanik.
           #set ($webmecanikID = '89')
           #webmecanikForm($webmecanikID)
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+{{/html}}
+#end
+
+#macro(installedAsDependency)
+{{html clean="false" wiki="true"}}
+  &lt;div class="modal fade" id="installed-as-dependency" tabindex="-1" role="dialog" aria-labelledby="installed-as-dependency-label"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="installed-as-dependency-label"&gt;
+            $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.title'))
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.description'))
+          &lt;ul class="parent-extensions"&gt;&lt;/ul&gt;
+          $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.question'))
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))
+          &lt;/button&gt;
+          &lt;button type="button" class="btn btn-primary"&gt;
+            $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.confirm'))
+          &lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
