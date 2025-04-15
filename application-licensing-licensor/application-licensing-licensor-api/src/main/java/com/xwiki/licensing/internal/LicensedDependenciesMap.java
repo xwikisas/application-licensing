@@ -56,7 +56,8 @@ public class LicensedDependenciesMap
     private Map<String, Set<LicensedExtensionParent>> cachedLicensedDependenciesMap;
 
     /**
-     * To add. Maybe move outside?
+     * Utility class for holding information about the top level licensed extension. Such an extension will have
+     * other licensed extensions as direct or transitive dependencies.
      */
     public static class LicensedExtensionParent
     {
@@ -109,7 +110,6 @@ public class LicensedDependenciesMap
     private Logger logger;
 
     @Inject
-
     private InstalledExtensionRepository installedExtensionRepository;
 
     /**
@@ -121,6 +121,8 @@ public class LicensedDependenciesMap
         if (this.cachedLicensedDependenciesMap == null) {
             logger.debug("Licensed dependencies map is not cached, computing it.");
             this.cachedLicensedDependenciesMap = computeLicensedDependenciesMap(licensedExtensions);
+        } else {
+            logger.debug("Licensed dependencies map is cached, returning it.");
         }
         return this.cachedLicensedDependenciesMap;
     }
