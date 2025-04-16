@@ -39,14 +39,14 @@
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
 
 {{velocity output="false"}}
-#macro(getExtensionParentNames $extensionParentNames)
+#macro(getExtensionParentNames $licensedExtensionParents $extensionParentNames)
   #set ($extensionParents = [])
-  #foreach ($parent in $backwardsLicensedDeps.get($extension.id.id))
+  #foreach ($parent in $licensedExtensionParents)
     #set ($discard = $extensionParents.add($parent.getExtensionName()))
   #end
   #set ($extensionParentNames = $stringtool.join($extensionParents, ', '))
 #end
-#macro (addPaidExtensionRow $extension $rows $backwardsLicensedDeps)
+#macro (addPaidExtensionRow $extension $rows $licensedDependenciesMap)
   #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
   ##
   ## Expiration Date
@@ -122,8 +122,9 @@
   }))
   #set ($documentationURL = "${storeAccessURL}?${queryString}")
   #set ($extensionName = "&lt;a href=""$documentationURL"" target='_blank'&gt;$extension.name&lt;/a&gt;")
-  #if ($backwardsLicensedDeps.get($extension.id.id).size() &gt; 0)
-    #getExtensionParentNames($extensionParentNames)
+  #set ($licensedExtensionParents = $licensedDependenciesMap.get($extension.id.id))
+  #if ($licensedExtensionParents &amp;&amp; $licensedExtensionParents.size() &gt; 0)
+    #getExtensionParentNames($licensedExtensionParents $extensionParentNames)
     #set ($requiredByTitle = $escapetool.xml($services.localization.render(
       'licensor.installedAsDependency.value.requiredBy')) + $extensionParentNames)
     #set ($extensionNameValue = "$services.icon.renderHTML('warning') ${extensionName}")
