@@ -39,7 +39,14 @@
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
 
 {{velocity output="false"}}
-#macro (addPaidExtensionRow $extension $rows)
+#macro(getExtensionParentNames $extensionParentNames)
+  #set ($extensionParents = [])
+  #foreach ($parent in $backwardsLicensedDeps.get($extension.id.id))
+    #set ($discard = $extensionParents.add($parent.getExtensionName()))
+  #end
+  #set ($extensionParentNames = $stringtool.join($extensionParents, ', '))
+#end
+#macro (addPaidExtensionRow $extension $rows $backwardsLicensedDeps)
   #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
   ##
   ## Expiration Date
@@ -101,7 +108,9 @@
   #end
   #set ($namespaces = $collectiontool.sort($namespaces))
   ##
-  ## Other
+  ## Extension name. A warning will be displayed for extensions installed as depedencies.Note
+  ## that we consider optional depedencies as being not covered by the license of the parent
+  ## extension, as they can be uninstalled, so a warning will be displayed for them.
   ##
   #set ($queryString = $escapetool.url({
     'instanceId': $services.instance.instanceId,
@@ -112,14 +121,27 @@
     'email': $ownerObj.getValue('email')
   }))
   #set ($documentationURL = "${storeAccessURL}?${queryString}")
+  #set ($extensionName = "&lt;a href=""$documentationURL"" target='_blank'&gt;$extension.name&lt;/a&gt;")
+  #if ($backwardsLicensedDeps.get($extension.id.id).size() &gt; 0)
+    #getExtensionParentNames($extensionParentNames)
+    #set ($requiredByTitle = $escapetool.xml($services.localization.render(
+      'licensor.installedAsDependency.value.requiredBy')) + $extensionParentNames)
+    #set ($extensionNameValue = "$services.icon.renderHTML('warning') ${extensionName}")
+    #set ($extensionName = "&lt;span class='required-by-info' data-parent-extensions=""$extensionParentNames""
+      title=""$requiredByTitle""&gt;${extensionNameValue}&lt;/span&gt;")
+  #end
+  ##
+  ## Rows
+  ##
   #set ($discard = $rows.add({
     'doc_viewable': true,
-    'name': $extension.name,
+    'name': $extensionName,
     'name_url': $documentationURL,
     'version': $extension.id.version.toString(),
     'status': $expDate,
     'support': $support,
     'userLimit': $userLimit,
+    'installedAsDependency': $installedAsDependency,
     'wiki': $stringtool.join($namespaces, ', '),
     'actions': "#licenseActions($license $extension)"
   }))
@@ -130,16 +152,19 @@
 #if ($xcontext.action == 'get')
   #set ($discard = $response.setContentType('application/json'))
 #end
-#if ($request.showAllPaidExtensions == 'true')
+#getVisiblePaidExtensions
+#if ($request.showTopLevelExtensions == true)
+  #set ($extensions = $visiblePaidExtensions)
+#else
   #getPaidExtensions
   #set ($extensions = $paidExtensions)
-#else
-  #getVisiblePaidExtensions
-  #set ($extensions = $visiblePaidExtensions)
 #end
+#set ($licensedDependenciesMap = $services.licensing.licensor.getLicensedExtensionManager().getLicensedDependenciesMap())
 #set ($rows = [])
 #foreach ($extension in $extensions)
-  #addPaidExtensionRow($extension $rows)
+  #if ($extension.type != 'jar')
+    #addPaidExtensionRow($extension $rows $licensedDependenciesMap)
+  #end
 #end
 #set ($rows = $collectiontool.sort($rows, 'name'))
 #set ($offset = $mathtool.sub($numbertool.toNumber($request.offset).intValue(), 1))

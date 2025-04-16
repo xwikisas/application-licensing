@@ -55,47 +55,11 @@
 
 #macro (getVisiblePaidExtensions)
   #getPaidExtensions
+  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
   #set ($visiblePaidExtensions = $collectiontool.set)
   #foreach ($paidExtension in $paidExtensions)
-    ## Filter out the paid extensions that are dependencies of other paid extensions (because the license of a paid
-    ## extension should cover its paid dependencies).
-    #isRequiredBy($paidExtension $paidExtensions)
-    #if (!$isRequiredBy)
+    #if ($mandatoryExtensions.contains($paidExtension.getId()))
       #set ($discard = $visiblePaidExtensions.add($paidExtension))
-    #end
-  #end
-#end
-
-#macro (isRequiredBy $installedExtension $extensions)
-  #set ($isRequiredBy = false)
-  #set ($backwardDependencies = $collectiontool.queue)
-  #addBackwardDependencies($installedExtension $backwardDependencies)
-  ## We can't iterate the queue while modifying it and we can't write a "while" loop in Velocity so we're forced to
-  ## rely on a range loop (limiting the number of backward dependencies that we analyze).
-  #foreach ($i in [0..1000])
-    #set ($backwardDependency = $backwardDependencies.poll())
-    #if ($backwardDependency)
-      #if ($extensions.contains($backwardDependency))
-        #set ($isRequiredBy = true)
-        #break
-      #else
-        #addBackwardDependencies($backwardDependency $backwardDependencies)
-      #end
-    #else
-      #break
-    #end
-  #end
-#end
-
-#macro (addBackwardDependencies $installedExtension $backwardDependencies)
-  #set ($backwardDependenciesSet = $collectiontool.set)
-  #set ($discard = $backwardDependenciesSet.addAll($backwardDependencies))
-  #set ($backwardDependenciesByNamespace = $services.extension.installed.getBackwardDependencies($installedExtension.id))
-  #foreach ($backwardDependenciesOnNamespace in $backwardDependenciesByNamespace.values())
-    #foreach ($backwardDependency in $backwardDependenciesOnNamespace)
-      #if ($backwardDependenciesSet.add($backwardDependency))
-        #set ($discard = $backwardDependencies.add($backwardDependency))
-      #end
     #end
   #end
 #end
@@ -267,6 +231,38 @@
           ## This is the Pro Apps feedback form ID from Webmecanik.
           #set ($webmecanikID = '89')
           #webmecanikForm($webmecanikID)
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+{{/html}}
+#end
+
+#macro(installedAsDependency)
+{{html clean="false" wiki="true"}}
+  &lt;div class="modal fade" id="installed-as-dependency" tabindex="-1" role="dialog" aria-labelledby="installed-as-dependency-label"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="installed-as-dependency-label"&gt;
+            $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.title'))
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.description'))
+          &lt;ul class="parent-extensions"&gt;&lt;/ul&gt;
+          $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.question'))
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))
+          &lt;/button&gt;
+          &lt;button type="button" class="btn btn-primary"&gt;
+            $escapetool.xml($services.localization.render('licensor.installedAsDependency.modal.confirm'))
+          &lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;

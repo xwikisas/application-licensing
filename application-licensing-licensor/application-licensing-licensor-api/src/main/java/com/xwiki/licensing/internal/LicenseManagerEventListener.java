@@ -39,6 +39,7 @@ import org.xwiki.observation.EventListener;
 import org.xwiki.observation.event.Event;
 
 import com.xwiki.licensing.LicenseManager;
+import com.xwiki.licensing.LicensedExtensionManager;
 
 /**
  * Listener of Extension event for the management of Licenses.
@@ -63,6 +64,9 @@ public class LicenseManagerEventListener implements EventListener
     @Inject
     private Provider<LicenseManager> licenseManagerProvider;
 
+    @Inject
+    private LicensedExtensionManager licensedExtensionManager;
+
     @Override
     public List<Event> getEvents()
     {
@@ -82,6 +86,8 @@ public class LicenseManagerEventListener implements EventListener
         InstalledExtension installedExtension = (InstalledExtension) source;
         DefaultLicenseManager licenseManager = (DefaultLicenseManager) licenseManagerProvider.get();
 
+        // Any extension event could bring new dependencies.
+        licensedExtensionManager.invalidateLicensedDependenciesMap();
         if (event instanceof ExtensionInstalledEvent) {
             licenseManager.installExtensionLicense(extensionEvent.getNamespace(), installedExtension);
         } else if (event instanceof ExtensionUninstalledEvent) {

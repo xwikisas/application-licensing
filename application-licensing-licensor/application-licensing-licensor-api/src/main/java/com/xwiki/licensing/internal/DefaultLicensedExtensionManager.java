@@ -47,7 +47,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 /**
  * The default implementation of {@link LicensedExtensionManager} that looks for backward dependencies of the licensor
  * API extension.
- * 
+ *
  * @version $Id$
  * @since 1.13.6
  */
@@ -70,6 +70,9 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
 
     @Inject
     private InstalledExtensionRepository installedExtensionRepository;
+
+    @Inject
+    private LicensedDependenciesMap licensedDependenciesMap;
 
     @Override
     public Collection<ExtensionId> getLicensedExtensions()
@@ -175,7 +178,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
         for (ExtensionDependency dependency : dependencies) {
             InstalledExtension installedDependency =
                 this.installedExtensionRepository.getInstalledExtension(dependency.getId(), namespace);
-            if (installedDependency == null) {
+            if (installedDependency == null || dependency.isOptional()) {
                 continue;
             }
 
@@ -209,6 +212,18 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             licensedDependencies);
 
         return licensedDependencies;
+    }
+
+    @Override
+    public Map<String, Set<LicensedDependenciesMap.LicensedExtensionParent>> getLicensedDependenciesMap()
+    {
+        return licensedDependenciesMap.get(getLicensedExtensions());
+    }
+
+    @Override
+    public void invalidateLicensedDependenciesMap()
+    {
+        this.licensedDependenciesMap.invalidateCache();
     }
 
     private void getLicensedDependencies(InstalledExtension installedExtension, String namespace,
