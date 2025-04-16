@@ -159,7 +159,6 @@
   #getPaidExtensions
   #set ($extensions = $paidExtensions)
 #end
-#set ($discard = $services.licensing.licensor.getLicensedExtensionManager().invalidateLicensedDependenciesMap())
 #set ($licensedDependenciesMap = $services.licensing.licensor.getLicensedExtensionManager().getLicensedDependenciesMap())
 #set ($rows = [])
 #foreach ($extension in $extensions)
