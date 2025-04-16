@@ -289,6 +289,30 @@ class DefaultLicensedExtensionManagerTest
     }
 
     @Test
+    public void getLicensedDependenciesWithOptionalDependencies() throws Exception
+    {
+        this.licensorDependencies.put(null,
+            Arrays.asList(this.pollsExtension, this.flashV1Extension, this.ideasExtension));
+        when(this.installedExtensionRepository.getBackwardDependencies(this.licensorExtension.getId())).thenReturn(
+            this.licensorDependencies);
+
+        // The apps dependency is the following: Polls depends on FreeExtension and Ideas Pro, while FreeExtension
+        // depends on FlashV1 Pro.
+        when(this.pollsExtension.getDependencies()).thenReturn(
+            Arrays.asList(this.freeExtensionDependency, this.ideasDependency));
+        when(freeExtension.getDependencies()).thenReturn(Collections.singletonList(this.flashV1Dependency));
+        when(this.ideasDependency.isOptional()).thenReturn(true);
+
+        Set<ExtensionId> result =
+            licensedExtensionManager.getLicensedDependencies(pollsExtension, pollsNamespaces.get(0));
+
+        Set<ExtensionId> expected = new HashSet<>();
+        expected.add(flashV1Extension.getId());
+
+        assertEquals(expected, result);
+    }
+
+    @Test
     public void getLicensedDependenciesWithExtensionsOnRootNamespaces() throws Exception
     {
         this.licensorDependencies.put(null, Arrays.asList(this.pollsExtension, this.flashV1Extension));

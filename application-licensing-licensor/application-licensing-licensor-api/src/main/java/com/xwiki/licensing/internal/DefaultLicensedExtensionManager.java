@@ -226,7 +226,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
                 continue;
             }
 
-            if (installedLicensedExtensions.contains(installedDep.getId())) {
+            if (installedLicensedExtensions.contains(installedDep.getId()) && !dep.isOptional()) {
                 licensedDependencies.add(installedDep.getId());
             }
 
