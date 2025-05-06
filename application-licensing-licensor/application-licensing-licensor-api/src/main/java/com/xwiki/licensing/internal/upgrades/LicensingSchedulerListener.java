@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 
 import org.quartz.SchedulerException;
 import org.quartz.Trigger.TriggerState;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -49,11 +50,11 @@ import com.xpn.xwiki.plugin.scheduler.SchedulerPlugin;
  * Ensure that {@link LicensedExtensionUpgradeJob} and {@link NewExtensionVersionAvailableJob} are scheduled after
  * licensing install or upgrade. Reschedule {@link LicensedExtensionUpgradeJob} and
  * {@link NewExtensionVersionAvailableJob} to work around XWIKI-14494: Java scheduler job coming from an extension is
- * not rescheduled when the extension is upgraded. The unschedule / schedule process should be removed once the issue
- * is fixed and licensing depends on a version of XWiki >= the version where is fixed.
- * 
- * @since 1.17
+ * not rescheduled when the extension is upgraded. The unschedule / schedule process should be removed once the issue is
+ * fixed and licensing depends on a version of XWiki >= the version where is fixed.
+ *
  * @version $Id$
+ * @since 1.17
  */
 @Component
 @Named(LicensingSchedulerListener.ROLE_HINT)
@@ -83,6 +84,9 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    @Inject
+    private Logger logger;
+
     /**
      * Constructor.
      */
@@ -92,18 +96,17 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
     }
 
     /**
-     * The unschedule / schedule process should be done at ExtensionUpgradedEvent, but for avoiding
-     * XCOMMONS-751: Getting wrong component instance during JAR extension upgrade, it is done at initialization step,
-     * since when the extension is initialized after an upgrade, all the extension's listeners are initialized. After
-     * the issue is fixed and licensing starts depending on a version of XWiki >= the version where is fixed, then
-     * this code should be moved inside a ExtensionUpgradedEvent listener.
+     * The unschedule / schedule process should be done at ExtensionUpgradedEvent, but for avoiding XCOMMONS-751:
+     * Getting wrong component instance during JAR extension upgrade, it is done at initialization step, since when the
+     * extension is initialized after an upgrade, all the extension's listeners are initialized. After the issue is
+     * fixed and licensing starts depending on a version of XWiki >= the version where is fixed, then this code should
+     * be moved inside a ExtensionUpgradedEvent listener.
      *
      * @see org.xwiki.component.phase.Initializable#initialize()
      */
     @Override
     public void initialize() throws InitializationException
     {
-
         try {
             // Don't trigger the rescheduling process at xwiki startup time.
             if (this.contextProvider.get() != null) {
@@ -111,7 +114,8 @@ public class LicensingSchedulerListener extends AbstractEventListener implements
                 scheduleJob(true, NEW_VERSION_JOB_DOC);
             }
         } catch (XWikiException | SchedulerException e) {
-            throw new InitializationException("Error while rescheduling LicensedExtensionUpgradeJob", e);
+            logger.warn("An error occurred while rescheduling LicensedExtensionUpgradeJob, meaning automatic upgrades "
+                + "on pro apps might be affected. Please reschedule this job manually or contact support. ", e);
         }
     }
 
