@@ -40,7 +40,7 @@
 
 {{velocity output="false"}}
 #macro(getExtensionParentNames $licensedExtensionParents $extensionParentNames)
-  #set ($extensionParents = [])
+  #set ($extensionParents = $collectiontool.set)
   #foreach ($parent in $licensedExtensionParents)
     #set ($discard = $extensionParents.add($parent.getExtensionName()))
   #end
