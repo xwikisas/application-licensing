@@ -35,7 +35,8 @@
 
     // There is always a more recent version of contrib parent or commons/rendering/platform and we don't want to upgrade just for that
     {
-      "matchPackagePrefixes": ["org.xwiki.commons:", "org.xwiki.rendering:", "org.xwiki.platform:", "org.xwiki.enterprise:", "org.xwiki.contrib:parent-"],
+      "matchPackagePrefixes": ["org.xwiki.commons:", "org.xwiki.rendering:", "org.xwiki.platform:", "org.xwiki.enterprise:",
+        "com.xwiki.parent:"],
       "enabled": false
     }
   ]
