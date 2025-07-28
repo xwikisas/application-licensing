@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,12 +36,21 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
 import org.xwiki.instance.InstanceIdManager;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.LicenseValidator;
@@ -77,6 +87,15 @@ public class DefaultLicenseValidator implements LicenseValidator
     @Named("Base64")
     private BinaryStringEncoder base64Encoder;
 
+    @Inject
+    private Provider<XWikiContext> context;
+
+    @Inject
+    private QueryManager queryManager;
+
+    @Inject
+    private DocumentReferenceResolver<SolrDocument> solrDocumentReferenceResolver;
+
     @Override
     public boolean isApplicable(License license)
     {
@@ -88,6 +107,46 @@ public class DefaultLicenseValidator implements LicenseValidator
     {
         return license instanceof SignedLicense
             && checkCertificates(license, ((SignedLicense) license).getCertificates());
+    }
+
+    @Override
+    public boolean isValid(License license)
+    {
+        if (license.getExpirationDate() >= new Date().getTime()) {
+            if (checkUserCount(license)) {
+                return true;
+            } else {
+                List<DocumentReference> allowedUsers = getSortedActiveUsers(license.getMaxUserCount());
+                return allowedUsers.contains(context.get().getUserReference());
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get the users sorted by creation date. To be used to check against the max user count, to determine which users
+     * are allowed to use a license.
+     *
+     * @param limit the number of users to return
+     * @return the users, sorted by creation date.
+     */
+    public List<DocumentReference> getSortedActiveUsers(long limit)
+    {
+        // TODO: Handle local users (and Active Directory users?)
+        try {
+            Query query =
+                queryManager.createQuery("object:XWiki.XWikiUsers AND property.XWiki.XWikiUsers.active:true", "solr");
+            query.bindValue("fq", "type:DOCUMENT").bindValue("sort", "creationdate asc");
+            if (limit >= 0) {
+                query.setLimit((int) limit);
+            }
+            SolrDocumentList activeUsers = ((QueryResponse) query.execute().get(0)).getResults();
+            return activeUsers.stream().map(solrDocumentReferenceResolver::resolve).collect(Collectors.toList());
+        } catch (QueryException e) {
+            logger.error("Failed to retrieve the sorted active users for the license", e);
+            return Collections.emptyList();
+        }
     }
 
     private boolean checkCertificates(License license, Collection<X509CertifiedPublicKey> certificates)
@@ -112,12 +171,6 @@ public class DefaultLicenseValidator implements LicenseValidator
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean isValid(License license)
-    {
-        return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
     }
 
     private boolean checkUserCount(License license)

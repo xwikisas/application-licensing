@@ -102,6 +102,12 @@
       <artifactId>xwiki-platform-instance</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- For using the solr query api. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-search-solr-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Needed for scheduling the automatic upgrades of licensed extensions-->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
