@@ -188,7 +188,8 @@ public class UserCounter
     {
         Query query =
             queryManager.createQuery("object:XWiki.XWikiUsers AND property.XWiki.XWikiUsers.active:true", "solr");
-        query.bindValue("fq", "type:DOCUMENT").bindValue("sort", "creationdate asc");
+        query.bindValue("fq", "space_exact:XWiki AND type:DOCUMENT").bindValue("fl", "creationdate wiki spaces name")
+            .bindValue("sort", "creationdate asc");
         return query;
     }
 }
