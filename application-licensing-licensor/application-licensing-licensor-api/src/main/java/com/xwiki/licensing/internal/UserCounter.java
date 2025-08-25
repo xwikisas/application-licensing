@@ -21,30 +21,31 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.slf4j.Logger;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
+import org.xwiki.observation.event.filter.EventFilter;
+import org.xwiki.observation.event.filter.RegexEventFilter;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
@@ -74,10 +75,32 @@ public class UserCounter
 
     private Long cachedUserCount;
 
-    private List<DocumentReference> cachedOldestUsers;
+    private SortedSet<XWikiDocument> cachedOldestUsers;
 
-    @Inject
-    private DocumentReferenceResolver<SolrDocument> solrDocumentReferenceResolver;
+    private long getUserCountOnWiki(String wikiId) throws QueryException
+    {
+        Query query = this.queryManager.createQuery(getBaseQueryStatement(), Query.HQL);
+        query.addFilter(this.countFilter).setWiki(wikiId);
+        List<Long> results = query.execute();
+        return results.get(0);
+    }
+
+    private List<XWikiDocument> getUsersOnWiki(String wikiId) throws QueryException
+    {
+        Query query =
+            this.queryManager.createQuery("select doc from XWikiDocument doc" + getBaseQueryStatement(),
+                Query.HQL);
+        query.setWiki(wikiId);
+        List<XWikiDocument> results = query.execute();
+        return results;
+    }
+
+    private String getBaseQueryStatement()
+    {
+        return ", BaseObject as obj, IntegerProperty as prop "
+            + "where doc.fullName = obj.name and doc.space = 'XWiki' and obj.className = 'XWiki.XWikiUsers' and "
+            + "doc.space = 'XWiki' and prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'";
+    }
 
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
@@ -100,6 +123,8 @@ public class UserCounter
 
         protected static final LocalDocumentReference USER_CLASS = new LocalDocumentReference("XWiki", "XWikiUsers");
 
+        private static final EventFilter XWIKI_SPACE_FILTER = new RegexEventFilter("(.*:)?XWiki\\..*");
+
         @Inject
         private UserCounter userCounter;
 
@@ -108,8 +133,8 @@ public class UserCounter
          */
         public UserListener()
         {
-            super(HINT,
-                Arrays.asList(new DocumentCreatedEvent(), new DocumentUpdatedEvent(), new DocumentDeletedEvent()));
+            super(HINT, Arrays.asList(new DocumentCreatedEvent(XWIKI_SPACE_FILTER),
+                new DocumentUpdatedEvent(XWIKI_SPACE_FILTER), new DocumentDeletedEvent(XWIKI_SPACE_FILTER)));
         }
 
         @Override
@@ -139,32 +164,23 @@ public class UserCounter
     /**
      * Get the users sorted by creation date.
      *
-     * @param limit the number of users to return
      * @return the users, sorted by creation date.
      */
-    public final List<DocumentReference> getOldestUsers(int limit) throws Exception
+    public SortedSet<XWikiDocument> getOldestUsers() throws WikiManagerException, QueryException
     {
-        if (cachedOldestUsers == null || cachedOldestUsers.size() < limit) {
-            try {
-                Query query = getUserQuery();
-                if (limit >= 0) {
-                    query.setLimit(limit);
-                }
-                SolrDocumentList activeUsers = ((QueryResponse) query.execute().get(0)).getResults();
-                this.cachedUserCount = activeUsers.getNumFound();
-                this.cachedOldestUsers =
-                    activeUsers.stream().map(solrDocumentReferenceResolver::resolve).collect(Collectors.toList());
-            } catch (QueryException e) {
-                throw new Exception("Failed to get the oldest users for a license.", e);
+        if (cachedOldestUsers == null) {
+            cachedOldestUsers = new TreeSet<>(
+                (e1, e2) -> new CompareToBuilder().append(e1.getCreationDate(), e2.getCreationDate()).build());
+            for (String wikiId : wikiDescriptorManager.getAllIds()) {
+                cachedOldestUsers.addAll(getUsersOnWiki(wikiId));
             }
         }
-
-        return cachedOldestUsers.subList(0, limit);
+        return cachedOldestUsers;
     }
 
     /**
      * Counts the existing active users.
-     * 
+     *
      * @return the user count
      * @throws Exception if we fail to count the users
      */
@@ -172,11 +188,13 @@ public class UserCounter
     {
         if (cachedUserCount == null) {
             try {
-                Query query = getUserQuery().setLimit(1);
-                long userCount = ((QueryResponse) query.execute().get(0)).getResults().getNumFound();
+                long userCount = 0;
+                for (String wikiId : this.wikiDescriptorManager.getAllIds()) {
+                    userCount += getUserCountOnWiki(wikiId);
+                }
                 this.logger.debug("User count is [{}].", userCount);
                 this.cachedUserCount = userCount;
-            } catch (QueryException e) {
+            } catch (WikiManagerException | QueryException e) {
                 throw new Exception("Failed to count the users.", e);
             }
         }
@@ -184,12 +202,17 @@ public class UserCounter
         return cachedUserCount;
     }
 
-    private Query getUserQuery() throws QueryException
+    /**
+     * Return whether the given user is under the specified license user limit.
+     *
+     * @param user the user to check
+     * @param userLimit the license max user limit
+     * @return whether the given user is under the specified license user limit
+     */
+    public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws Exception
     {
-        Query query =
-            queryManager.createQuery("object:XWiki.XWikiUsers AND property.XWiki.XWikiUsers.active:true", "solr");
-        query.bindValue("fq", "space_exact:XWiki AND type:DOCUMENT").bindValue("fl", "creationdate wiki spaces name")
-            .bindValue("sort", "creationdate asc");
-        return query;
+        XWikiDocument xwikiUserDocument = new XWikiDocument(user);
+        SortedSet<XWikiDocument> oldestUsers = getOldestUsers();
+        return oldestUsers.subSet(oldestUsers.first(), xwikiUserDocument).size() <= userLimit;
     }
 }

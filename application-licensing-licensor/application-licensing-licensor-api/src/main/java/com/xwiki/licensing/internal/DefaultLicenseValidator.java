@@ -99,20 +99,19 @@ public class DefaultLicenseValidator implements LicenseValidator
     public boolean isValid(License license)
     {
         if (license.getExpirationDate() >= new Date().getTime()) {
-            if (checkUserCount(license)) {
+            DocumentReference currentUserReference = context.get().getUserReference();
+            // Guest user always has access.
+            if (null == currentUserReference || checkUserCount(license)) {
                 return true;
             } else {
-                List<DocumentReference> allowedUsers;
                 try {
-                    allowedUsers = userCounter.getOldestUsers((int) license.getMaxUserCount());
+                    return userCounter.isUserUnderLimit(currentUserReference, (int) license.getMaxUserCount());
                 } catch (Exception e) {
                     this.logger.warn(
                         "Failed to check the allowed users. Assuming the license is not valid. Root cause is: [{}].",
                         ExceptionUtils.getRootCauseMessage(e));
-                    allowedUsers = List.of();
+                    return false;
                 }
-                this.logger.debug("Allowed users for license [{}]: [{}].", license, allowedUsers);
-                return allowedUsers.contains(context.get().getUserReference());
             }
         } else {
             return false;
