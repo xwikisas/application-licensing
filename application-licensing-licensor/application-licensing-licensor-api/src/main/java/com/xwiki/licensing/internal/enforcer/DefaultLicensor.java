@@ -49,6 +49,8 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class DefaultLicensor implements Licensor, Initializable
 {
+    private static final int EXPIRATION_THRESHOLD = 10;
+
     @Inject
     private LicenseManager licenseManager;
 
@@ -128,6 +130,6 @@ public class DefaultLicensor implements Licensor, Initializable
         LocalDate expirationDate =
             Instant.ofEpochMilli(license.getExpirationDate()).atZone(ZoneId.systemDefault()).toLocalDate();
         long daysUntilExpiration = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
-        return daysUntilExpiration <= 10 && daysUntilExpiration > 0;
+        return daysUntilExpiration <= EXPIRATION_THRESHOLD && daysUntilExpiration > 0;
     }
 }
