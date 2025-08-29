@@ -21,6 +21,7 @@ package com.xwiki.licensing;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 /**
@@ -73,4 +74,13 @@ public interface Licensor
      * @return true if the given extension has a valid license or is not subject to licensing.
      */
     boolean hasLicensure(ExtensionId extensionId);
+
+    /**
+     * Check if the given extension is covered by a valid license for the given user.
+     *
+     * @param extensionId the identifier of the extension for which licensure should be checked.
+     * @param userReference the user for which licensure should be checked.
+     * @return true if the given extension has a valid license or is not subject to licensing.
+     */
+    boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference);
 }

@@ -27,6 +27,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 import com.xpn.xwiki.XWikiContext;
@@ -114,5 +115,12 @@ public class DefaultLicensor implements Licensor, Initializable
     {
         License license = getLicense(extensionId);
         return license == null || licenseValidator.isValid(license);
+    }
+
+    @Override
+    public boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference)
+    {
+        License license = getLicense(extensionId);
+        return license == null || licenseValidator.isValid(license, userReference);
     }
 }

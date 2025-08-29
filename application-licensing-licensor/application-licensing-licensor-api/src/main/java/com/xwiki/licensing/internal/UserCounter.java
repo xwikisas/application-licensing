@@ -211,8 +211,17 @@ public class UserCounter
      */
     public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws Exception
     {
-        XWikiDocument xwikiUserDocument = new XWikiDocument(user);
-        SortedSet<XWikiDocument> oldestUsers = getOldestUsers();
-        return oldestUsers.subSet(oldestUsers.first(), xwikiUserDocument).size() <= userLimit;
+        // Get the user document from the database so we have the right creationDate.
+        List<XWikiDocument> results =
+            queryManager.createQuery("select doc from XWikiDocument doc where doc.fullName = :user", Query.HQL)
+                .bindValue("user", user.getLocalDocumentReference().toString())
+                .setWiki(user.getWikiReference().getName()).setLimit(1).execute();
+        if (results.isEmpty()) {
+            return false;
+        } else {
+            XWikiDocument xwikiUserDocument = results.get(0);
+            SortedSet<XWikiDocument> oldestUsers = getOldestUsers();
+            return oldestUsers.subSet(oldestUsers.first(), xwikiUserDocument).size() < userLimit;
+        }
     }
 }
