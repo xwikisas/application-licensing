@@ -21,6 +21,7 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -77,9 +78,13 @@ public class UserCounter
 
     private SortedSet<XWikiDocument> cachedOldestUsers;
 
+    private static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
+        + "where doc.fullName = obj.name and doc.space = 'XWiki' and obj.className = 'XWiki.XWikiUsers' and "
+        + "doc.space = 'XWiki' and prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'";
+
     private long getUserCountOnWiki(String wikiId) throws QueryException
     {
-        Query query = this.queryManager.createQuery(getBaseQueryStatement(), Query.HQL);
+        Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
         query.addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);
@@ -87,19 +92,8 @@ public class UserCounter
 
     private List<XWikiDocument> getUsersOnWiki(String wikiId) throws QueryException
     {
-        Query query =
-            this.queryManager.createQuery("select doc from XWikiDocument doc" + getBaseQueryStatement(),
-                Query.HQL);
-        query.setWiki(wikiId);
-        List<XWikiDocument> results = query.execute();
-        return results;
-    }
-
-    private String getBaseQueryStatement()
-    {
-        return ", BaseObject as obj, IntegerProperty as prop "
-            + "where doc.fullName = obj.name and doc.space = 'XWiki' and obj.className = 'XWiki.XWikiUsers' and "
-            + "doc.space = 'XWiki' and prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'";
+        return this.queryManager.createQuery("select doc from XWikiDocument doc" + BASE_USER_QUERY, Query.HQL)
+            .setWiki(wikiId).execute();
     }
 
     /**
@@ -209,19 +203,14 @@ public class UserCounter
      * @param userLimit the license max user limit
      * @return whether the given user is under the specified license user limit
      */
-    public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws Exception
+    public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws QueryException, WikiManagerException
     {
-        // Get the user document from the database so we have the right creationDate.
-        List<XWikiDocument> results =
-            queryManager.createQuery("select doc from XWikiDocument doc where doc.fullName = :user", Query.HQL)
-                .bindValue("user", user.getLocalDocumentReference().toString())
-                .setWiki(user.getWikiReference().getName()).setLimit(1).execute();
-        if (results.isEmpty()) {
+        Optional<XWikiDocument> userDocument =
+            cachedOldestUsers.stream().filter(e -> e.getDocumentReference().equals(user)).findAny();
+        if (userDocument.isEmpty()) {
             return false;
         } else {
-            XWikiDocument xwikiUserDocument = results.get(0);
-            SortedSet<XWikiDocument> oldestUsers = getOldestUsers();
-            return oldestUsers.subSet(oldestUsers.first(), xwikiUserDocument).size() < userLimit;
+            return getOldestUsers().subSet(getOldestUsers().first(), userDocument.get()).size() < userLimit;
         }
     }
 }
