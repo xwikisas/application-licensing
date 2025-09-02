@@ -39,7 +39,8 @@
   <content>{{include reference="License.Code.LicenseDetailsMacros"/}}
 
 {{velocity}}
-#if ($hasAdmin &amp;&amp; "$!request.action" == 'add')
+#set ($isUserInSupportGroup = $xwiki.getUser().isUserInGroup("XWiki.SupportGroup"))
+#if (($hasAdmin || $isUserInSupportGroup) &amp;&amp; "$!request.action" == 'add')
   #findNextUniqueDetailsPageReference($detailsPageReference)
   $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'edit', $escapetool.url({
     'template': $request.template,
@@ -47,7 +48,7 @@
   })))
 #end
 
-#if ($hasAdmin)
+#if ($hasAdmin || $isUserInSupportGroup)
 {{html}}
   &lt;form&gt;
     &lt;input type='hidden' name='action' value='add'/&gt;
