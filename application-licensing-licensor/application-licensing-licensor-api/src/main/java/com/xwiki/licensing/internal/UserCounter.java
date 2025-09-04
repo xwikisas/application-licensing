@@ -63,8 +63,9 @@ import com.xpn.xwiki.objects.BaseObject;
 public class UserCounter
 {
     private static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
-        + "where doc.fullName = obj.name and doc.space = 'XWiki' and obj.className = 'XWiki.XWikiUsers' and "
-        + "doc.space = 'XWiki' and prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'";
+        + "where doc.space = 'XWiki' "
+        + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
+        + "and prop.id.name = 'active' and prop.value = '1'";
 
     @Inject
     private Logger logger;
@@ -213,7 +214,7 @@ public class UserCounter
         if (userDocument == null) {
             return false;
         } else {
-            return oldestUsers.subSet(oldestUsers.first(), userDocument).size() < userLimit;
+            return oldestUsers.headSet(userDocument).size() < userLimit;
         }
     }
 

@@ -105,22 +105,7 @@ public class DefaultLicenseValidator implements LicenseValidator
     @Override
     public boolean isValid(License license, DocumentReference userReference)
     {
-        if (license.getExpirationDate() >= new Date().getTime()) {
-            if (null == userReference || checkUserCount(license)) {
-                return true;
-            } else {
-                try {
-                    return userCounter.isUserUnderLimit(userReference, (int) license.getMaxUserCount());
-                } catch (Exception e) {
-                    this.logger.warn(
-                        "Failed to check the allowed users. Assuming the license is not valid. Root cause is: [{}].",
-                        ExceptionUtils.getRootCauseMessage(e));
-                    return false;
-                }
-            }
-        } else {
-            return false;
-        }
+        return license.getExpirationDate() >= new Date().getTime() && checkIsUserUnderUserLimit(license, userReference);
     }
 
     private boolean checkCertificates(License license, Collection<X509CertifiedPublicKey> certificates)
@@ -158,6 +143,22 @@ public class DefaultLicenseValidator implements LicenseValidator
                 ExceptionUtils.getRootCauseMessage(e));
             // Assume the license is invalid if we can't count the users.
             return false;
+        }
+    }
+
+    private boolean checkIsUserUnderUserLimit(License license, DocumentReference userReference)
+    {
+        if (null == userReference || checkUserCount(license)) {
+            return true;
+        } else {
+            try {
+                return userCounter.isUserUnderLimit(userReference, (int) license.getMaxUserCount());
+            } catch (Exception e) {
+                this.logger.warn(
+                    "Failed to check the allowed users. Assuming the license is not valid. Root cause is: [{}].",
+                    ExceptionUtils.getRootCauseMessage(e));
+                return false;
+            }
         }
     }
 }
