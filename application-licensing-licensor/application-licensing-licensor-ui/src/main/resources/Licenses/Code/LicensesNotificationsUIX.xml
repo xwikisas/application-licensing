@@ -89,8 +89,11 @@
     #end
     {{html clean=false}}
     &lt;$missingLicensesWrapperTagName class="notifications-missingLicenses"&gt;
-      &lt;p&gt;$services.localization.render('licensor.licensesSection', ["&lt;a href='#getLicensesAdminSectionURL'&gt;",
-            '&lt;/a&gt;'])&lt;/p&gt;
+      #set ($advancedHint = $escapetool.xml(
+        $services.localization.render('licensor.licensesSection', ['__linkStart__', '__linkEnd__'])
+        ).replace('__linkStart__', "&lt;a href='#getLicensesAdminSectionURL'&gt;"
+        ).replace('__linkEnd__', '&lt;/a&gt;'))
+      &lt;p&gt;$advancedHint&lt;/p&gt;
     &lt;/$missingLicensesWrapperTagName&gt;
     #if ($foundInvalid)
       #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
@@ -235,7 +238,7 @@
       <contentType>CSS</contentType>
     </property>
     <property>
-      <name>Invalid CSS</name>
+      <name>Invalid licenses CSS</name>
     </property>
     <property>
       <parse>1</parse>
