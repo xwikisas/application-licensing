@@ -40,7 +40,7 @@
 
 {{velocity output="false"}}
 #macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
-  &lt;$licensesNotificationWrapperTagName class="notifications-missingLicenses $notificationClass"&gt;
+  &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
     &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
     &lt;ul&gt;
       &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
@@ -200,10 +200,10 @@
     if (!dropdownToggle.length) {
       return;
     }
-    if ($(".notifications-missingLicenses.errormessage").length) {
-      dropdownToggle.addClass('error-notification');
-    } else if ($(".notifications-missingLicenses.warningmessage").length) {
-      dropdownToggle.addClass('warning-notification');
+    if ($(".licenses-notification.errormessage").length) {
+      dropdownToggle.addClass('licenses-error');
+    } else if ($(".licenses-notification.warningmessage").length) {
+      dropdownToggle.addClass('licenses-warning');
     }
   });
 });</code>
@@ -326,19 +326,19 @@
     <property>
       <code>#template('colorThemeInit.vm')
 
-.error-notification span:empty::before {
+.licenses-error span:empty::before {
   color: $theme.notificationErrorColor;
 }
 
-.error-notification img {
+.licenses-error img {
   background-color: $theme.notificationErrorColor;
 }
 
-.warning-notification span:empty::before {
+.licenses-warning span:empty::before {
   color: $theme.notificationWarningColor;
 }
 
-.warning-notification img {
+.licenses-warning img {
   background-color: $theme.notificationWarningColor;
 }
 
@@ -348,7 +348,7 @@
   padding: 10px;
 }
 
-.notifications-missingLicenses {
+.licenses-notification {
   min-width: 280px;
   padding: 10px;
 }</code>
