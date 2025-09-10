@@ -40,7 +40,7 @@
 
 {{velocity output="false"}}
 #macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
-  &lt;$missingLicensesWrapperTagName class="notifications-missingLicenses $notificationClass"&gt;
+  &lt;$licensesNotificationWrapperTagName class="notifications-missingLicenses $notificationClass"&gt;
     &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
     &lt;ul&gt;
       &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
@@ -51,7 +51,7 @@
     &lt;/br&gt;
     &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
       $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
-  &lt;/$missingLicensesWrapperTagName&gt;
+  &lt;/$licensesNotificationWrapperTagName&gt;
 #end
 {{/velocity}}
 
@@ -88,8 +88,8 @@
   #end
   #if ($foundInvalid || $foundExpiring)
     #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
-    #if (!$missingLicensesWrapperTagName)
-      #set ($missingLicensesWrapperTagName = 'div')
+    #if (!$licensesNotificationWrapperTagName)
+      #set ($licensesNotificationWrapperTagName = 'div')
     #end
     {{html clean=false}}
     #if ($foundInvalid)
@@ -495,13 +495,13 @@
       <content>{{velocity}}
 #if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX'))
   #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
-  #set ($missingLicensesWrapperTagName = 'li')
+  #set ($licensesNotificationWrapperTagName = 'li')
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
 #end
 {{/velocity}}
 
 {{velocity output="false"}}
-#set ($missingLicensesWrapperTagName = $NULL)
+#set ($licensesNotificationWrapperTagName = $NULL)
 {{/velocity}}</content>
     </property>
     <property>

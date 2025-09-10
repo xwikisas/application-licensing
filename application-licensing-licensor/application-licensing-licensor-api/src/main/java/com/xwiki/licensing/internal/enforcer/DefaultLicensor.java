@@ -127,6 +127,9 @@ public class DefaultLicensor implements Licensor, Initializable
     public boolean isLicenseExpiring(ExtensionId extensionId)
     {
         License license = getLicense(extensionId);
+        if (license == null) {
+            return false;
+        }
         LocalDate expirationDate =
             Instant.ofEpochMilli(license.getExpirationDate()).atZone(ZoneId.systemDefault()).toLocalDate();
         long daysUntilExpiration = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
