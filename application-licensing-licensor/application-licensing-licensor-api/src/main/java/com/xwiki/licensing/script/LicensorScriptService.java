@@ -164,6 +164,20 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
+     * Check if the given extension is expiring in less than 10 days. Equivalent to
+     * licensor.isLicenseExpiring(ExtensionId) call.
+     *
+     * @param extensionId the identifier of the extension for which licensure should be checked.
+     * @return {@code true} if the given extension license is expiring in less than 10 days or {@code false} otherwise.
+     * @since 1.30
+     */
+    @Unstable
+    public boolean isLicenseExpiring(ExtensionId extensionId)
+    {
+        return licensor.isLicenseExpiring(extensionId);
+    }
+
+    /**
      * Check if the given entity is covered by a valid license. Equivalent to licensor.hasLicensure(EntityReference)
      * call.
      *
