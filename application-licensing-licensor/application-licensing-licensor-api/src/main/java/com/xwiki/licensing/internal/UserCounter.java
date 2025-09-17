@@ -62,7 +62,7 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class UserCounter
 {
-    private static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
+    protected static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
         + "where doc.space = 'XWiki' "
         + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
         + "and prop.id.name = 'active' and prop.value = '1'";
@@ -83,10 +83,10 @@ public class UserCounter
     private Long cachedUserCount;
 
     // A set of users on the instance, sorted by creation date.
-    private SortedSet<XWikiDocument> cachedOldestUsers;
+    private SortedSet<XWikiDocument> cachedSortedUsers;
 
     // Helper to find users in constant time.
-    private Map<DocumentReference, XWikiDocument> cachedOldestUsersLookupTable;
+    private Map<DocumentReference, XWikiDocument> cachedSortedUsersLookupTable;
 
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
@@ -152,8 +152,8 @@ public class UserCounter
     public void flushCache()
     {
         this.cachedUserCount = null;
-        this.cachedOldestUsers = null;
-        this.cachedOldestUsersLookupTable = null;
+        this.cachedSortedUsers = null;
+        this.cachedSortedUsersLookupTable = null;
     }
 
     /**
@@ -161,18 +161,18 @@ public class UserCounter
      *
      * @return the users, sorted by creation date.
      */
-    public SortedSet<XWikiDocument> getOldestUsers() throws WikiManagerException, QueryException
+    public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
-        if (cachedOldestUsers == null) {
-            cachedOldestUsers = new TreeSet<>(
+        if (cachedSortedUsers == null) {
+            cachedSortedUsers = new TreeSet<>(
                 (e1, e2) -> new CompareToBuilder().append(e1.getCreationDate(), e2.getCreationDate()).build());
             for (String wikiId : wikiDescriptorManager.getAllIds()) {
-                cachedOldestUsers.addAll(getUsersOnWiki(wikiId));
+                cachedSortedUsers.addAll(getUsersOnWiki(wikiId));
             }
-            cachedOldestUsersLookupTable =
-                cachedOldestUsers.stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
+            cachedSortedUsersLookupTable =
+                cachedSortedUsers.stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
         }
-        return cachedOldestUsers;
+        return cachedSortedUsers;
     }
 
     /**
@@ -208,9 +208,9 @@ public class UserCounter
      */
     public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws QueryException, WikiManagerException
     {
-        SortedSet<XWikiDocument> oldestUsers = getOldestUsers();
-        /** Lookup table is initialized in {@link #getOldestUsers()}. */
-        XWikiDocument userDocument = cachedOldestUsersLookupTable.get(user);
+        SortedSet<XWikiDocument> oldestUsers = getSortedUsers();
+        /** Lookup table is initialized in {@link #getSortedUsers()}. */
+        XWikiDocument userDocument = cachedSortedUsersLookupTable.get(user);
         if (userDocument == null) {
             return false;
         } else {

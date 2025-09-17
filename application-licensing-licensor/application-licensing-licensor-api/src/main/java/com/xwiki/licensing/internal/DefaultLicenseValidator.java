@@ -42,7 +42,6 @@ import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
 import org.xwiki.instance.InstanceIdManager;
 import org.xwiki.model.reference.DocumentReference;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.LicenseValidator;
@@ -79,9 +78,6 @@ public class DefaultLicenseValidator implements LicenseValidator
     @Named("Base64")
     private BinaryStringEncoder base64Encoder;
 
-    @Inject
-    private Provider<XWikiContext> context;
-
     @Override
     public boolean isApplicable(License license)
     {
@@ -98,8 +94,7 @@ public class DefaultLicenseValidator implements LicenseValidator
     @Override
     public boolean isValid(License license)
     {
-        DocumentReference currentUserReference = context.get().getUserReference();
-        return isValid(license, currentUserReference);
+        return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
     }
 
     @Override
@@ -148,7 +143,7 @@ public class DefaultLicenseValidator implements LicenseValidator
 
     private boolean checkIsUserUnderUserLimit(License license, DocumentReference userReference)
     {
-        if (null == userReference || checkUserCount(license)) {
+        if (checkUserCount(license)) {
             return true;
         } else {
             try {

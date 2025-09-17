@@ -25,8 +25,10 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.LicensedExtensionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -99,6 +101,9 @@ public class LicensorScriptService implements ScriptService, Initializable
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
 
+    @Inject
+    private Provider<XWikiContext> xcontextProvider;
+
     @Override
     public void initialize() throws InitializationException
     {
@@ -160,7 +165,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      */
     public boolean hasLicensureForExtension(ExtensionId extensionId)
     {
-        return licensor.hasLicensure(extensionId);
+        return licensor.hasLicensure(extensionId, xcontextProvider.get().getUserReference());
     }
 
     /**
@@ -172,7 +177,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      */
     public boolean hasLicensureForEntity(EntityReference reference)
     {
-        return licensor.hasLicensure(reference);
+        return licensor.hasLicensure(reference, xcontextProvider.get().getUserReference());
     }
 
     /**

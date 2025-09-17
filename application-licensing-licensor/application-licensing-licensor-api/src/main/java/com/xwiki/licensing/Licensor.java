@@ -68,6 +68,15 @@ public interface Licensor
     boolean hasLicensure(EntityReference reference);
 
     /**
+     * Check if the given entity is covered by a valid license for the given user.
+     *
+     * @param reference the identifier of the extension for which licensure should be checked.
+     * @param userReference the user for which licensure should be checked.
+     * @return true if the given extension has a valid license or is not subject to licensing.
+     */
+    boolean hasLicensure(EntityReference reference, DocumentReference userReference);
+
+    /**
      * Check if the given extension is covered by a valid license.
      *
      * @param extensionId the identifier of the extension for which licensure should be checked.

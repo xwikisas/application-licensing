@@ -118,6 +118,13 @@ public class DefaultLicensor implements Licensor, Initializable
     }
 
     @Override
+    public boolean hasLicensure(EntityReference reference, DocumentReference userReference)
+    {
+        License license = getLicense(reference);
+        return license == null || licenseValidator.isValid(license, userReference);
+    }
+
+    @Override
     public boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference)
     {
         License license = getLicense(extensionId);
