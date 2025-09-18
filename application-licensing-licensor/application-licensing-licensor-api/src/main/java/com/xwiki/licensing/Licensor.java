@@ -23,6 +23,7 @@ import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.stability.Unstable;
 
 /**
  * Licensor allows licensed extension to check their license.
@@ -90,6 +91,16 @@ public interface Licensor
      * @param extensionId the identifier of the extension for which licensure should be checked.
      * @param userReference the user for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
+     * @since 1.31
      */
     boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference);
+
+     * Check if the given extension is expiring in less than 10 days.
+     *
+     * @param extensionId the identifier of the extension for which licensure should be checked.
+     * @return {@code true} if the given extension license is expiring in less than 10 days or {@code false} otherwise.
+     * @since 1.30
+     */
+    @Unstable
+    boolean isLicenseExpiring(ExtensionId extensionId);
 }

@@ -36,7 +36,7 @@ import org.xwiki.test.ui.po.BaseElement;
  */
 public class LicenseNotificationPane extends BaseElement
 {
-    @FindBy(css = ".notifications-missingLicenses a")
+    @FindBy(css = ".licenses-notification.errormessage .btn.btn-danger")
     private WebElement licensesSectionLink;
 
     public LicensesAdminPage clickLicensesSectionLink()
@@ -49,7 +49,7 @@ public class LicenseNotificationPane extends BaseElement
     {
         List<String> extensions = new ArrayList<>();
         List<WebElement> extensionListItems =
-            getDriver().findElementsWithoutWaiting(By.cssSelector(".notifications-missingLicenses li"));
+            getDriver().findElementsWithoutWaiting(By.cssSelector(".licenses-notification.errormessage li"));
         for (WebElement extensionListItem : extensionListItems) {
             extensions.add(extensionListItem.getText());
         }
