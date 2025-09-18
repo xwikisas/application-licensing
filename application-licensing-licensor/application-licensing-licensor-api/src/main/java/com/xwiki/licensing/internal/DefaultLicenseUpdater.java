@@ -139,6 +139,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
                     if (retrivedLicense != null) {
                         licenseManagerProvider.get().add(retrivedLicense);
                         logger.debug("License renewed for [{}].", extensionId.getId());
+                        // Send LicenseUpdatedEvent
                     }
                 } else {
                     logger.debug("No license received in store response. Updating all licenses in case there might "
@@ -173,6 +174,7 @@ public class DefaultLicenseUpdater implements LicenseUpdater
                 License retrivedLicense = converter.convert(License.class, base64decoder.decode(license));
                 if (retrivedLicense != null) {
                     licenseManagerProvider.get().add(retrivedLicense);
+                    // Send LicenseUpdatedEvent
                 }
             }
         } catch (URISyntaxException | IOException e) {

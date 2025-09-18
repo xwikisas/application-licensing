@@ -31,8 +31,10 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -43,6 +45,7 @@ import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
+import org.xwiki.observation.ObservationManager;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
 import com.xwiki.licensing.License;
@@ -56,6 +59,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
+import com.xwiki.licensing.internal.helpers.events.LicenseUpdatedEvent;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -91,6 +95,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
         }
     };
+
+    @Inject
+    private Provider<ObservationManager> observationManagerProvider;
 
     @Inject
     private Logger logger;
@@ -230,12 +237,14 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
     private void registerLicense(ExtensionId extId, License license)
     {
+        // Send LicenseUpdatedEvent?
         extensionToLicense.put(extId, license);
         clearSecurityCacheForXarExtension(extId);
     }
 
     private void replaceLicense(LicensedFeatureId extId, License existingLicense, License newLicense)
     {
+        // Send LicenseUpdatedEvent?
         // Register the new license for this extension
         featureToLicense.put(extId, newLicense);
 
@@ -339,6 +348,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
 
             linkLicenseToInstalledExtensions(licIds, license);
+            // Send LicenseUpdatedEvent
+            observationManagerProvider.get().notify(
+                new LicenseUpdatedEvent(license, LicenseUpdatedEvent.EventType.CREATED), null, null);
             return true;
         }
         return false;
@@ -357,6 +369,14 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Override
     public void delete(LicenseId licenseId)
     {
+        // Send LicenseUpdatedEvent
+        try {
+            observationManagerProvider.get().notify(new LicenseUpdatedEvent(
+                store.retrieve(storeReference, licenseId), LicenseUpdatedEvent.EventType.DELETED), null, null);
+        } catch (IOException e) {
+            logger.error("Failed to send event for licenseId [{}]. Cause: [{}]", licenseId,
+                ExceptionUtils.getRootCauseMessage(e));
+        }
         store.delete(storeReference, licenseId);
     }
 
@@ -395,5 +415,14 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             usedLicenses.add(license);
         }
         return usedLicenses;
+    }
+
+    /**
+     * Needed for checkstyle.
+     * @return the instance
+     */
+    public Provider<ObservationManager> getObservationManagerProvider()
+    {
+        return this.observationManagerProvider;
     }
 }
