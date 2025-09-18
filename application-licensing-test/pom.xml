@@ -25,10 +25,10 @@
   <parent>
     <groupId>com.xwiki.licensing</groupId>
     <artifactId>application-licensing</artifactId>
-    <version>1.29.2-SNAPSHOT</version>
+    <version>1.29.3-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-test</artifactId>
-  <version>1.29.2-SNAPSHOT</version>
+  <version>1.29.3-SNAPSHOT</version>
   <name>Licensing Application - Tests - Parent POM</name>
   <packaging>pom</packaging>
   <description>Tests for the Licensing module</description>
