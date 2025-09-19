@@ -74,6 +74,7 @@ public interface Licensor
      * @param reference the identifier of the extension for which licensure should be checked.
      * @param userReference the user for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
+     * @since 1.31
      */
     boolean hasLicensure(EntityReference reference, DocumentReference userReference);
 
@@ -95,6 +96,7 @@ public interface Licensor
      */
     boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference);
 
+    /**
      * Check if the given extension is expiring in less than 10 days.
      *
      * @param extensionId the identifier of the extension for which licensure should be checked.

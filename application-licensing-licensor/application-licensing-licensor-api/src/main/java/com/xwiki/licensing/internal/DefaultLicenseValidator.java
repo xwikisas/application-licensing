@@ -94,7 +94,7 @@ public class DefaultLicenseValidator implements LicenseValidator
     @Override
     public boolean isValid(License license)
     {
-        return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
+        return isValid(license, null);
     }
 
     @Override

@@ -82,7 +82,7 @@ public class UserCounter
 
     private Long cachedUserCount;
 
-    // A set of users on the instance, sorted by creation date.
+    // A set of all users on the instance, sorted by creation date.
     private SortedSet<XWikiDocument> cachedSortedUsers;
 
     // Helper to find users in constant time.
@@ -148,6 +148,8 @@ public class UserCounter
 
     /**
      * Flush the cache of the user counter.
+     *
+     * @since 1.31
      */
     public void flushCache()
     {
@@ -160,6 +162,7 @@ public class UserCounter
      * Get the users sorted by creation date.
      *
      * @return the users, sorted by creation date.
+     * @since 1.31
      */
     public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
@@ -180,6 +183,7 @@ public class UserCounter
      *
      * @return the user count
      * @throws Exception if we fail to count the users
+     * @since 1.31
      */
     public long getUserCount() throws Exception
     {
@@ -205,17 +209,28 @@ public class UserCounter
      * @param user the user to check
      * @param userLimit the license max user limit
      * @return whether the given user is under the specified license user limit
+     * @since 1.31
      */
     public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws QueryException, WikiManagerException
     {
         SortedSet<XWikiDocument> oldestUsers = getSortedUsers();
         /** Lookup table is initialized in {@link #getSortedUsers()}. */
-        XWikiDocument userDocument = cachedSortedUsersLookupTable.get(user);
+        XWikiDocument userDocument = getSortedUsersLookupTable().get(user);
         if (userDocument == null) {
             return false;
         } else {
             return oldestUsers.headSet(userDocument).size() < userLimit;
         }
+    }
+
+    private Map<DocumentReference, XWikiDocument> getSortedUsersLookupTable()
+        throws WikiManagerException, QueryException
+    {
+        if (cachedSortedUsersLookupTable == null) {
+            cachedSortedUsersLookupTable =
+                getSortedUsers().stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
+        }
+        return cachedSortedUsersLookupTable;
     }
 
     private long getUserCountOnWiki(String wikiId) throws QueryException

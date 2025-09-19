@@ -85,6 +85,7 @@ public interface LicenseValidator
      * @param license the license to be checked.
      * @param userReference the user to be checked.
      * @return true if the license is valid for the given user, false otherwise.
+     * @since 1.31
      */
     default boolean isValid(License license, DocumentReference userReference)
     {
