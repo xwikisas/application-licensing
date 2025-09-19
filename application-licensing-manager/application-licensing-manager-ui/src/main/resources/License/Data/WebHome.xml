@@ -39,7 +39,10 @@
   <content>{{include reference="License.Code.LicenseDetailsMacros"/}}
 
 {{velocity}}
-#if ($hasAdmin &amp;&amp; "$!request.action" == 'add')
+#set ($isUserInAdvancedUsersGroup = $xwiki.getUser().isUserInGroup("XWiki.AdvancedUsersGroup"))
+#set ($isUserInSupportGroup = $xwiki.getUser().isUserInGroup("XWiki.SupportGroup"))
+#set ($isActionAllowedForCurrentUser = $hasAdmin || $isUserInAdvancedUsersGroup || $isUserInSupportGroup)
+#if ($isActionAllowedForCurrentUser &amp;&amp; "$!request.action" == 'add')
   #findNextUniqueDetailsPageReference($detailsPageReference)
   $response.sendRedirect($xwiki.getURL($detailsPageReference.toString(), 'edit', $escapetool.url({
     'template': $request.template,
@@ -47,7 +50,6 @@
   })))
 #end
 
-#if ($hasAdmin)
 {{html}}
   &lt;form&gt;
     &lt;input type='hidden' name='action' value='add'/&gt;
@@ -57,7 +59,6 @@
     &lt;/span&gt;
   &lt;/form&gt;
 {{/html}}
-#end
 
 #set($columns = ['licenseId', 'type', 'firstName', 'lastName', 'email', 'instanceId', 'featureId',
   'dependentFeatureIds', 'issueDate', 'expirationDate', 'support', 'maxUserCount', 'hasLicense'])
