@@ -45,7 +45,6 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
-import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.Licensor;
 import com.xwiki.licensing.internal.AuthExtensionUserManager;
 import com.xwiki.licensing.internal.helpers.events.LicenseUpdatedEvent;

@@ -197,7 +197,6 @@ public class FileSystemLicenseStore implements LicenseStore
     @Override
     public void delete(LicenseStoreReference store)
     {
-        // Send LicenseUpdatedEvent?
         File licenseFile = getStoreFile(store);
 
         if (isMulti(store)) {

@@ -34,7 +34,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -59,7 +58,8 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
-import com.xwiki.licensing.internal.helpers.events.LicenseUpdatedEvent;
+import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
+import com.xwiki.licensing.internal.helpers.events.LicenseRemovedEvent;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -237,14 +237,12 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
     private void registerLicense(ExtensionId extId, License license)
     {
-        // Send LicenseUpdatedEvent?
         extensionToLicense.put(extId, license);
         clearSecurityCacheForXarExtension(extId);
     }
 
     private void replaceLicense(LicensedFeatureId extId, License existingLicense, License newLicense)
     {
-        // Send LicenseUpdatedEvent?
         // Register the new license for this extension
         featureToLicense.put(extId, newLicense);
 
@@ -254,6 +252,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             // Initialize the first usage of this new license
             licenses.put(newLicense.getId(), newLicense);
             licensesUsage.put(newLicense.getId(), 1);
+            observationManagerProvider.get().notify(new LicenseAddedEvent(newLicense), null, null);
         } else {
             logger.debug("Increment usage of license [{}] to [{}]", newLicense.getId(), usage + 1);
             // Increment the usage of this new license
@@ -269,6 +268,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.debug("Remove license [{}] from in-use licenses", existingLicense.getId());
                 // If the replaced license is no more in use, drop it from the license set to free memory
                 licenses.remove(existingLicense.getId());
+                observationManagerProvider.get().notify(new LicenseRemovedEvent(existingLicense), null, null);
             }
         }
     }
@@ -348,9 +348,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
 
             linkLicenseToInstalledExtensions(licIds, license);
-            // Send LicenseUpdatedEvent
-            observationManagerProvider.get().notify(
-                new LicenseUpdatedEvent(license, LicenseUpdatedEvent.EventType.CREATED), null, null);
             return true;
         }
         return false;
@@ -369,14 +366,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Override
     public void delete(LicenseId licenseId)
     {
-        // Send LicenseUpdatedEvent
-        try {
-            observationManagerProvider.get().notify(new LicenseUpdatedEvent(
-                store.retrieve(storeReference, licenseId), LicenseUpdatedEvent.EventType.DELETED), null, null);
-        } catch (IOException e) {
-            logger.error("Failed to send event for licenseId [{}]. Cause: [{}]", licenseId,
-                ExceptionUtils.getRootCauseMessage(e));
-        }
         store.delete(storeReference, licenseId);
     }
 
@@ -415,14 +404,5 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             usedLicenses.add(license);
         }
         return usedLicenses;
-    }
-
-    /**
-     * Needed for checkstyle.
-     * @return the instance
-     */
-    public Provider<ObservationManager> getObservationManagerProvider()
-    {
-        return this.observationManagerProvider;
     }
 }

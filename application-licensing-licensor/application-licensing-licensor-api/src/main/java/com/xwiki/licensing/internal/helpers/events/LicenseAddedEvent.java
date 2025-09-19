@@ -23,19 +23,17 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicensedFeatureId;
 
 /**
- * An event triggered after a license is updated.
+ * An event triggered after a license is added.
  *
  * @version $Id$
  * @since 1.31
  */
-public class LicenseUpdatedEvent extends LicenseEvent
+public class LicenseAddedEvent extends LicenseEvent
 {
-    private License oldLicense;
-
     /**
-     * Match any license updated event.
+     * Match any license added event.
      */
-    public LicenseUpdatedEvent()
+    public LicenseAddedEvent()
     {
         super();
     }
@@ -45,7 +43,7 @@ public class LicenseUpdatedEvent extends LicenseEvent
      *
      * @param featureId
      */
-    public LicenseUpdatedEvent(LicensedFeatureId featureId)
+    public LicenseAddedEvent(LicensedFeatureId featureId)
     {
         super(featureId);
     }
@@ -53,45 +51,17 @@ public class LicenseUpdatedEvent extends LicenseEvent
     /**
      * Default constructor for events.
      *
-     * @param license the new version of the license which was updated
+     * @param license the license which was updated
      */
-    public LicenseUpdatedEvent(License license)
+    public LicenseAddedEvent(License license)
     {
         super(license);
-    }
-
-    /**
-     * Constructor for events.
-     *
-     * @param newLicense the new version of the license which was updated
-     * @param oldLicense the old version of the license which was updated
-     */
-    public LicenseUpdatedEvent(License newLicense, License oldLicense)
-    {
-        super(newLicense);
-        this.oldLicense = oldLicense;
-    }
-
-    /**
-     * @return the old version of the license which was updated
-     */
-    public License getOldLicense()
-    {
-        return this.oldLicense;
-    }
-
-    /**
-     * @param oldLicense the old version of the license which was updated
-     */
-    public void setOldLicense(License oldLicense)
-    {
-        this.oldLicense = oldLicense;
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        if (!(otherEvent instanceof LicenseUpdatedEvent)) {
+        if (!(otherEvent instanceof LicenseAddedEvent)) {
             return false;
         }
         return super.matches(otherEvent);
