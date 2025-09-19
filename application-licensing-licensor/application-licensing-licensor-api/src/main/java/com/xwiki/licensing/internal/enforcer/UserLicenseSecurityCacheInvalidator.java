@@ -25,7 +25,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
@@ -40,15 +39,14 @@ import org.xwiki.observation.event.Event;
 import org.xwiki.observation.event.filter.EventFilter;
 import org.xwiki.observation.event.filter.RegexEventFilter;
 
-import com.xwiki.licensing.License;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.LicenseManager;
-import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
-import com.xwiki.licensing.internal.helpers.events.LicenseUpdatedEvent;
 
 /**
- * Invalidate the security cache when any user or license is updated, so the {@link LicensingAuthorizationSettler} is
- * called to compute the correct rights for all users on licensed extensions. This ensures that users under the user
- * limit still have view rights on licensed pages, and those above the limit don't.
+ * Invalidate the security cache when any user is updated, so the {@link LicensingAuthorizationSettler} is
+ * called to compute the correct rights for all users on licensed extensions.
+ * This ensures that users under the user limit still have view rights on licensed pages, and those above the limit
+ * don't.
  *
  * @version $Id$
  * @since 1.31
@@ -90,35 +88,27 @@ public class UserLicenseSecurityCacheInvalidator extends AbstractEventListener
     {
         super(ROLE_NAME,
             Arrays.asList(new DocumentCreatedEvent(XWIKI_SPACE_FILTER), new DocumentUpdatedEvent(XWIKI_SPACE_FILTER),
-                new DocumentDeletedEvent(XWIKI_SPACE_FILTER), new LicenseAddedEvent(new License())));
+                new DocumentDeletedEvent(XWIKI_SPACE_FILTER)));
     }
 
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (event instanceof LicenseUpdatedEvent) {
-            throw new NotImplementedException();
-//            ((LicenseUpdatedEvent) event).getLicense().getFeatureIds().stream()
-//            .map(fId -> xarInstalledExtensionRepository.getInstalledExtension(fId));
-        } else {
-            clearSecurityCacheForLicensedXarExtensionsWithUserLimit();
+        // Only invalidate security cache when users are modified.
+        if (((XWikiDocument) source).getXObject(XWIKI_USER_CLASS_REFERENCE) != null) {
+            xarInstalledExtensionRepository.getInstalledExtensions().parallelStream().filter(
+                a -> a instanceof XarInstalledExtension
+                        && licenseManager.get(a.getId()) != null
+                        && isValidLicenseUserCount(licenseManager.get(a.getId()).getMaxUserCount())
+            ).forEach(extension -> {
+                logger.warn("Clearing security cache for licensed extension [{}] after user status change.", extension);
+                licensingSecurityCacheRuleInvalidator.invalidate((XarInstalledExtension) extension);
+            });
         }
     }
 
-    /**
-     * Taken from {@link com.xwiki.licensing.internal.DefaultLicenseManager}.
-     */
-    private void clearSecurityCacheForLicensedXarExtensionsWithUserLimit()
+    private boolean isValidLicenseUserCount(long count)
     {
-        // We need to clear the cache because its content might be wrong after a licensing state change.
-//        licenseManager.getUsedLicenses().stream().forEach(lic -> lic);
-        xarInstalledExtensionRepository.getInstalledExtensions().parallelStream().filter(
-                a -> a instanceof XarInstalledExtension && licenseManager.get(a.getId()) != null
-                    && licenseManager.get(a.getId()).getMaxUserCount() >= 0)
-            .forEach(extension -> {
-                logger.debug("Clearing security cache for licensed extension [{}] after user status change.",
-                    extension);
-                licensingSecurityCacheRuleInvalidator.invalidate((XarInstalledExtension) extension);
-            });
+        return !(count < 0 || count == Long.MAX_VALUE);
     }
 }
