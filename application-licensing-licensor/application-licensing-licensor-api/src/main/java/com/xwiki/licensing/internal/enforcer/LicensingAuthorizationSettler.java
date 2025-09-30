@@ -232,7 +232,7 @@ public class LicensingAuthorizationSettler implements AuthorizationSettler, Init
 
             InternalSecurityAccess access = new InternalSecurityAccess(accessEntry.getAccess());
 
-            if (!(getLicenseValidator().isValid(license))) {
+            if (!(getLicenseValidator().isValid(license, user))) {
                 logger.debug("Applying invalid license [{}] to [{}].", license.getId().toString(), ref);
                 access.deny(Right.VIEW);
                 access.deny(Right.COMMENT);

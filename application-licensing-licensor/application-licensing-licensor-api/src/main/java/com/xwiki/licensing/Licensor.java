@@ -21,6 +21,7 @@ package com.xwiki.licensing;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.stability.Unstable;
 
@@ -68,12 +69,32 @@ public interface Licensor
     boolean hasLicensure(EntityReference reference);
 
     /**
+     * Check if the given entity is covered by a valid license for the given user.
+     *
+     * @param reference the identifier of the extension for which licensure should be checked.
+     * @param userReference the user for which licensure should be checked.
+     * @return true if the given extension has a valid license or is not subject to licensing.
+     * @since 1.31
+     */
+    boolean hasLicensure(EntityReference reference, DocumentReference userReference);
+
+    /**
      * Check if the given extension is covered by a valid license.
      *
      * @param extensionId the identifier of the extension for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
      */
     boolean hasLicensure(ExtensionId extensionId);
+
+    /**
+     * Check if the given extension is covered by a valid license for the given user.
+     *
+     * @param extensionId the identifier of the extension for which licensure should be checked.
+     * @param userReference the user for which licensure should be checked.
+     * @return true if the given extension has a valid license or is not subject to licensing.
+     * @since 1.31
+     */
+    boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference);
 
     /**
      * Check if the given extension is expiring in less than 10 days.

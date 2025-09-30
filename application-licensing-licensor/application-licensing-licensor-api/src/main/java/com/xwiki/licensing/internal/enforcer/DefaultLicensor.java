@@ -32,6 +32,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 import com.xpn.xwiki.XWikiContext;
@@ -106,21 +107,35 @@ public class DefaultLicensor implements Licensor, Initializable
     public boolean hasLicensure()
     {
         License license = getLicense();
-        return license == null || licenseValidator.isValid(license);
+        return license == null || licenseValidator.isValid(license, context.get().getUserReference());
     }
 
     @Override
     public boolean hasLicensure(EntityReference reference)
     {
         License license = getLicense(reference);
-        return license == null || licenseValidator.isValid(license);
+        return license == null || licenseValidator.isValid(license, context.get().getUserReference());
     }
 
     @Override
     public boolean hasLicensure(ExtensionId extensionId)
     {
         License license = getLicense(extensionId);
-        return license == null || licenseValidator.isValid(license);
+        return license == null || licenseValidator.isValid(license, context.get().getUserReference());
+    }
+
+    @Override
+    public boolean hasLicensure(EntityReference reference, DocumentReference userReference)
+    {
+        License license = getLicense(reference);
+        return license == null || licenseValidator.isValid(license, userReference);
+    }
+
+    @Override
+    public boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference)
+    {
+        License license = getLicense(extensionId);
+        return license == null || licenseValidator.isValid(license, userReference);
     }
 
     @Override

@@ -40,6 +40,8 @@ import com.xwiki.licensing.LicenseValidator;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -91,7 +93,7 @@ class DefaultLicensorTest
         when(wikiContext.getDoc()).thenReturn(wikiDocument);
         when(wikiDocument.getDocumentReference()).thenReturn(docRef);
         when(entityLicenseManager.get(docRef)).thenReturn(license);
-        when(licenseValidator.isValid(license)).thenReturn(true);
+        when(licenseValidator.isValid(eq(license), any())).thenReturn(true);
         when(licenseManager.get(extensionId)).thenReturn(license);
         when(licenseValidator.isValid(invalidLicense)).thenReturn(false);
     }

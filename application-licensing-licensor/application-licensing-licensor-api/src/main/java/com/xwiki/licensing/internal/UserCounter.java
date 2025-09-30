@@ -21,19 +21,27 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.slf4j.Logger;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
+import org.xwiki.observation.event.filter.EventFilter;
+import org.xwiki.observation.event.filter.RegexEventFilter;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -54,6 +62,11 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class UserCounter
 {
+    protected static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
+        + "where doc.space = 'XWiki' "
+        + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
+        + "and prop.id.name = 'active' and prop.value = '1'";
+
     @Inject
     private Logger logger;
 
@@ -68,6 +81,12 @@ public class UserCounter
     private QueryFilter countFilter;
 
     private Long cachedUserCount;
+
+    // A set of all users on the instance, sorted by creation date.
+    private SortedSet<XWikiDocument> cachedSortedUsers;
+
+    // Helper to find users in constant time.
+    private Map<DocumentReference, XWikiDocument> cachedSortedUsersLookupTable;
 
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
@@ -90,6 +109,8 @@ public class UserCounter
 
         protected static final LocalDocumentReference USER_CLASS = new LocalDocumentReference("XWiki", "XWikiUsers");
 
+        private static final EventFilter XWIKI_SPACE_FILTER = new RegexEventFilter("(.*:)?XWiki\\..*");
+
         @Inject
         private UserCounter userCounter;
 
@@ -98,8 +119,8 @@ public class UserCounter
          */
         public UserListener()
         {
-            super(HINT,
-                Arrays.asList(new DocumentCreatedEvent(), new DocumentUpdatedEvent(), new DocumentDeletedEvent()));
+            super(HINT, Arrays.asList(new DocumentCreatedEvent(XWIKI_SPACE_FILTER),
+                new DocumentUpdatedEvent(XWIKI_SPACE_FILTER), new DocumentDeletedEvent(XWIKI_SPACE_FILTER)));
         }
 
         @Override
@@ -120,16 +141,49 @@ public class UserCounter
 
             if (newDocumentIsUser != oldDocumentIsUser || newActive != oldActive) {
                 // The user object is either added/removed or set to active/inactive. Invalidate the cached user count.
-                this.userCounter.cachedUserCount = null;
+                this.userCounter.flushCache();
             }
         }
     }
 
     /**
+     * Flush the cache of the user counter.
+     *
+     * @since 1.31
+     */
+    public void flushCache()
+    {
+        this.cachedUserCount = null;
+        this.cachedSortedUsers = null;
+        this.cachedSortedUsersLookupTable = null;
+    }
+
+    /**
+     * Get the users sorted by creation date.
+     *
+     * @return the users, sorted by creation date.
+     * @since 1.31
+     */
+    public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
+    {
+        if (cachedSortedUsers == null) {
+            cachedSortedUsers = new TreeSet<>(
+                (e1, e2) -> new CompareToBuilder().append(e1.getCreationDate(), e2.getCreationDate()).build());
+            for (String wikiId : wikiDescriptorManager.getAllIds()) {
+                cachedSortedUsers.addAll(getUsersOnWiki(wikiId));
+            }
+            cachedSortedUsersLookupTable =
+                cachedSortedUsers.stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
+        }
+        return cachedSortedUsers;
+    }
+
+    /**
      * Counts the existing active users.
-     * 
+     *
      * @return the user count
      * @throws Exception if we fail to count the users
+     * @since 1.31
      */
     public long getUserCount() throws Exception
     {
@@ -149,15 +203,47 @@ public class UserCounter
         return cachedUserCount;
     }
 
+    /**
+     * Return whether the given user is under the specified license user limit.
+     *
+     * @param user the user to check
+     * @param userLimit the license max user limit
+     * @return whether the given user is under the specified license user limit
+     * @since 1.31
+     */
+    public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws QueryException, WikiManagerException
+    {
+        SortedSet<XWikiDocument> oldestUsers = getSortedUsers();
+        /** Lookup table is initialized in {@link #getSortedUsers()}. */
+        XWikiDocument userDocument = getSortedUsersLookupTable().get(user);
+        if (userDocument == null) {
+            return false;
+        } else {
+            return oldestUsers.headSet(userDocument).size() < userLimit;
+        }
+    }
+
+    private Map<DocumentReference, XWikiDocument> getSortedUsersLookupTable()
+        throws WikiManagerException, QueryException
+    {
+        if (cachedSortedUsersLookupTable == null) {
+            cachedSortedUsersLookupTable =
+                getSortedUsers().stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
+        }
+        return cachedSortedUsersLookupTable;
+    }
+
     private long getUserCountOnWiki(String wikiId) throws QueryException
     {
-        StringBuilder statement = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
-        statement.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
-        statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
-
-        Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
+        Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
         query.addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);
+    }
+
+    private List<XWikiDocument> getUsersOnWiki(String wikiId) throws QueryException
+    {
+        return this.queryManager.createQuery("select doc from XWikiDocument doc" + BASE_USER_QUERY, Query.HQL)
+            .setWiki(wikiId).execute();
     }
 }
