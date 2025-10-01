@@ -19,6 +19,9 @@
  */
 package com.xwiki.licensing.test.script;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -30,6 +33,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.Licensor;
 
 /**
@@ -46,6 +50,8 @@ public class LicensorScriptService implements ScriptService
 {
     @Inject
     private Licensor licensor;
+    private static final Map<String, License> CUSTOM_LICENSES = new ConcurrentHashMap<>();
+    private static volatile boolean customLicenseMode = false;
 
     /**
      * Retrieve the currently applicable license for the current context document if any. Equivalent to
@@ -113,5 +119,61 @@ public class LicensorScriptService implements ScriptService
     public boolean hasLicensureForEntity(EntityReference reference)
     {
         return licensor.hasLicensure(reference);
+    }
+
+    public static void setCustomLicenseMode(boolean enabled)
+    {
+        customLicenseMode = enabled;
+    }
+
+    public static void clearCustomLicenses()
+    {
+        CUSTOM_LICENSES.clear();
+        customLicenseMode = false;
+    }
+
+    public License addLicense(ExtensionId extensionId, LicenseType licenseType)
+    {
+        License license = new License();
+        license.setType(licenseType);
+        customLicenseMode = true;
+        CUSTOM_LICENSES.put(extensionId.toString(), license);
+
+        return license;
+    }
+
+    public License addLicense(ExtensionId extensionId, LicenseType licenseType, int expirationDays, long maxUserCount)
+    {
+        License license = new License();
+        license.setType(licenseType);
+        license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
+        license.setMaxUserCount(maxUserCount);
+        customLicenseMode = true;
+        CUSTOM_LICENSES.put(extensionId.toString(), license);
+
+        return license;
+    }
+
+    public License addLicense(EntityReference entityReference, LicenseType licenseType)
+    {
+        License license = new License();
+        license.setType(licenseType);
+        customLicenseMode = true;
+        CUSTOM_LICENSES.put(entityReference.toString(), license);
+
+        return license;
+    }
+
+    public License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays,
+        long maxUserCount)
+    {
+        License license = new License();
+        license.setType(licenseType);
+        license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
+        license.setMaxUserCount(maxUserCount);
+        customLicenseMode = true;
+        CUSTOM_LICENSES.put(entityReference.toString(), license);
+
+        return license;
     }
 }

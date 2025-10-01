@@ -75,4 +75,14 @@ public interface Licensor
      * @return a license, or null if the given reference is not subject to licensing.
      */
     License getLicense(EntityReference reference);
+
+    License addLicense(ExtensionId extensionId, LicenseType licenseType);
+
+    License addLicense(ExtensionId extensionId, LicenseType licenseType, int expirationDays, long maxUserCount);
+
+    License addLicense(EntityReference entityReference, LicenseType licenseType);
+
+    License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays,
+        long maxUserCount);
+
 }
