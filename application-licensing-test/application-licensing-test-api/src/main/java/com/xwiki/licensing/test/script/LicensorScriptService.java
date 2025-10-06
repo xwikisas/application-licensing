@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
@@ -50,6 +51,8 @@ public class LicensorScriptService implements ScriptService
 {
     @Inject
     private Licensor licensor;
+    @Inject
+    private EntityReferenceSerializer<String> serializer;
     private static final Map<String, License> CUSTOM_LICENSES = new ConcurrentHashMap<>();
     private static volatile boolean customLicenseMode = false;
 
@@ -73,6 +76,9 @@ public class LicensorScriptService implements ScriptService
      */
     public License getLicenseForExtension(ExtensionId extensionId)
     {
+        if (customLicenseMode && CUSTOM_LICENSES.containsKey(extensionId.toString())) {
+            return CUSTOM_LICENSES.get(extensionId.toString());
+        }
         return licensor.getLicense(extensionId);
     }
 
@@ -84,6 +90,10 @@ public class LicensorScriptService implements ScriptService
      */
     public License getLicenseForEntity(EntityReference reference)
     {
+        String entityString = this.serializer.serialize(reference);
+        if (customLicenseMode && CUSTOM_LICENSES.containsKey(entityString)) {
+            return CUSTOM_LICENSES.get(entityString);
+        }
         return licensor.getLicense(reference);
     }
 
@@ -159,7 +169,8 @@ public class LicensorScriptService implements ScriptService
         License license = new License();
         license.setType(licenseType);
         customLicenseMode = true;
-        CUSTOM_LICENSES.put(entityReference.toString(), license);
+        String entityString = this.serializer.serialize(entityReference);
+        CUSTOM_LICENSES.put(entityString, license);
 
         return license;
     }
@@ -172,7 +183,8 @@ public class LicensorScriptService implements ScriptService
         license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
         license.setMaxUserCount(maxUserCount);
         customLicenseMode = true;
-        CUSTOM_LICENSES.put(entityReference.toString(), license);
+        String entityString = this.serializer.serialize(entityReference);
+        CUSTOM_LICENSES.put(entityString, license);
 
         return license;
     }

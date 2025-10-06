@@ -22,11 +22,13 @@ package com.xwiki.licensing.test;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
@@ -47,6 +49,9 @@ public class TestLicensor implements Licensor
     private static volatile boolean customLicenseMode = false;
 
     private final License freeLicense;
+
+    @Inject
+    private EntityReferenceSerializer<String> serializer;
 
     public TestLicensor()
     {
@@ -93,7 +98,7 @@ public class TestLicensor implements Licensor
         if (!customLicenseMode) {
             return freeLicense;
         }
-        return CUSTOM_LICENSES.getOrDefault(reference.toString(), freeLicense);
+        return CUSTOM_LICENSES.getOrDefault(this.serializer.serialize(reference), freeLicense);
     }
 
     public static void setCustomLicenseMode(boolean enabled)
@@ -134,7 +139,8 @@ public class TestLicensor implements Licensor
         License license = new License();
         license.setType(licenseType);
         customLicenseMode = true;
-        CUSTOM_LICENSES.put(entityReference.toString(), license);
+        String entityString = this.serializer.serialize(entityReference);
+        CUSTOM_LICENSES.put(entityString, license);
 
         return license;
     }
@@ -147,7 +153,8 @@ public class TestLicensor implements Licensor
         license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
         license.setMaxUserCount(maxUserCount);
         customLicenseMode = true;
-        CUSTOM_LICENSES.put(entityReference.toString(), license);
+        String entityString = this.serializer.serialize(entityReference);
+        CUSTOM_LICENSES.put(entityString, license);
 
         return license;
     }
