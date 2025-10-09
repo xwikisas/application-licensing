@@ -208,13 +208,13 @@ public class UserCounter
      */
     public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws QueryException, WikiManagerException
     {
-        SortedSet<XWikiDocument> oldestUsers = getSortedUsers();
+        SortedSet<XWikiDocument> sortedUsers = getSortedUsers();
         /** Lookup table is initialized in {@link #getSortedUsers()}. */
         XWikiDocument userDocument = cachedSortedUsersLookupTable.get(user);
         if (userDocument == null) {
             return false;
         } else {
-            return oldestUsers.headSet(userDocument).size() < userLimit;
+            return sortedUsers.headSet(userDocument).size() < userLimit;
         }
     }
 
