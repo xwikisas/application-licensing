@@ -138,6 +138,7 @@ public class DefaultLicensor implements Licensor, Initializable
         return license == null || licenseValidator.isValid(license, userReference);
     }
 
+    @Override
     public boolean isLicenseExpiring(ExtensionId extensionId)
     {
         License license = getLicense(extensionId);
