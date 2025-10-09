@@ -19,6 +19,11 @@
  */
 package com.xwiki.licensing.internal.enforcer;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
@@ -45,6 +50,8 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class DefaultLicensor implements Licensor, Initializable
 {
+    private static final int EXPIRATION_THRESHOLD = 10;
+
     @Inject
     private LicenseManager licenseManager;
 
@@ -129,5 +136,17 @@ public class DefaultLicensor implements Licensor, Initializable
     {
         License license = getLicense(extensionId);
         return license == null || licenseValidator.isValid(license, userReference);
+    }
+
+    public boolean isLicenseExpiring(ExtensionId extensionId)
+    {
+        License license = getLicense(extensionId);
+        if (license == null) {
+            return false;
+        }
+        LocalDate expirationDate =
+            Instant.ofEpochMilli(license.getExpirationDate()).atZone(ZoneId.systemDefault()).toLocalDate();
+        long daysUntilExpiration = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
+        return daysUntilExpiration <= EXPIRATION_THRESHOLD && daysUntilExpiration > 0;
     }
 }
