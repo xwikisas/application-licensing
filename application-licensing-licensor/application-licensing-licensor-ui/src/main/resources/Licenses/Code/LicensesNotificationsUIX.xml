@@ -38,43 +38,186 @@
   <hidden>true</hidden>
   <content>{{include reference="Licenses.Code.VelocityMacros" /}}
 
+{{velocity output="false"}}
+#macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
+  &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
+    &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
+      #if ($showMore)
+        &lt;li&gt;...&lt;/li&gt;
+      #end
+    &lt;/ul&gt;
+    &lt;/br&gt;
+    &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
+      $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
+  &lt;/$licensesNotificationWrapperTagName&gt;
+#end
+{{/velocity}}
+
 {{velocity}}
 #if ($hasAdmin &amp;&amp; $hasProgramming)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
-  #set ($extensionNames = $collectiontool.sortedSet)
+  #set ($invalidExtensionNames = $collectiontool.sortedSet)
+  #set ($expiringExtensionNames = $collectiontool.sortedSet)
   #set ($limit = 3)
-  #set ($showMore = false)
+  #set ($showMoreInvalid = false)
+  #set ($showMoreExpiring = false)
+  #set ($foundExpiring = false)
+  #set ($foundInvalid = false)
   #foreach ($extension in $visiblePaidExtensions)
-    #if (!$services.licensing.licensor.hasLicensureForExtension($extension.id))
-      #if ($extensionNames.size() &lt; $limit)
-        #set ($discard = $extensionNames.add($escapetool.xml($extension.name)))
+    #if (!$showMoreInvalid &amp;&amp; !$services.licensing.licensor.hasLicensureForExtension($extension.id))
+      #set ($foundInvalid = true)
+      #if ($invalidExtensionNames.size() &lt; $limit)
+        #set ($discard = $invalidExtensionNames.add($escapetool.xml($extension.name)))
       #else
-        #set ($showMore = true)
-        #break
+        #set ($showMoreInvalid = true)
+      #end
+    #elseif (!$showMoreExpiring &amp;&amp; $services.licensing.licensor.isLicenseExpiring($extension.id))
+      #set ($foundExpiring = true)
+      #if ($expiringExtensionNames.size() &lt; $limit)
+        #set ($discard = $expiringExtensionNames.add($escapetool.xml($extension.name)))
+      #else
+        #set ($showMoreExpiring = true)
       #end
     #end
+    #if ($showMoreExpiring &amp;&amp; $showMoreInvalid)
+      #break
+    #end
   #end
-  #if ($showMore || $extensionNames.size() &gt; 0)
+  #if ($foundInvalid || $foundExpiring)
     #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
-    #if (!$missingLicensesWrapperTagName)
-      #set ($missingLicensesWrapperTagName = 'div')
+    #if (!$licensesNotificationWrapperTagName)
+      #set ($licensesNotificationWrapperTagName = 'div')
     #end
     {{html clean=false}}
-    &lt;$missingLicensesWrapperTagName class="notifications-missingLicenses errormessage"&gt;
-      &lt;p&gt;$services.localization.render('licensor.missingLicenses', ["&lt;a href='#getLicensesAdminSectionURL'&gt;",
-        '&lt;/a&gt;'])&lt;/p&gt;
-      &lt;ul&gt;
-        &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
-        #if ($showMore)
-          &lt;li&gt;...&lt;/li&gt;
-        #end
-      &lt;/ul&gt;
-    &lt;/$missingLicensesWrapperTagName&gt;
+    #if ($foundInvalid)
+      #renderNotification('danger' 'errormessage' 'licensor.missingLicenses' $invalidExtensionNames $showMoreInvalid)
+    #end
+    #if ($foundExpiring)
+      #if ($foundInvalid)
+        &lt;li class="divider" role="separator"&gt;&lt;/li&gt;
+      #end
+      #renderNotification('warning' 'warningmessage' 'licensor.expiringLicenses' $expiringExtensionNames
+        $showMoreExpiring)
+    #end
     {{/html}}
   #end
 #end
 {{/velocity}}</content>
+  <object>
+    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>6091f669-661e-410c-8179-eeb2dac63c2f</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function($) {
+  $(document).ready(function() {
+    const dropdownToggle = $('#tmNotifications &gt; .dropdown-toggle');
+    if (!dropdownToggle.length) {
+      return;
+    }
+    if ($(".licenses-notification.errormessage").length) {
+      dropdownToggle.addClass('licenses-error');
+    } else if ($(".licenses-notification.warningmessage").length) {
+      dropdownToggle.addClass('licenses-warning');
+    }
+  });
+});</code>
+    </property>
+    <property>
+      <name>Licenses notification JS</name>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
   <object>
     <name>Licenses.Code.LicensesNotificationsUIX</name>
     <number>0</number>
@@ -183,17 +326,29 @@
     <property>
       <code>#template('colorThemeInit.vm')
 
-#tmNotifications &gt; .dropdown-toggle span:empty::before {
+.licenses-error span:empty::before {
   color: $theme.notificationErrorColor;
 }
+
+.licenses-error img {
+  background-color: $theme.notificationErrorColor;
+}
+
+.licenses-warning span:empty::before {
+  color: $theme.notificationWarningColor;
+}
+
+.licenses-warning img {
+  background-color: $theme.notificationWarningColor;
+}
+
 /* Highlight the notification bell icon when using Silk icon theme.*/
 #tmNotifications &gt; .dropdown-toggle img {
   margin: -10px;
   padding: 10px;
-  background-color: $theme.notificationErrorColor;
 }
 
-.notifications-missingLicenses {
+.licenses-notification {
   min-width: 280px;
   padding: 10px;
 }</code>
@@ -202,7 +357,7 @@
       <contentType>CSS</contentType>
     </property>
     <property>
-      <name>CSS</name>
+      <name>Licenses notification CSS</name>
     </property>
     <property>
       <parse>1</parse>
@@ -339,13 +494,14 @@
     <property>
       <content>{{velocity}}
 #if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX'))
-  #set ($missingLicensesWrapperTagName = 'li')
+  #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
+  #set ($licensesNotificationWrapperTagName = 'li')
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
 #end
 {{/velocity}}
 
 {{velocity output="false"}}
-#set ($missingLicensesWrapperTagName = $NULL)
+#set ($licensesNotificationWrapperTagName = $NULL)
 {{/velocity}}</content>
     </property>
     <property>
