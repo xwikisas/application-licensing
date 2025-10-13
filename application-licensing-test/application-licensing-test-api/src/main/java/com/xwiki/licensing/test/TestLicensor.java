@@ -46,8 +46,6 @@ public class TestLicensor implements Licensor
 {
     private static final Map<String, License> CUSTOM_LICENSES = new ConcurrentHashMap<>();
 
-    private static volatile boolean customLicenseMode = false;
-
     private final License freeLicense;
 
     @Inject
@@ -86,37 +84,26 @@ public class TestLicensor implements Licensor
     @Override
     public License getLicense(ExtensionId extensionId)
     {
-        if (!customLicenseMode) {
-            return freeLicense;
-        }
-        return CUSTOM_LICENSES.getOrDefault(extensionId.toString(), freeLicense);
+        License custom = CUSTOM_LICENSES.get(extensionId.toString());
+        return custom != null ? custom : freeLicense;
     }
 
     @Override
     public License getLicense(EntityReference reference)
     {
-        if (!customLicenseMode) {
-            return freeLicense;
-        }
-        return CUSTOM_LICENSES.getOrDefault(this.serializer.serialize(reference), freeLicense);
-    }
-
-    public static void setCustomLicenseMode(boolean enabled)
-    {
-        customLicenseMode = enabled;
+        License custom = CUSTOM_LICENSES.get(this.serializer.serialize(reference));
+        return custom != null ? custom : freeLicense;
     }
 
     public static void clearCustomLicenses()
     {
         CUSTOM_LICENSES.clear();
-        customLicenseMode = false;
     }
 
     public License addLicense(ExtensionId extensionId, LicenseType licenseType)
     {
         License license = new License();
         license.setType(licenseType);
-        customLicenseMode = true;
         CUSTOM_LICENSES.put(extensionId.toString(), license);
 
         return license;
@@ -128,7 +115,6 @@ public class TestLicensor implements Licensor
         license.setType(licenseType);
         license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
         license.setMaxUserCount(maxUserCount);
-        customLicenseMode = true;
         CUSTOM_LICENSES.put(extensionId.toString(), license);
 
         return license;
@@ -138,7 +124,6 @@ public class TestLicensor implements Licensor
     {
         License license = new License();
         license.setType(licenseType);
-        customLicenseMode = true;
         String entityString = this.serializer.serialize(entityReference);
         CUSTOM_LICENSES.put(entityString, license);
 
@@ -152,7 +137,6 @@ public class TestLicensor implements Licensor
         license.setType(licenseType);
         license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
         license.setMaxUserCount(maxUserCount);
-        customLicenseMode = true;
         String entityString = this.serializer.serialize(entityReference);
         CUSTOM_LICENSES.put(entityString, license);
 

@@ -82,7 +82,5 @@ public interface Licensor
 
     License addLicense(EntityReference entityReference, LicenseType licenseType);
 
-    License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays,
-        long maxUserCount);
-
+    License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays, long maxUserCount);
 }
