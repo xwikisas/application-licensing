@@ -116,29 +116,67 @@ public class LicensorScriptService implements ScriptService
         return licensor.hasLicensure(reference);
     }
 
+    /**
+     * Add a new license of a certain type for the given extension.
+     *
+     * @param extensionId the identifier of the installed extension
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @return the newly created License
+     */
     public License addLicense(ExtensionId extensionId, LicenseType licenseType)
     {
         return licensor.addLicense(extensionId, licenseType);
     }
 
+    /**
+     * Add a new license of a certain type for the given extension.
+     *
+     * @param extensionId the identifier of the installed extension
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @param expirationDays the number of days until the license expires
+     * @param maxUserCount the maximum number of users allowed under this license
+     * @return the newly created License
+     */
     public License addLicense(ExtensionId extensionId, LicenseType licenseType, int expirationDays, long maxUserCount)
     {
         return licensor.addLicense(extensionId, licenseType, expirationDays, maxUserCount);
     }
 
+    /**
+     * Add a new license of a certain type for the given entity.
+     *
+     * @param entityReference the reference of the entity to which the license applies
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @return the newly created License
+     */
     public License addLicense(EntityReference entityReference, LicenseType licenseType)
     {
         return licensor.addLicense(entityReference, licenseType);
     }
 
+    /**
+     * Add a new license of a certain type for the given entity.
+     *
+     * @param entityReference the reference of the entity to which the license applies
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @param expirationDays the number of days until the license expires
+     * @param maxUserCount the maximum number of users allowed under this license
+     * @return the newly created License
+     */
     public License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays,
         long maxUserCount)
     {
         return licensor.addLicense(entityReference, licenseType, expirationDays, maxUserCount);
     }
 
-    public LicenseType getLicenseType(String licenceType)
+    /**
+     * Retrieve the LicenseType corresponding to the given string identifier.
+     *
+     * @param licenseType the name of the license type (FREE, TRIAL, PAID)
+     * @return the corresponding enum value of the license type
+     */
+    public LicenseType getLicenseType(String licenseType)
     {
-        return LicenseType.valueOf(licenceType);
+        return LicenseType.valueOf(licenseType);
     }
 }
