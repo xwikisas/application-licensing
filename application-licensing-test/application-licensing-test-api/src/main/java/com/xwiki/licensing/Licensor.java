@@ -76,11 +76,35 @@ public interface Licensor
      */
     License getLicense(EntityReference reference);
 
+    /**
+     * @param extensionId identifier of an installed extension
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @return the newly created License
+     */
     License addLicense(ExtensionId extensionId, LicenseType licenseType);
 
+    /**
+     * @param extensionId identifier of an installed extension
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @param expirationDays the number of days until the license expires
+     * @param maxUserCount the maximum number of users allowed under this license
+     * @return the newly created License
+     */
     License addLicense(ExtensionId extensionId, LicenseType licenseType, int expirationDays, long maxUserCount);
 
+    /**
+     * @param entityReference the reference of the entity for which the license applies
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @return the newly created License
+     */
     License addLicense(EntityReference entityReference, LicenseType licenseType);
 
+    /**
+     * @param entityReference the reference of the entity for which the license applies
+     * @param licenseType the type of License to add (FREE, TRIAL, PAID)
+     * @param expirationDays the number of days until the license expires
+     * @param maxUserCount the maximum number of users allowed under this license
+     * @return the newly created License
+     */
     License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays, long maxUserCount);
 }

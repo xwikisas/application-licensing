@@ -44,6 +44,7 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class TestLicensor implements Licensor
 {
+    // This map is used for storing custom licenses (FREE, TRIAL, PAID) used for tests.
     private static final Map<String, License> CUSTOM_LICENSES = new ConcurrentHashMap<>();
 
     private final License freeLicense;
