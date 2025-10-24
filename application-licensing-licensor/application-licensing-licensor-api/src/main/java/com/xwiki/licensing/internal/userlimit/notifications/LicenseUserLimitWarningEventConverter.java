@@ -59,7 +59,6 @@ public class LicenseUserLimitWarningEventConverter implements RecordableEventCon
 
         Event convertedEvent = this.defaultConverter.convert(event, source, data);
 
-        convertedEvent.setApplication("Licensor");
         convertedEvent.setBody(serializeParams(Map.of("license", event.getLicense().getId().toString(), "userDiff",
             event.getUserDiff())));
 

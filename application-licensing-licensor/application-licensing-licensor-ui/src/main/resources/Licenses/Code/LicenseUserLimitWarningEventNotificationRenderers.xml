@@ -21,7 +21,7 @@
 -->
 
 <xwikidoc version="1.5" reference="Licenses.Code.LicenseUserLimitWarningEventNotificationRenderers" locale="">
-  <web>TaskManager</web>
+  <web>Licenses.Code</web>
   <name>LicenseUserLimitWarningEventNotificationRenderers</name>
   <language/>
   <defaultLanguage/>
@@ -75,122 +75,53 @@
       </notificationTemplate>
     </class>
     <property>
-      <eventType>com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEventDescriptor</eventType>
+      <eventType>com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent</eventType>
     </property>
     <property>
       <notificationTemplate>#template('notification/macros.vm')
 
-        #set ($mainIcon = 'list')
-        #set ($smallIcon = '')
+#set ($mainIcon = 'warning')
+#set ($smallIcon = '')
 
-        #macro (getGenericFieldDescription $customEventInfo $eventText)
-        ## The notification text will be available in `$eventText` after calling this macro.
-        #set ($localizationParams = [
-        $customEventInfo['currentValue'],
-        $customEventInfo['previousValue']
-        ])
-        #set ($localizationId = "taskmanager.events.taskChangedEvent.details.${customEventInfo['type']}" )
-        #set ($eventText = $services.localization.render($localizationId, 'xhtml/1.0', $localizationParams))
-        #end
+#macro (displayEventDetails $event)
+  #set ($customEventInfo = $jsontool.fromString($event.getBody()))
+  #set ($localizationId = 'licensor.notification.userLimitWarning.description')
+  #if ($customEventInfo['userDiff'] == 1)
+    #set ($localizationId = $localizationId + '.under.singular')
+  #elseif ($customEventInfo['userDiff'] &gt; 0)
+    #set ($localizationId = $localizationId + '.under')
+  #elseif ($customEventInfo['userDiff'] == 0)
+    #set ($localizationId = $localizationId + '.limit')
+  #else
+    #set ($localizationId = $localizationId + '.over')
+  #end
+  &lt;tr&gt;
+    &lt;td class="description"&gt;$services.localization.render($localizationId, [$customEventInfo['license'], $customEventInfo['userDiff']])&lt;/td&gt;
+    &lt;td class="text-right text-muted"&gt;
+      $escapetool.xml($xwiki.formatDate($event.date))
+    &lt;/td&gt;
+  &lt;/tr&gt;
+#end
 
-        #macro (getAssigneeDescription $customEventInfo $eventText)
-        #if ("$!customEventInfo['currentValue']" == '')
-        #if ($customEventInfo['previousValue'] == $xwiki.getUser().getUser().getFullName())
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.you.unassigned')
-        #else
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.none')
-        #end
-        #elseif ($customEventInfo['currentValue'] == $xwiki.getUser().getUser().getFullName())
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.you.assigned')
-        #end
-        #set ($localizationParams = [
-        '__currentUser__',
-        '__previousUser__'
-        ])
-        #set ($localizationId = "taskmanager.events.taskChangedEvent.details.${customEventInfo['type']}" )
-        #set ($eventText = $services.localization.render($localizationId, 'xhtml/1.0', $localizationParams) )
-        #set ($eventText = $eventText.replace('__currentUser__', $!xwiki.getUserName($customEventInfo['currentValue'])))
-        #set ($eventText = $eventText.replace('__previousUser__', $!xwiki.getUserName($customEventInfo['previousValue'])))
-        #end
+#define ($content)
+  &lt;div class="notification-description"&gt;
+    $services.localization.render('licensor.notification.userLimitWarning.title', 'xhtml/1.0', [])
+    &lt;div&gt;&lt;small class="text-muted"&gt;$escapetool.xml($!services.date.displayTimeAgo($!event.events[0].date))&lt;/small&gt;&lt;/div&gt;
+  &lt;/div&gt;
+#end
 
-        #macro (getDueDateDescription $customEventInfo $eventText)
-        ## Send different messages if the due date was extended or reduced.
-        ## The date is displayed using the format configured in datemacro.
-        #set ($displayDateFormat = $services.datemacro.configuration.displayDateFormat)
-        #set ($displayDateFormatter = $xwiki.jodatime.getDateTimeFormatterForPattern($displayDateFormat))
-        #if ($customEventInfo['previousValue'])
-        #if (!$customEventInfo['currentValue'])
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.none')
-        #elseif ($customEventInfo['previousValue'] &lt; $customEventInfo['currentValue'])
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.later')
-        #else
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.earlier')
-        #end
-        #set ($customEventInfo['previousValue'] =
-        $!escapetool.xml($displayDateFormatter.print(
-        $xwiki.jodatime.getDateTime($customEventInfo['previousValue'])
-        ))
-        )
-        #end
-        #if ($customEventInfo['currentValue'])
-        #set ($customEventInfo['currentValue'] =
-        $!escapetool.xml($displayDateFormatter.print(
-        $xwiki.jodatime.getDateTime($customEventInfo['currentValue'])
-        ))
-        )
-        #end
-        #getGenericFieldDescription($customEventInfo $eventText)
-        #end
-
-        #macro (displayEventDetails $event)
-        #set ($customEventInfo = $jsontool.fromString($event.getBody()))
-        #set ($diffUrl = $xwiki.getURL($event.document, 'view', "viewer=changes&amp;rev2=${event.documentVersion}"))
-        #set ($eventText = '')
-        #if ($customEventInfo['type'] == 'assignee')
-        #getAssigneeDescription($customEventInfo $eventText)
-        #elseif ($customEventInfo['type'] == 'duedate')
-        #getDueDateDescription($customEventInfo $eventText)
-        #else
-        #getGenericFieldDescription($customEventInfo $eventText)
-        #end
-        &lt;tr&gt;
-        &lt;td&gt;&lt;span class="notification-event-user"&gt;#displayNotificationEventUser($event.user)&lt;/span&gt;&lt;/td&gt;
-        &lt;td class="description"&gt;$eventText&lt;/td&gt;
-        &lt;td class="text-right text-muted"&gt;
-        #if ($diffUrl != '')&lt;a href="$escapetool.xml($diffUrl)"&gt;#end
-        $escapetool.xml($xwiki.formatDate($event.date))
-        #if ($diffUrl != '')&lt;/a&gt;#end
-        &lt;/td&gt;
-        &lt;/tr&gt;
-        #end
-
-        #define ($content)
-        ## All folded events should have the same document, so display the first one as a title for the group.
-        #set ($document = $xwiki.getDocument($!event.events[0].document))
-        &lt;div class="notification-page"&gt;
-        &lt;a href="$!escapetool.xml($document.getURL())"&gt;$!document.getDisplayTitle()&lt;/a&gt;
-        #if ($xcontext.getContext().getOriginalWikiId() != $document.getDocumentReference().getWikiReference().name)
-        &lt;span class="text-muted"&gt;($services.wiki.getById($document.getDocumentReference().getWikiReference().name).prettyName)&lt;/span&gt;
-        #end
-        &lt;/div&gt;
-        &lt;div class="notification-description"&gt;
-        $services.localization.render('taskmanager.events.taskChangedEvent.title', 'xhtml/1.0', [])
-        &lt;div&gt;&lt;small class="text-muted"&gt;$escapetool.xml($!services.date.displayTimeAgo($!event.events[0].date))&lt;/small&gt;&lt;/div&gt;
-        &lt;/div&gt;
-        #end
-
-        #define ($details)
-        #define ($rows)
-        #foreach ($thisEvent in $event.events)
-        #if ($thisEvent.type == 'com.xwiki.task.internal.notifications.taskchanged.TaskChangedEvent')
+#define ($details)
+  #define ($rows)
+    #foreach ($thisEvent in $event.events)
+      #if ($thisEvent.type == 'com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent')
         #displayEventDetails($thisEvent)
-        #end
-        #end
-        #end
-        #displayNotificationEventDetailsSkeletons($event.events.size(), $rows)
-        #end
+      #end
+    #end
+  #end
+  #displayNotificationEventDetailsSkeletons($event.events.size(), $rows)
+#end
 
-        #displayNotificationEventSkeleton($mainIcon $smallIcon $content $details)</notificationTemplate>
+#displayNotificationEventSkeleton($mainIcon $smallIcon $content $details)</notificationTemplate>
     </property>
   </object>
   <object>
@@ -260,126 +191,61 @@
       <emailSubject/>
     </property>
     <property>
-      <eventType>com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEventDescriptor</eventType>
+      <eventType>com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent</eventType>
     </property>
     <property>
       <htmlTemplate>#template('notification/email/macros.vm')
 
-        #set ($mainIcon = 'list')
-        #set ($smallIcon = '')
+#set ($mainIcon = 'warning')
+#set ($smallIcon = '')
 
-        #macro (getGenericFieldDescription $customEventInfo $eventText)
-        ## The notification text will be available in `$eventText` after calling this macro.
-        #set ($localizationParams = [
-        $customEventInfo['currentValue'],
-        $customEventInfo['previousValue']
-        ])
-        #set ($localizationId = "taskmanager.events.taskChangedEvent.details.${customEventInfo['type']}" )
-        #set ($eventText = $services.localization.render($localizationId, 'xhtml/1.0', $localizationParams))
-        #end
+#macro (displayTaskChangedEventDetails $event)
+  #set ($customEventInfo = $jsontool.fromString($event.getBody()))
+  #set ($localizationId = 'licensor.notification.userLimitWarning.description')
+  #if ($customEventInfo['userDiff'] == 1)
+    #set ($localizationId = $localizationId + '.under.singular')
+  #elseif ($customEventInfo['userDiff'] &gt; 0)
+    #set ($localizationId = $localizationId + '.under')
+  #elseif ($customEventInfo['userDiff'] == 0)
+    #set ($localizationId = $localizationId + '.limit')
+  #else
+    #set ($localizationId = $localizationId + '.over')
+  #end
+  &lt;tr style="vertical-align: top;"&gt;
+    &lt;td class="description"&gt;$services.localization.render($localizationId, [$customEventInfo['license'], $customEventInfo['userDiff']])&lt;/td&gt;
+    &lt;td style="text-align: right;"&gt;
+      $escapetool.xml($xwiki.formatDate($event.date))
+    &lt;/td&gt;
+  &lt;/tr&gt;
+#end
 
-        #macro (getAssigneeDescription $customEventInfo $eventText)
-        #if ("$!customEventInfo['currentValue']" == '')
-        #if ($customEventInfo['previousValue'] == $xwiki.getUser().getUser().getFullName())
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.you.unassigned')
-        #else
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.none')
-        #end
-        #elseif ($customEventInfo['currentValue'] == $xwiki.getUser().getUser().getFullName())
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.you.assigned')
-        #end
-        #set ($localizationParams = [
-        '__currentUser__',
-        '__previousUser__'
-        ])
-        #set ($localizationId = "taskmanager.events.taskChangedEvent.details.${customEventInfo['type']}" )
-        #set ($eventText = $services.localization.render($localizationId, 'xhtml/1.0', $localizationParams) )
-        #set ($eventText = $eventText.replace('__currentUser__', $!xwiki.getUserName($customEventInfo['currentValue'])))
-        #set ($eventText = $eventText.replace('__previousUser__', $!xwiki.getUserName($customEventInfo['previousValue'])))
-        #end
-
-        #macro (getDueDateDescription $customEventInfo $eventText)
-        ## Send different messages if the due date was extended or reduced.
-        ## The date is displayed using the format configured in datemacro.
-        #set ($displayDateFormat = $services.datemacro.configuration.displayDateFormat)
-        #set ($displayDateFormatter = $xwiki.jodatime.getDateTimeFormatterForPattern($displayDateFormat))
-        #if ($customEventInfo['previousValue'])
-        #if (!$customEventInfo['currentValue'])
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.none')
-        #elseif ($customEventInfo['previousValue'] &lt; $customEventInfo['currentValue'])
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.later')
-        #else
-        #set ($customEventInfo['type'] = $customEventInfo['type'] + '.earlier')
-        #end
-        #set ($customEventInfo['previousValue'] =
-        $!escapetool.xml($displayDateFormatter.print(
-        $xwiki.jodatime.getDateTime($customEventInfo['previousValue'])
-        ))
-        )
-        #end
-        #if ($customEventInfo['currentValue'])
-        #set ($customEventInfo['currentValue'] =
-        $!escapetool.xml($displayDateFormatter.print(
-        $xwiki.jodatime.getDateTime($customEventInfo['currentValue'])
-        ))
-        )
-        #end
-        #getGenericFieldDescription($customEventInfo $eventText)
-        #end
-
-        #macro (displayTaskChangedEventDetails $event)
-        #set ($customEventInfo = $jsontool.fromString($event.getBody()))
-        #set ($diffUrl = $xwiki.getURL($event.document, 'view', "viewer=changes&amp;rev2=${event.documentVersion}"))
-        #set ($eventText = '')
-        #if ($customEventInfo['type'] == 'assignee')
-        #getAssigneeDescription($customEventInfo $eventText)
-        #elseif ($customEventInfo['type'] == 'duedate')
-        #getDueDateDescription($customEventInfo $eventText)
-        #else
-        #getGenericFieldDescription($customEventInfo $eventText)
-        #end
-        &lt;tr style="vertical-align: top;"&gt;
-        &lt;td&gt;#displayEmailNotificationEventUser($event.user, false)&lt;/td&gt;
-        &lt;td&gt;$eventText&lt;/td&gt;
-        &lt;td style="text-align: right;"&gt;
-        #if ($diffUrl != '')&lt;a href="$escapetool.xml($diffUrl)"&gt;#end
-        $escapetool.xml($xwiki.formatDate($event.date))
-        #if ($diffUrl != '')&lt;/a&gt;#end
-        &lt;/td&gt;
-        &lt;/tr&gt;
-        #end
-
-        #macro (displayTaskNotificationDetails $event)
-        &lt;table class="notification-event-details"&gt;
-        #foreach ($thisEvent in $event.events)
-        #if ($thisEvent.type == 'com.xwiki.task.internal.notifications.taskchanged.TaskChangedEvent')
+#macro (displayTaskNotificationDetails $event)
+  &lt;table class="notification-event-details"&gt;
+    #foreach ($thisEvent in $event.events)
+      #if ($thisEvent.type == 'com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent')
         #displayTaskChangedEventDetails($thisEvent)
-        #end
-        #end
-        &lt;/table&gt;
-        #end
+      #end
+    #end
+  &lt;/table&gt;
+#end
 
-        #define ($rightCell)
-        ###
-        ### Link to the Page
-        ###
-        #displayNotificationPage($event)
-        ###
-        ### Description, users and date
-        ###
-        $services.localization.render('taskmanager.events.taskChangedEvent.title', 'xhtml/1.0', [])
-        #displayNotificationDate($event)
-        ###
-        ### Details
-        ###
-        #displayTaskNotificationDetails($event)
-        #end
+#define ($rightCell)
+  ###
+  ### Description, users and date
+  ###
+  $services.localization.render('licensor.notification.userLimitWarning.title', 'xhtml/1.0', [])
+  #displayNotificationDate($event)
+  ###
+  ### Details
+  ###
+  #displayTaskNotificationDetails($event)
+#end
 
-        #define ($leftCell)
-        &lt;strong&gt;$!escapetool.xml($services.localization.render('TaskManager.panels.name'))&lt;/strong&gt;
-        #end
+#define ($leftCell)
+  &lt;strong&gt;$!escapetool.xml($services.localization.render('admin.licenses'))&lt;/strong&gt;
+#end
 
-        #displayNotificationSkeleton($leftCell, $rightCell)</htmlTemplate>
+#displayNotificationSkeleton($leftCell, $rightCell)</htmlTemplate>
     </property>
     <property>
       <plainTextTemplate/>

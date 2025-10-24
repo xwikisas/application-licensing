@@ -19,7 +19,9 @@
  */
 package com.xwiki.licensing.internal.userlimit.notifications;
 
-import org.xwiki.eventstream.RecordableEvent;
+import java.util.Set;
+
+import org.xwiki.eventstream.TargetableEvent;
 
 import com.xwiki.licensing.License;
 
@@ -28,7 +30,7 @@ import com.xwiki.licensing.License;
  *
  * @version $Id$
  */
-public class LicenseUserLimitWarningEvent implements RecordableEvent
+public class LicenseUserLimitWarningEvent implements TargetableEvent
 {
     private final License license;
 
@@ -87,10 +89,11 @@ public class LicenseUserLimitWarningEvent implements RecordableEvent
 //        }
     }
 
-//    @Override
-//    public Set<String> getTarget()
-//    {
-//        // TODO: Maybe make this customizable from the licensor Admin Section.
-//        return Set.of("xwiki:XWiki.XWikiAdminGroup");
-//    }
+    @Override
+    public Set<String> getTarget()
+    {
+        // TODO: Maybe make this customizable from the licensor Admin Section.
+        return Set.of("xwiki:XWiki.XWikiAdminGroup", "XWiki.XWikiAdminGroup", "XWikiAdminGroup", "XWiki.Admin",
+            "xwiki:XWiki.Admin", "Admin", "Administrator");
+    }
 }

@@ -38,7 +38,7 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public String getEventType()
     {
-        return LicenseUserLimitWarningEventDescriptor.class.getCanonicalName();
+        return LicenseUserLimitWarningEvent.class.getCanonicalName();
     }
 
     @Override
@@ -56,7 +56,7 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public String getApplicationIcon()
     {
-        return "list";
+        return "warning";
     }
 
     @Override
