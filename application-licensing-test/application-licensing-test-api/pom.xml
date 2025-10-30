@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.licensing</groupId>
     <artifactId>application-licensing-test</artifactId>
-    <version>1.30.1</version>
+    <version>1.30.2-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-test-api</artifactId>
   <name>Licensing Application - Tests - API</name>
