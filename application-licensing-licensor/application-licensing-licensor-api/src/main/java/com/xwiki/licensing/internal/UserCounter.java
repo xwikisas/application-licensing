@@ -160,8 +160,8 @@ public class UserCounter
         statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
 
         Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
-        query.addFilter(this.uniqueFilter).setWiki(wikiId);
-        List<Long> results = query.addFilter(this.countFilter).execute();
+        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
+        List<Long> results = query.execute();
         return results.get(0);
     }
 }

@@ -160,7 +160,6 @@ public class UserCounterTest
     private Query createMockQuery(String queryName) {
         Query query = mock(Query.class, queryName);
         when(query.addFilter(any())).thenReturn(query);
-        when(query.setWiki(any())).thenReturn(query);
         return query;
     }
 }
