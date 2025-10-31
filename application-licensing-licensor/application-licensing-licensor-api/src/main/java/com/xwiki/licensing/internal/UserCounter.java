@@ -67,6 +67,10 @@ public class UserCounter
     @Named("count")
     private QueryFilter countFilter;
 
+    @Inject
+    @Named("unique")
+    private QueryFilter uniqueFilter;
+
     private Long cachedUserCount;
 
     /**
@@ -156,7 +160,7 @@ public class UserCounter
         statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
 
         Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
-        query.addFilter(this.countFilter).setWiki(wikiId);
+        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);
     }
