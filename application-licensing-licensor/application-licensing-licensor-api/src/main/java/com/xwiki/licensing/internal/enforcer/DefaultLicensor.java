@@ -135,6 +135,13 @@ public class DefaultLicensor implements Licensor, Initializable
     }
 
     @Override
+    public boolean hasLicensure(String extensionId)
+    {
+        License license = getLicense(extensionId);
+        return license == null || licenseValidator.isValid(license);
+    }
+
+    @Override
     public boolean isLicenseExpiring(ExtensionId extensionId)
     {
         License license = getLicense(extensionId);

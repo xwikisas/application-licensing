@@ -85,6 +85,14 @@ public interface Licensor
     boolean hasLicensure(ExtensionId extensionId);
 
     /**
+     * Check if the given extension is covered by a valid license.
+     *
+     * @param extensionId the name of the extension for which licensure should be checked.
+     * @return true if the given extension has a valid license or is not subject to licensing.
+     */
+    boolean hasLicensure(String extensionId);
+
+    /**
      * Check if the given extension is expiring in less than 10 days.
      *
      * @param extensionId the identifier of the extension for which licensure should be checked.

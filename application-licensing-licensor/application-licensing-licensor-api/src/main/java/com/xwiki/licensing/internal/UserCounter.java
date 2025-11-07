@@ -220,7 +220,10 @@ public class UserCounter
      */
     public boolean isUserUnderLimit(DocumentReference user, long userLimit) throws Exception
     {
-        if (userLimit < 0 || userLimit <= getUserCount()) {
+        if (null == user) {
+            return false;
+        }
+        if (userLimit < 0 || getUserCount() <= userLimit) {
             // Unlimited licenses should always return true.
             // Also, skip the checks for instances with fewer users than the limit.
             return true;
