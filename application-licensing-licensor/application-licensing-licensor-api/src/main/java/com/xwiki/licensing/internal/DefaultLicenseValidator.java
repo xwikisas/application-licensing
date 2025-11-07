@@ -40,7 +40,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.crypto.BinaryStringEncoder;
 import org.xwiki.crypto.pkix.params.x509certificate.X509CertifiedPublicKey;
 import org.xwiki.instance.InstanceIdManager;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
@@ -97,12 +96,6 @@ public class DefaultLicenseValidator implements LicenseValidator
         return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
     }
 
-    @Override
-    public boolean isValid(License license, DocumentReference userReference)
-    {
-        return license.getExpirationDate() >= new Date().getTime() && checkIsUserUnderUserLimit(license, userReference);
-    }
-
     private boolean checkCertificates(License license, Collection<X509CertifiedPublicKey> certificates)
     {
         if (certificates.size() < 3) {
@@ -138,22 +131,6 @@ public class DefaultLicenseValidator implements LicenseValidator
                 ExceptionUtils.getRootCauseMessage(e));
             // Assume the license is invalid if we can't count the users.
             return false;
-        }
-    }
-
-    private boolean checkIsUserUnderUserLimit(License license, DocumentReference userReference)
-    {
-        if (checkUserCount(license)) {
-            return true;
-        } else {
-            try {
-                return userCounter.isUserUnderLimit(userReference, (int) license.getMaxUserCount());
-            } catch (Exception e) {
-                this.logger.warn(
-                    "Failed to check the allowed users. Assuming the license is not valid. Root cause is: [{}].",
-                    ExceptionUtils.getRootCauseMessage(e));
-                return false;
-            }
         }
     }
 }

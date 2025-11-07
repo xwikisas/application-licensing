@@ -122,6 +122,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
 
+    @Inject
+    private Provider<InstalledExtensionRepository> installedExtensionRepositoryProvider;
+
     private final Map<LicenseId, License> licenses = new HashMap<>();
 
     private final Map<LicenseId, Integer> licensesUsage = new HashMap<>();
@@ -334,6 +337,14 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
         // Check if there is a license available that covers any version of the extension.
         ExtensionId extId = new ExtensionId(extensionId.getId());
         return extensionToLicense.get(extId);
+    }
+
+    @Override
+    public License get(String extensionId)
+    {
+        InstalledExtension installedExtension =
+            this.installedExtensionRepositoryProvider.get().getInstalledExtension(extensionId, null);
+        return this.get(installedExtension.getId());
     }
 
     @Override

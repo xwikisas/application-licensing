@@ -206,10 +206,15 @@ public class UserCounter
      * @param userLimit the license max user limit
      * @return whether the given user is under the specified license user limit
      */
-    public boolean isUserUnderLimit(DocumentReference user, int userLimit) throws QueryException, WikiManagerException
+    public boolean isUserUnderLimit(DocumentReference user, long userLimit) throws Exception
     {
+        if (userLimit < 0 || userLimit <= getUserCount()) {
+            // Unlimited licenses should always return true.
+            // Also, skip the checks for instances with fewer users than the limit.
+            return true;
+        }
         SortedSet<XWikiDocument> sortedUsers = getSortedUsers();
-        /** Lookup table is initialized in {@link #getSortedUsers()}. */
+        // Lookup table is initialized in getSortedUsers().
         XWikiDocument userDocument = cachedSortedUsersLookupTable.get(user);
         if (userDocument == null) {
             return false;

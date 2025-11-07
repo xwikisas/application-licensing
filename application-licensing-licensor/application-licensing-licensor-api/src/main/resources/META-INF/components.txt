@@ -13,7 +13,6 @@ com.xwiki.licensing.internal.LicenseRenewListener
 com.xwiki.licensing.internal.DefaultLicenseUpdater
 com.xwiki.licensing.internal.UserCounter
 com.xwiki.licensing.internal.UserCounter$UserListener
-com.xwiki.licensing.internal.userlimit.UserLicenseDisablerJob
 com.xwiki.licensing.script.LicensorScriptService
 com.xwiki.licensing.internal.GetTrialLicenseListener
 com.xwiki.licensing.internal.TrialLicenseGenerator
@@ -33,5 +32,3 @@ com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDi
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEventDisplayer
-com.xwiki.licensing.internal.userlimit.UserLicenseDisabler
-com.xwiki.licensing.internal.userlimit.UserLicenseEnforcer

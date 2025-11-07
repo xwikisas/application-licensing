@@ -19,8 +19,6 @@
  */
 package com.xwiki.licensing.internal.test;
 
-import org.xwiki.model.reference.DocumentReference;
-
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
@@ -63,11 +61,5 @@ public class LicenseValidatorWrapper implements LicenseValidator
     public boolean isValid(License license)
     {
         return this.licenseValidator.isValid(license);
-    }
-
-    @Override
-    public boolean isValid(License license, DocumentReference userReference)
-    {
-        return this.licenseValidator.isValid(license, userReference);
     }
 }

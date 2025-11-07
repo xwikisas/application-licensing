@@ -32,7 +32,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.ExtensionId;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 import com.xpn.xwiki.XWikiContext;
@@ -93,6 +92,17 @@ public class DefaultLicensor implements Licensor, Initializable
     }
 
     @Override
+    public License getLicense(String extensionId)
+    {
+        try {
+            return licenseManager.get(extensionId);
+        } catch (Throwable e) {
+            // Ignored
+        }
+        return null;
+    }
+
+    @Override
     public License getLicense(ExtensionId extensionId)
     {
         try {
@@ -122,20 +132,6 @@ public class DefaultLicensor implements Licensor, Initializable
     {
         License license = getLicense(extensionId);
         return license == null || licenseValidator.isValid(license);
-    }
-
-    @Override
-    public boolean hasLicensure(EntityReference reference, DocumentReference userReference)
-    {
-        License license = getLicense(reference);
-        return license == null || licenseValidator.isValid(license, userReference);
-    }
-
-    @Override
-    public boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference)
-    {
-        License license = getLicense(extensionId);
-        return license == null || licenseValidator.isValid(license, userReference);
     }
 
     @Override

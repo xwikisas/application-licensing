@@ -40,6 +40,13 @@ public interface LicenseManager
     License get(ExtensionId extensionId);
 
     /**
+     * Retrieve the currently applicable license for the given installed extension.
+     * @param extensionId identifier of an installed extension (version is resolved automatically)
+     * @return a license.
+     */
+    License get(String extensionId);
+
+    /**
      * Add a new license to the current set of active license. The added license is checked to be applicable to the
      * current wiki instance, else it will not be added. The license is also checked to be more interesting than the
      * currently installed licenses. If the license does not provides any improvement of the licensing state of this

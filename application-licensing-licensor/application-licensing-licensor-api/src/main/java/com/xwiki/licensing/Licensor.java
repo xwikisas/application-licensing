@@ -21,7 +21,6 @@ package com.xwiki.licensing;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.stability.Unstable;
 
@@ -39,6 +38,15 @@ public interface Licensor
      * @return a license, or null if there is no current document, or the current document is not subject to licensing.
      */
     License getLicense();
+
+    /**
+     * Retrieve the currently applicable license for the given installed extension.
+     *
+     * @param extensionId name of an installed extension. This method automatically resolves the version of the
+     *     extension which is installed
+     * @return a license, or null if the given installed extension is not subject to licensing.
+     */
+    License getLicense(String extensionId);
 
     /**
      * Retrieve the currently applicable license for the given installed extension.
@@ -69,15 +77,6 @@ public interface Licensor
     boolean hasLicensure(EntityReference reference);
 
     /**
-     * Check if the given entity is covered by a valid license for the given user.
-     *
-     * @param reference the identifier of the extension for which licensure should be checked.
-     * @param userReference the user for which licensure should be checked.
-     * @return true if the given extension has a valid license or is not subject to licensing.
-     */
-    boolean hasLicensure(EntityReference reference, DocumentReference userReference);
-
-    /**
      * Check if the given extension is covered by a valid license.
      *
      * @param extensionId the identifier of the extension for which licensure should be checked.
@@ -85,15 +84,6 @@ public interface Licensor
      */
     boolean hasLicensure(ExtensionId extensionId);
 
-    /**
-     * Check if the given extension is covered by a valid license for the given user.
-     *
-     * @param extensionId the identifier of the extension for which licensure should be checked.
-     * @param userReference the user for which licensure should be checked.
-     * @return true if the given extension has a valid license or is not subject to licensing.
-     */
-    boolean hasLicensure(ExtensionId extensionId, DocumentReference userReference);
-  
     /**
      * Check if the given extension is expiring in less than 10 days.
      *

@@ -20,7 +20,6 @@
 package com.xwiki.licensing;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.model.reference.DocumentReference;
 
 /**
  * Validate the applicability of a license.
@@ -77,17 +76,4 @@ public interface LicenseValidator
      * @return true if the license is valid, false otherwise.
      */
     boolean isValid(License license);
-
-    /**
-     * Check if a license is valid for a given user, its constrains are respected.
-     * The instance constraint is NOT checked, see {@link #isApplicable(License)}
-     *
-     * @param license the license to be checked.
-     * @param userReference the user to be checked.
-     * @return true if the license is valid for the given user, false otherwise.
-     */
-    default boolean isValid(License license, DocumentReference userReference)
-    {
-        return isValid(license);
-    }
 }

@@ -19,21 +19,19 @@
  */
 package com.xwiki.licensing.internal;
 
-import java.util.Set;
+import java.util.List;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.stability.Unstable;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xwiki.licensing.internal.enforcer.EntityLicenseManager;
 
 /**
  * Interface for extensions which manage users, so the license user limit can only take into account the users managed
  * by those extensions for computing the user limit.
  * <p>
  * Components implementing this interface should be named as extension id, so the user manager is discoverable.
- * FIXME: Maybe implement a {@link EntityLicenseManager} instead?
  *
  * @version $Id$
  * @since 1.31
@@ -57,28 +55,27 @@ public interface AuthExtensionUserManager
      */
     boolean managesUser(XWikiDocument user);
 
-//    /**
-//     * True if this manager manages the given user. Should return false for invalid licenses.
-//     *
-//     * @param userReference the user to check
-//     * @return true if this manager manages the given user.
-//     */
-//    boolean managesUser(UserReference userReference);
-
     /**
      * Get a list of all users managed by this manager.
      *
      * @return a list of all users managed by this manager
      */
-    Set<XWikiDocument> getManagedUsers();
+    List<XWikiDocument> getManagedUsers();
 
     /**
-     * If the given user has access to the given license.
+     * Get a list of all active users managed by this manager.
      *
-     * @param user user to check
-     * @return whether the given user has access to the given license
-     * @since 1.30.0
+     * @return a list of all active users managed by this auth extension
      */
-    @Unstable
-    boolean shouldBeActive(DocumentReference user);
+    List<XWikiDocument> getActiveManagedUsers();
+
+    /**
+     * Resolve a username (the string used by a user to log in) to the XWiki user page. This method should resolve all
+     * valid usernames that a user can use to log into their account.
+     *
+     * @param username the username used by a user to login
+     * @param context XWiki context, to help in querying pages
+     * @return a reference to the user page with the XWiki.XWikiUsers object, or null if not existent
+     */
+    DocumentReference getUserDocFromUsername(String username, XWikiContext context);
 }
