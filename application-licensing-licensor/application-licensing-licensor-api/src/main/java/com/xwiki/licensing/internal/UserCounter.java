@@ -203,6 +203,14 @@ public class UserCounter
         return cachedUserCount;
     }
 
+    private long getUserCountOnWiki(String wikiId) throws QueryException
+    {
+        Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
+        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
+        List<Long> results = query.execute();
+        return results.get(0);
+    }
+
     /**
      * Return whether the given user is under the specified license user limit.
      *
@@ -227,13 +235,6 @@ public class UserCounter
         }
     }
 
-    private long getUserCountOnWiki(String wikiId) throws QueryException
-    {
-        Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
-        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
-        List<Long> results = query.execute();
-        return results.get(0);
-    }
 
     private List<XWikiDocument> getUsersOnWiki(String wikiId) throws QueryException
     {
