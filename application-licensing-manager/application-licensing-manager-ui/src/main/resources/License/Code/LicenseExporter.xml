@@ -47,7 +47,7 @@
   #set ($query = $query.bindValue('startDate', $startDate).bindValue('endDate', $endDate))
   {{html clean="false"}}
   #set ($exportURL = $doc.getURL('export', 'format=xar'))
-  &lt;form action="$exportURL" class="xform"&gt;
+  &lt;form action="$exportURL" class="xform" method="post"&gt;
     #set ($licenseDocuments = $query.execute())
     &lt;p&gt;Found $licenseDocuments.size() licenses to export.&lt;/p&gt;
     &lt;dl&gt;

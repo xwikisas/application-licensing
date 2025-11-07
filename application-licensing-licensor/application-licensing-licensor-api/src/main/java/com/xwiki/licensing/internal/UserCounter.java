@@ -80,6 +80,10 @@ public class UserCounter
     @Named("count")
     private QueryFilter countFilter;
 
+    @Inject
+    @Named("unique")
+    private QueryFilter uniqueFilter;
+
     private Long cachedUserCount;
 
     // A set of users on the instance, sorted by creation date.
@@ -177,7 +181,7 @@ public class UserCounter
 
     /**
      * Counts the existing active users.
-     *
+     * 
      * @return the user count
      * @throws Exception if we fail to count the users
      */
@@ -226,7 +230,7 @@ public class UserCounter
     private long getUserCountOnWiki(String wikiId) throws QueryException
     {
         Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
-        query.addFilter(this.countFilter).setWiki(wikiId);
+        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);
     }
