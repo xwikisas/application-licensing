@@ -44,7 +44,6 @@ import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
-import org.xwiki.observation.ObservationManager;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
 import com.xwiki.licensing.License;
@@ -58,8 +57,6 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
-import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
-import com.xwiki.licensing.internal.helpers.events.LicenseRemovedEvent;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -95,9 +92,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
         }
     };
-
-    @Inject
-    private Provider<ObservationManager> observationManagerProvider;
 
     @Inject
     private Logger logger;
@@ -255,7 +249,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             // Initialize the first usage of this new license
             licenses.put(newLicense.getId(), newLicense);
             licensesUsage.put(newLicense.getId(), 1);
-            observationManagerProvider.get().notify(new LicenseAddedEvent(newLicense), null, null);
         } else {
             logger.debug("Increment usage of license [{}] to [{}]", newLicense.getId(), usage + 1);
             // Increment the usage of this new license
@@ -271,7 +264,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.debug("Remove license [{}] from in-use licenses", existingLicense.getId());
                 // If the replaced license is no more in use, drop it from the license set to free memory
                 licenses.remove(existingLicense.getId());
-                observationManagerProvider.get().notify(new LicenseRemovedEvent(existingLicense), null, null);
             }
         }
     }

@@ -90,12 +90,6 @@ public class DefaultLicenseValidator implements LicenseValidator
             && checkCertificates(license, ((SignedLicense) license).getCertificates());
     }
 
-    @Override
-    public boolean isValid(License license)
-    {
-        return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
-    }
-
     private boolean checkCertificates(License license, Collection<X509CertifiedPublicKey> certificates)
     {
         if (certificates.size() < 3) {
@@ -118,6 +112,12 @@ public class DefaultLicenseValidator implements LicenseValidator
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean isValid(License license)
+    {
+        return license.getExpirationDate() >= new Date().getTime() && checkUserCount(license);
     }
 
     private boolean checkUserCount(License license)
