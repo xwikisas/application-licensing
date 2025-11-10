@@ -84,6 +84,50 @@
   <object>
     <name>Licenses.Code.LicensingConfig</name>
     <number>0</number>
+    <className>Licenses.Code.LicensingNotificationClass</className>
+    <guid>7520997e-c29d-4783-acae-4a809c71951a</guid>
+    <class>
+      <name>Licenses.Code.LicensingNotificationClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <notifiedGroups>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue>XWiki.XWikiAdminGroup</defaultValue>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <freeText>discouraged</freeText>
+        <hint/>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>notifiedGroups</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Notified groups</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators/>
+        <size>20</size>
+        <sort/>
+        <unmodifiable>0</unmodifiable>
+        <usesList>0</usesList>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
+      </notifiedGroups>
+    </class>
+    <property>
+      <notifiedGroups>XWiki.XWikiAdminGroup</notifiedGroups>
+    </property>
+  </object>
+  <object>
+    <name>Licenses.Code.LicensingConfig</name>
+    <number>0</number>
     <className>Licenses.Code.LicensingOwnerClass</className>
     <guid>aa66d528-6926-410d-b239-8d7203cb466b</guid>
     <class>
@@ -98,6 +142,7 @@
       <email>
         <customDisplay/>
         <disabled>0</disabled>
+        <hint/>
         <name>email</name>
         <number>3</number>
         <picker>0</picker>
@@ -111,6 +156,7 @@
       <firstName>
         <customDisplay/>
         <disabled>0</disabled>
+        <hint/>
         <name>firstName</name>
         <number>1</number>
         <picker>0</picker>
@@ -124,6 +170,7 @@
       <lastName>
         <customDisplay/>
         <disabled>0</disabled>
+        <hint/>
         <name>lastName</name>
         <number>2</number>
         <picker>0</picker>

@@ -120,8 +120,9 @@ public class NewExtensionVersionAvailableManager
                 extensionInfo.put("version", installableVersions.get(0).getValue());
 
                 this.observationManager.notify(new NewExtensionVersionAvailableEvent(
-                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace),
-                    extensionId.getId(), (new ObjectMapper()).writeValueAsString(extensionInfo));
+                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace,
+                        licensingConfig.getNotifiedGroupsSet()), extensionId.getId(),
+                    (new ObjectMapper()).writeValueAsString(extensionInfo));
                 this.newVersionNotificationManager.markNotificationAsSent(extensionId.getId(), namespaceName,
                     installableVersions.get(0).getValue());
             }

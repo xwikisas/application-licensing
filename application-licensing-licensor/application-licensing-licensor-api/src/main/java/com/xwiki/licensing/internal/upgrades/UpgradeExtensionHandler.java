@@ -50,13 +50,14 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.ObservationManager;
 
+import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEvent;
 import com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEvent;
 
 /**
  * Upgrades an extension from a namespace to the last compatible version and sends a notification. The notification will
  * be displayed only for users that subscribed to it and disabled the System filter since it is send by superadmin user.
- * 
+ *
  * @version $Id$
  * @since 1.17
  */
@@ -95,9 +96,13 @@ public class UpgradeExtensionHandler
     @Inject
     private EntityReferenceSerializer<String> serializer;
 
+    @Inject
+    private LicensingConfiguration licensingConfig;
+
+
     /**
      * Try upgrading an extension inside a namespace to the last compatible version.
-     * 
+     *
      * @param installedExtension the already installed extension
      * @param namespace the namespace in which the extension is installed
      */
@@ -116,7 +121,8 @@ public class UpgradeExtensionHandler
                     "licensor.notification.autoUpgrade.done", installedExtension.getName(),
                     installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
 
-                this.observationManager.notify(new ExtensionAutoUpgradedEvent(), LICENSOR_API_ID, doneUpgradeMessage);
+                this.observationManager.notify(new ExtensionAutoUpgradedEvent(licensingConfig.getNotifiedGroupsSet()),
+                    LICENSOR_API_ID, doneUpgradeMessage);
 
                 // If the execution gets here, it means that the upgrade was done.
                 break;
@@ -133,7 +139,7 @@ public class UpgradeExtensionHandler
 
     /**
      * Install the given extension inside a namespace.
-     * 
+     *
      * @param extensionId extension to install
      * @param namespace namespace where the install is done
      * @throws JobException error at job execution
@@ -183,7 +189,7 @@ public class UpgradeExtensionHandler
 
     /**
      * Get the reversed list of versions that can be installed, considering the already installed version.
-     * 
+     *
      * @param extensionId ExtensionId of the application that is needed
      * @return reversed list of versions until the already installed one
      */

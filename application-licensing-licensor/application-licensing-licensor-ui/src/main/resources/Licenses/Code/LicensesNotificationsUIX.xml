@@ -483,17 +483,27 @@
       </scope>
     </class>
     <property>
-      <async_cached/>
+      <async_cached>0</async_cached>
     </property>
     <property>
       <async_context/>
     </property>
     <property>
-      <async_enabled/>
+      <async_enabled>0</async_enabled>
     </property>
     <property>
       <content>{{velocity}}
-#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX'))
+#set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+#set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
+#set ($notificationsObj = $licensingConfigDoc.getObject($notificationClass))
+#set ($notifiedGroups = $notificationsObj.getValue('notifiedGroups').split(','))
+#set ($inGroup = false)
+#foreach ($group in $notifiedGroups)
+  #if($xwiki.getUser().isUserInGroup($group))
+    #set ($inGroup = true)
+  #end
+#end
+#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX') &amp;&amp; ($inGroup || $isAdvancedUser))
   #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
   #set ($licensesNotificationWrapperTagName = 'li')
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
