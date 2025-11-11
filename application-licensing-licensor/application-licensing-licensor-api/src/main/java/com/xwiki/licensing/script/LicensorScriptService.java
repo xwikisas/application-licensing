@@ -198,7 +198,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * @return the licence manager (programming rights is required).
+     * @return the license manager (programming rights is required).
      */
     public LicenseManager getLicenseManager()
     {
@@ -209,7 +209,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * @return the {@link LicensedExtensionManager} (programming rights is required).
+     * @return the {@link LicensedExtensionManager} (programming rights are required).
      * @since 1.29
      */
     public LicensedExtensionManager getLicensedExtensionManager()
@@ -223,9 +223,9 @@ public class LicensorScriptService implements ScriptService, Initializable
     /**
      * Add a new signed license to the current set of active license. The added license is checked to be applicable to
      * the current wiki instance, else it will not be added. The license is also checked to be more useful than the
-     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
+     * currently installed licenses. If the license does not provide any improvement of the licensing state of this
      * wiki, it will not be added. These evaluations are done for each licensed extension independently, whether the
-     * extension are currently installed or not.
+     * extension is currently installed or not.
      *
      * @param license a base 64 representation of the license to add.
      * @return true if the license has been successfully added, false if it was useless.
@@ -242,9 +242,9 @@ public class LicensorScriptService implements ScriptService, Initializable
     /**
      * Add a new signed license to the current set of active license. The added license is checked to be applicable to
      * the current wiki instance, else it will not be added. The license is also checked to be more useful than the
-     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
+     * currently installed licenses. If the license does not provide any improvement of the licensing state of this
      * wiki, it will not be added. These evaluations are done for each licensed extension independently, whether the
-     * extension are currently installed or not.
+     * extension is currently installed or not.
      *
      * @param license a base 64 representation of the license to add.
      * @return true if the license has been successfully added, false if it was useless.

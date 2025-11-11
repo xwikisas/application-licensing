@@ -267,7 +267,7 @@ public class License implements Comparable<License>
     }
 
     /**
-     * Set licensee informations.
+     * Set licensee information.
      *
      * @param licensee a map of licensee information to be assigned.
      */
