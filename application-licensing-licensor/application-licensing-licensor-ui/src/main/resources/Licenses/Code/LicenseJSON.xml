@@ -108,7 +108,7 @@
   #end
   #set ($namespaces = $collectiontool.sort($namespaces))
   ##
-  ## Extension name. A warning will be displayed for extensions installed as dependencies.Note
+  ## Extension name. A warning will be displayed for extensions installed as dependencies. Note
   ## that we consider optional dependencies as being not covered by the license of the parent
   ## extension, as they can be uninstalled, so a warning will be displayed for them.
   ##
