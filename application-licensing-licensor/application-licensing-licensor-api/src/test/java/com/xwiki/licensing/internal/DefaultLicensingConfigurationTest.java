@@ -19,14 +19,11 @@
  */
 package com.xwiki.licensing.internal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -36,11 +33,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.xpn.xwiki.objects.BaseObject;
+import com.xwiki.licensing.internal.helpers.LicensingNotificationConfigurationSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
 class DefaultLicensingConfigurationTest
@@ -53,13 +56,27 @@ class DefaultLicensingConfigurationTest
     private ConfigurationSource autoUpgradesConfig;
 
     @MockComponent
+    @Named(LicensingNotificationConfigurationSource.HINT)
+    private ConfigurationSource notificationConfig;
+
+    @MockComponent
     private Environment environment;
 
     @MockComponent
     private Provider<ConfigurationSource> configurationSourceProvider;
 
+    @MockComponent
+    @Named("current")
+    private DocumentReferenceResolver<String> referenceResolver;
+
     @Mock
     private ConfigurationSource configurationSource;
+
+    @Mock
+    private DocumentReference doc1;
+
+    @Mock
+    private DocumentReference doc2;
 
     @BeforeEach
     void configure()
@@ -97,6 +114,75 @@ class DefaultLicensingConfigurationTest
         when(this.autoUpgradesConfig.getProperty("allowlist")).thenReturn(null);
 
         assertEquals(Collections.emptyList(), this.licensingConfiguration.getAutoUpgradeAllowList());
+    }
+
+    @Test
+    void getNotifiedGroups() throws Exception
+    {
+        // Since getProperty method returns a list of objects, we check also that the conversion to string is done
+        // correctly.
+        List<Object> allowlist = Arrays.asList("testGroup1", "testGroup2");
+
+        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(allowlist);
+
+        assertEquals(Arrays.asList("testGroup1", "testGroup2"),
+            this.licensingConfiguration.getNotifiedGroups());
+    }
+
+    @Test
+    void getNotifiedGroupsWithException() throws Exception
+    {
+        try {
+            when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn("not a list");
+            this.licensingConfiguration.getNotifiedGroups();
+            fail("Should have thrown an exception.");
+        } catch (RuntimeException expected) {
+            assertEquals("Cannot convert [not a list] to List", expected.getMessage());
+        }
+    }
+
+    @Test
+    void getNotifiedGroupsWithEmptyList() throws Exception
+    {
+        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(null);
+
+        assertEquals(Collections.emptyList(), this.licensingConfiguration.getNotifiedGroups());
+    }
+
+    @Test
+    void getNotifiedGroupsSet() throws Exception
+    {
+        // Since getProperty method returns a list of objects, we check also that the conversion to string is done
+        // correctly.
+        List<Object> allowlist = Arrays.asList("testGroup1", "testGroup2");
+
+        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(allowlist);
+        when(this.referenceResolver.resolve("testGroup1")).thenReturn(doc1);
+        when(this.referenceResolver.resolve("testGroup2")).thenReturn(doc2);
+        when(this.doc1.toString()).thenReturn("serializedRef1");
+        when(this.doc2.toString()).thenReturn("serializedRef2");
+        assertEquals(Set.of("serializedRef1", "serializedRef2"),
+            this.licensingConfiguration.getNotifiedGroupsSet());
+    }
+
+    @Test
+    void getNotifiedGroupsSetWithException() throws Exception
+    {
+        try {
+            when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn("not a list");
+            this.licensingConfiguration.getNotifiedGroupsSet();
+            fail("Should have thrown an exception.");
+        } catch (RuntimeException expected) {
+            assertEquals("Cannot convert [not a list] to List", expected.getMessage());
+        }
+    }
+
+    @Test
+    void getNotifiedGroupsSetWithEmptyList() throws Exception
+    {
+        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(null);
+
+        assertEquals(Collections.emptySet(), this.licensingConfiguration.getNotifiedGroupsSet());
     }
 
     @Test

@@ -21,6 +21,7 @@ package com.xwiki.licensing;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import org.xwiki.component.annotation.Role;
 
@@ -80,4 +81,16 @@ public interface LicensingConfiguration
      * @return the email of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerEmail();
+
+    /**
+     * @return {@link List} with the groups whose members need to be notified about the extension
+     * @since 1.31
+     */
+    List<String> getNotifiedGroups();
+
+    /**
+     * @return {@link Set} with the groups whose members need to be notified about the extension
+     * @since 1.31
+     */
+    Set<String> getNotifiedGroupsSet();
 }
