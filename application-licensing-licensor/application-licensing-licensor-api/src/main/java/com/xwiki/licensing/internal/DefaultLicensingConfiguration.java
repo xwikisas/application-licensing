@@ -20,7 +20,6 @@
 package com.xwiki.licensing.internal;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -153,7 +152,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Override
     public List<String> getNotifiedGroups()
     {
-        return notificationConfig.getProperty("notifiedGroups", new ArrayList<>());
+        return convertObjectToStringList(notificationConfig.getProperty("notifiedGroups"));
     }
 
     @Override

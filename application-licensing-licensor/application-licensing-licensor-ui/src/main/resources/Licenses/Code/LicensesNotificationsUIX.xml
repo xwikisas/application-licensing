@@ -493,10 +493,7 @@
     </property>
     <property>
       <content>{{velocity}}
-#set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-#set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
-#set ($notificationsObj = $licensingConfigDoc.getObject($notificationClass))
-#set ($notifiedGroups = $notificationsObj.getValue('notifiedGroups').split(','))
+#set ($notifiedGroups = $services.licensing.licensor.getNotificationTargetGroups())
 #set ($inGroup = false)
 #foreach ($group in $notifiedGroups)
   #if($xwiki.getUser().isUserInGroup($group))
