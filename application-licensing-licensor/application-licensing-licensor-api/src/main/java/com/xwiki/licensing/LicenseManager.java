@@ -42,10 +42,10 @@ public interface LicenseManager
     /**
      * Add a new license to the current set of active license. The added license is checked to be applicable to the
      * current wiki instance, else it will not be added. The license is also checked to be more interesting than the
-     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
-     * wiki, it will not be added. This check does not reject unsigned license, but give immediate priority to signed
+     * currently installed licenses. If the license does not provide any improvement of the licensing state of this
+     * wiki, it will not be added. This check does not reject unsigned license, but gives immediate priority to signed
      * ones over unsigned ones, even if the signed license has narrower constraints. These evaluations are done for
-     * each licensed extension independently, whether these extension are currently installed or not.
+     * each licensed extension independently, whether these extensions are currently installed or not.
      *
      * @param license a license to be added (could be signed or not, unsigned will be stored but not really applied)
      * @return true if the license has been actually added (see above).
