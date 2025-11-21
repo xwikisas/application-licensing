@@ -123,28 +123,16 @@ class DefaultLicensingConfigurationTest
         // correctly.
         List<Object> allowlist = Arrays.asList("testGroup1", "testGroup2");
 
-        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(allowlist);
+        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(allowlist);
 
         assertEquals(Arrays.asList("testGroup1", "testGroup2"),
             this.licensingConfiguration.getNotifiedGroups());
     }
 
     @Test
-    void getNotifiedGroupsWithException() throws Exception
-    {
-        try {
-            when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn("not a list");
-            this.licensingConfiguration.getNotifiedGroups();
-            fail("Should have thrown an exception.");
-        } catch (RuntimeException expected) {
-            assertEquals("Cannot convert [not a list] to List", expected.getMessage());
-        }
-    }
-
-    @Test
     void getNotifiedGroupsWithEmptyList() throws Exception
     {
-        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(null);
+        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(List.of());
 
         assertEquals(Collections.emptyList(), this.licensingConfiguration.getNotifiedGroups());
     }
@@ -156,7 +144,7 @@ class DefaultLicensingConfigurationTest
         // correctly.
         List<Object> allowlist = Arrays.asList("testGroup1", "testGroup2");
 
-        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(allowlist);
+        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(allowlist);
         when(this.referenceResolver.resolve("testGroup1")).thenReturn(doc1);
         when(this.referenceResolver.resolve("testGroup2")).thenReturn(doc2);
         when(this.doc1.toString()).thenReturn("serializedRef1");
@@ -166,21 +154,9 @@ class DefaultLicensingConfigurationTest
     }
 
     @Test
-    void getNotifiedGroupsSetWithException() throws Exception
-    {
-        try {
-            when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn("not a list");
-            this.licensingConfiguration.getNotifiedGroupsSet();
-            fail("Should have thrown an exception.");
-        } catch (RuntimeException expected) {
-            assertEquals("Cannot convert [not a list] to List", expected.getMessage());
-        }
-    }
-
-    @Test
     void getNotifiedGroupsSetWithEmptyList() throws Exception
     {
-        when(this.notificationConfig.getProperty("notifiedGroups")).thenReturn(null);
+        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(List.of());
 
         assertEquals(Collections.emptySet(), this.licensingConfiguration.getNotifiedGroupsSet());
     }

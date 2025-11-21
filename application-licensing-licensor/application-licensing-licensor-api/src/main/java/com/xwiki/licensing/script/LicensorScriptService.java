@@ -112,17 +112,15 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * Retrieve the groups that should be notified of the licensor events.
+     * Check if the current user is a member of the groups targeted by licensor notifications.
      *
-     * @return {@link List} with the groups whose members need to be notified about a licensor event
-     * @throws AccessDeniedException if the requesting user lacks admin rights
+     * @return {@code true} if the user is member of the target groups, or {@code false} otherwise
      * @since 1.31
      */
     @Unstable
-    public List<String> getNotificationTargetGroups() throws AccessDeniedException
+    public boolean isMemberOfNotifiedGroups()
     {
-        contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return licensingConfig.getNotifiedGroups();
+        return this.licensingConfig.isMemberOfNotifiedGroups();
     }
 
     /**

@@ -22,6 +22,7 @@ package com.xwiki.licensing.internal.upgrades;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -46,6 +47,7 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.localization.ContextualLocalizationManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.ObservationManager;
@@ -120,9 +122,9 @@ public class UpgradeExtensionHandler
                 String doneUpgradeMessage = this.localization.getTranslationPlain(
                     "licensor.notification.autoUpgrade.done", installedExtension.getName(),
                     installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
-
-                this.observationManager.notify(new ExtensionAutoUpgradedEvent(licensingConfig.getNotifiedGroupsSet()),
-                    LICENSOR_API_ID, doneUpgradeMessage);
+                Set<String> notifiedGroups = getTargetGroups();
+                this.observationManager.notify(new ExtensionAutoUpgradedEvent(notifiedGroups), LICENSOR_API_ID,
+                    doneUpgradeMessage);
 
                 // If the execution gets here, it means that the upgrade was done.
                 break;
@@ -135,6 +137,15 @@ public class UpgradeExtensionHandler
                     failedUpgradeMessage);
             }
         }
+    }
+
+    private Set<String> getTargetGroups()
+    {
+        Set<String> notifiedGroups = licensingConfig.getNotifiedGroupsSet();
+        DocumentReference adminGroupDoc = currentDocumentReferenceResolver.resolve("XWiki.XWikiAdminGroup");
+        String adminGroup = serializer.serialize(adminGroupDoc);
+        notifiedGroups.add(adminGroup);
+        return notifiedGroups;
     }
 
     /**

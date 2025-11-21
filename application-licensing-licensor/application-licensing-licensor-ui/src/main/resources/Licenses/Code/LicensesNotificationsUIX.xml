@@ -36,9 +36,25 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Licenses.Code.VelocityMacros" /}}
-
-{{velocity output="false"}}
+  <content>{{velocity output="false"}}
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+#macro (getPaidExtensions)
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectiontool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+#end
+#macro (getVisiblePaidExtensions)
+  #getPaidExtensions
+  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
+  #set ($visiblePaidExtensions = $collectiontool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    #if ($mandatoryExtensions.contains($paidExtension.getId()))
+      #set ($discard = $visiblePaidExtensions.add($paidExtension))
+    #end
+  #end
+#end
 #macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
   &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
     &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
@@ -56,7 +72,7 @@
 {{/velocity}}
 
 {{velocity}}
-#if ($hasAdmin &amp;&amp; $hasProgramming)
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $isAdvancedUser || $hasAdmin)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
   #set ($invalidExtensionNames = $collectiontool.sortedSet)
@@ -493,14 +509,7 @@
     </property>
     <property>
       <content>{{velocity}}
-#set ($notifiedGroups = $services.licensing.licensor.getNotificationTargetGroups())
-#set ($inGroup = false)
-#foreach ($group in $notifiedGroups)
-  #if($xwiki.getUser().isUserInGroup($group))
-    #set ($inGroup = true)
-  #end
-#end
-#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX') &amp;&amp; ($inGroup || $isAdvancedUser))
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $isAdvancedUser || $hasAdmin)
   #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
   #set ($licensesNotificationWrapperTagName = 'li')
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
@@ -523,6 +532,89 @@ separator:true</parameters>
     </property>
     <property>
       <scope>wiki</scope>
+    </property>
+  </object>
+  <object>
+    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <number>0</number>
+    <className>XWiki.XWikiRights</className>
+    <guid>ee662140-f6d8-4bc9-b514-fc20315e4284</guid>
+    <class>
+      <name>XWiki.XWikiRights</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <allow>
+        <defaultValue>1</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>allow</displayType>
+        <name>allow</name>
+        <number>4</number>
+        <prettyName>Allow/Deny</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </allow>
+      <groups>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>groups</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Groups</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
+      </groups>
+      <levels>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>1</multiSelect>
+        <name>levels</name>
+        <number>2</number>
+        <prettyName>Levels</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>3</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.LevelsClass</classType>
+      </levels>
+      <users>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>users</name>
+        <number>3</number>
+        <picker>1</picker>
+        <prettyName>Users</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
+      </users>
+    </class>
+    <property>
+      <allow>1</allow>
+    </property>
+    <property>
+      <groups>XWiki.XWikiAllGroup</groups>
+    </property>
+    <property>
+      <levels>view</levels>
+    </property>
+    <property>
+      <users/>
     </property>
   </object>
 </xwikidoc>

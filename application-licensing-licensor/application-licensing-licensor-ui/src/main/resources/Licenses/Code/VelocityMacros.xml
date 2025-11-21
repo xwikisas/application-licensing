@@ -46,25 +46,7 @@
 #set ($userCount = $services.licensing.licensor.userCount)
 #set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
 #includeMacros("XWiki.AdminFieldsDisplaySheet")
-
-#macro (getPaidExtensions)
-  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  #set ($paidExtensions = $collectiontool.set)
-  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
-    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
-  #end
-#end
-
-#macro (getVisiblePaidExtensions)
-  #getPaidExtensions
-  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
-  #set ($visiblePaidExtensions = $collectiontool.set)
-  #foreach ($paidExtension in $paidExtensions)
-    #if ($mandatoryExtensions.contains($paidExtension.getId()))
-      #set ($discard = $visiblePaidExtensions.add($paidExtension))
-    #end
-  #end
-#end
+#includeMacros("Licenses.Code.LicensesNotificationsUIX")
 
 #macro (getLicensesAdminSectionURL)
   ## We target the main wiki explicitly because licenses are managed globally.

@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 
+import javax.inject.Provider;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -42,6 +44,7 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEvent;
@@ -76,6 +79,12 @@ public class NewExtensionVersionAvailableManagerTest
     @MockComponent
     private NewVersionNotificationManager newVersionNotificationManager;
 
+    @MockComponent
+    private Provider<XWikiContext> wikiContextProvider;
+
+    @MockComponent
+    private XWikiContext wikiContext;
+
     @Mock
     private InstalledExtension installedExtension1;
 
@@ -99,6 +108,9 @@ public class NewExtensionVersionAvailableManagerTest
         when(this.installedExtension2.getName()).thenReturn("Application 2");
         when(this.installedExtension2.getId()).thenReturn(extensionId2);
         when(this.installedRepository.getInstalledExtension(this.extensionId2)).thenReturn(this.installedExtension2);
+
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(wikiContext.getWikiId()).thenReturn("xwiki");
     }
 
     @Test
