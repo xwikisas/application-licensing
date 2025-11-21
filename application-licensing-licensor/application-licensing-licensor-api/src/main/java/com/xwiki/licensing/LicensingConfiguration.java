@@ -21,8 +21,10 @@ package com.xwiki.licensing;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 /**
  * Configuration of the licensing module.
@@ -80,4 +82,25 @@ public interface LicensingConfiguration
      * @return the email of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerEmail();
+
+    /**
+     * @return {@link List} with the groups whose members need to be notified about the extension
+     * @since 1.31
+     */
+    @Unstable
+    List<String> getNotifiedGroups();
+
+    /**
+     * @return {@link Set} with the groups whose members need to be notified about the extension
+     * @since 1.31
+     */
+    @Unstable
+    Set<String> getNotifiedGroupsSet();
+
+    /**
+     * @return {@code true} if the context user is member of the groups from {@link  #getNotifiedGroups}, or
+     *     {@code false} otherwise
+     * @since 1.31
+     */
+    boolean isMemberOfNotifiedGroups();
 }

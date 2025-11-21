@@ -19,16 +19,19 @@
  */
 package com.xwiki.licensing.internal.upgrades.notifications.newVersion;
 
-import org.xwiki.eventstream.RecordableEvent;
+import java.util.Collections;
+import java.util.Set;
+
+import org.xwiki.eventstream.TargetableEvent;
 import org.xwiki.extension.ExtensionId;
 
 /**
  * The event send when a new version of a licensed extension is available.
- * 
+ *
  * @version $Id$
  * @since 1.23
  */
-public class NewExtensionVersionAvailableEvent implements RecordableEvent
+public class NewExtensionVersionAvailableEvent implements TargetableEvent
 {
     /**
      * The name of this component.
@@ -38,6 +41,8 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
     private ExtensionId extensionId;
 
     private String namespace;
+
+    private Set<String> notifiedGroups = Collections.emptySet();
 
     /**
      * The default constructor.
@@ -51,12 +56,28 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
      *
      * @param extensionId the extension id of the new extension version detected
      * @param namespace the namespace where the new extension version was detected, where {@code null} means root
-     *            namespace (i.e. all namespaces)
+     *     namespace (i.e. all namespaces)
      */
     public NewExtensionVersionAvailableEvent(ExtensionId extensionId, String namespace)
     {
         this.extensionId = extensionId;
         this.namespace = namespace;
+    }
+
+    /**
+     * See {@link #NewExtensionVersionAvailableEvent(ExtensionId, String)}.
+     *
+     * @param extensionId the extension id of the new extension version detected
+     * @param namespace the namespace where the new extension version was detected, where {@code null} means root
+     *     namespace (i.e. all namespaces)
+     * @param notifiedGroups the groups that should be notified about the new version. An empty {@link Set} means
+     *     all users will be notified, no matter the group
+     */
+    public NewExtensionVersionAvailableEvent(ExtensionId extensionId, String namespace, Set<String> notifiedGroups)
+    {
+        this.extensionId = extensionId;
+        this.namespace = namespace;
+        this.notifiedGroups = notifiedGroups;
     }
 
     @Override
@@ -75,10 +96,16 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
 
     /**
      * @return the namespace where the new extension version was detected. {@code null} means root namespace (i.e all
-     *         namespaces)
+     *     namespaces)
      */
     public String getNamespace()
     {
         return this.namespace;
+    }
+
+    @Override
+    public Set<String> getTarget()
+    {
+        return notifiedGroups;
     }
 }

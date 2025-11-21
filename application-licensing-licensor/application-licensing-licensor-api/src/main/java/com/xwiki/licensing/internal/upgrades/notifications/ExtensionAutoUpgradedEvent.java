@@ -19,24 +19,54 @@
  */
 package com.xwiki.licensing.internal.upgrades.notifications;
 
-import org.xwiki.eventstream.RecordableEvent;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.xwiki.eventstream.TargetableEvent;
 
 /**
  * The event send when an application is automatically upgraded. Used in UpgradeExtensionHandler.
- * 
+ *
  * @version $Id$
  * @since 1.17
  */
-public class ExtensionAutoUpgradedEvent implements RecordableEvent
+public class ExtensionAutoUpgradedEvent implements TargetableEvent
 {
     /**
      * The event type used for this component.
      */
     public static final String EVENT_TYPE = "ExtensionAutoUpgradedEvent";
 
+    private Set<String> notifiedGroups;
+
+    /**
+     * The default constructor.
+     */
+    public ExtensionAutoUpgradedEvent()
+    {
+        notifiedGroups = new HashSet<>();
+    }
+
+    /**
+     * Created a new instance with the given data.
+     *
+     * @param notifiedGroups the groups that should be notified about the new upgrade. An empty {@link Set} means
+     *     all users will be notified, no matter the group
+     */
+    public ExtensionAutoUpgradedEvent(Set<String> notifiedGroups)
+    {
+        this.notifiedGroups = notifiedGroups;
+    }
+
     @Override
     public boolean matches(Object otherEvent)
     {
         return otherEvent instanceof ExtensionAutoUpgradedEvent;
+    }
+
+    @Override
+    public Set<String> getTarget()
+    {
+        return notifiedGroups;
     }
 }
