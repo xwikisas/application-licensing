@@ -39,6 +39,7 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.Licensor;
+import com.xwiki.licensing.internal.UserCounter;
 
 /**
  * Default implementation for {@link Licensor}.
@@ -51,6 +52,12 @@ public class DefaultLicensor implements Licensor, Initializable
 {
     private static final int EXPIRATION_THRESHOLD = 10;
 
+    /**
+     * Display the 'expiring license' message when the license has this many users left until the user limit is
+     * reached.
+     */
+    private static final int USERLIMIT_EXPIRATION_THRESHOLD = 5;
+
     @Inject
     private LicenseManager licenseManager;
 
@@ -62,6 +69,9 @@ public class DefaultLicensor implements Licensor, Initializable
 
     @Inject
     private Provider<XWikiContext> context;
+
+    @Inject
+    private UserCounter userCounter;
 
     @Override
     public void initialize() throws InitializationException
@@ -123,6 +133,26 @@ public class DefaultLicensor implements Licensor, Initializable
         return license == null || licenseValidator.isValid(license);
     }
 
+    private boolean isLicenseExpiringDate(License license)
+    {
+        LocalDate expirationDate =
+            Instant.ofEpochMilli(license.getExpirationDate()).atZone(ZoneId.systemDefault()).toLocalDate();
+        long daysUntilExpiration = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
+        return daysUntilExpiration <= EXPIRATION_THRESHOLD && daysUntilExpiration > 0;
+    }
+
+    private boolean isLicenseExpiringUserLimit(License license)
+    {
+        try {
+            long instanceUserCount = userCounter.getUserCount();
+            long userDifference = instanceUserCount - license.getMaxUserCount();
+            return userDifference <= USERLIMIT_EXPIRATION_THRESHOLD && userDifference > 0;
+        } catch (Exception ignored) {
+            // If we can't count the users, consider the license not expiring from the user limit point of view.
+        }
+        return false;
+    }
+
     @Override
     public boolean isLicenseExpiring(ExtensionId extensionId)
     {
@@ -130,9 +160,6 @@ public class DefaultLicensor implements Licensor, Initializable
         if (license == null) {
             return false;
         }
-        LocalDate expirationDate =
-            Instant.ofEpochMilli(license.getExpirationDate()).atZone(ZoneId.systemDefault()).toLocalDate();
-        long daysUntilExpiration = ChronoUnit.DAYS.between(LocalDate.now(), expirationDate);
-        return daysUntilExpiration <= EXPIRATION_THRESHOLD && daysUntilExpiration > 0;
+        return isLicenseExpiringDate(license) || isLicenseExpiringUserLimit(license);
     }
 }
