@@ -76,6 +76,9 @@ licensor.ownerDetails.instanceId.hint=Identifiant unique de vos licences associ�
 licensor.ownerDetails.missingData=Ce champ est requis !
 licensor.ownerDetails.heading=Propriétaire de la licence
 licensor.ownerDetails.hint=Remplissez les champs suivants afin d'acheter une licence ou d'obtenir une licence d'essai.
+Licenses.Code.LicensingNotificationClass_notifiedGroups=Groupes notifiés
+Licenses.Code.LicensingNotificationClass_notifiedGroups.hint=Sélectionnez les groupes d’utilisateurs qui seront notifiés des événements du licencié. Notez que les groupes sélectionnés doivent disposer à la fois des droits d’administration et de programmation.licensor.notificationSettings.heading=Paramètres de notification
+licensor.notificationSettings.hint=Gérer les notifications de licences
 licensor.licenseManager.heading=Extensions sous licence
 licensor.licenseManager.hint=Voici la liste des extensions installées dans votre wiki qui nécessitent l'activation d'une licence. Vous pouvez acheter une licence ou obtenir une licence d'essai de 10 jours qui ne peut être prolongée qu'une seule fois de 10 jours.
 licensor.expiringLicenses=Les extensions suivantes sont sur le point d'expirer :
