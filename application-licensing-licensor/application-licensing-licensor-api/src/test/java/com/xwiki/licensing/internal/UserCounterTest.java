@@ -61,8 +61,6 @@ public class UserCounterTest
 
     private QueryFilter uniqueFilter;
 
-    private String statement;
-
     @Before
     public void configure() throws Exception
     {
@@ -70,11 +68,6 @@ public class UserCounterTest
         this.queryManager = this.mocker.getInstance(QueryManager.class);
         this.countFilter = this.mocker.getInstance(QueryFilter.class, "count");
         this.uniqueFilter = this.mocker.getInstance(QueryFilter.class, "unique");
-
-        StringBuilder stringBuilder = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
-        stringBuilder.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
-        stringBuilder.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
-        this.statement = stringBuilder.toString();
     }
 
     @Test
@@ -93,7 +86,7 @@ public class UserCounterTest
 
         Query fooQuery = createMockQuery("foo");
         Query barQuery = createMockQuery("bar");
-        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenReturn(Collections.singletonList(4L));
 
@@ -115,7 +108,7 @@ public class UserCounterTest
 
         Query fooQuery = createMockQuery("foo");
         Query barQuery = createMockQuery("bar");
-        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenThrow(new QueryException("message", barQuery, null));
 
@@ -133,7 +126,7 @@ public class UserCounterTest
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(Collections.singletonList("foo"));
 
         Query fooQuery = createMockQuery("foo");
-        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
 
         assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
