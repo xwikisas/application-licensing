@@ -72,7 +72,7 @@
 {{/velocity}}
 
 {{velocity}}
-#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $isAdvancedUser || $hasAdmin)
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
   #set ($invalidExtensionNames = $collectiontool.sortedSet)
