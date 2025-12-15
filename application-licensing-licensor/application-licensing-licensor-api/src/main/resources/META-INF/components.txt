@@ -19,6 +19,7 @@ com.xwiki.licensing.internal.TrialLicenseGenerator
 com.xwiki.licensing.internal.LicensedDependenciesMap
 com.xwiki.licensing.internal.helpers.LicensingStoreConfigurationSource
 com.xwiki.licensing.internal.helpers.LicensingOwnerConfigurationSource
+com.xwiki.licensing.internal.helpers.LicensingWarningThresholdConfigurationSource
 com.xwiki.licensing.internal.helpers.HttpClientUtils
 com.xwiki.licensing.internal.upgrades.UpgradeExtensionHandler
 com.xwiki.licensing.internal.upgrades.AutomaticUpgradesConfigurationSource
@@ -32,6 +33,6 @@ com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDi
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEventDisplayer
-com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitListener
-com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEventConverter
-com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEventDescriptor
+com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitListener
+com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEventConverter
+com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEventDescriptor

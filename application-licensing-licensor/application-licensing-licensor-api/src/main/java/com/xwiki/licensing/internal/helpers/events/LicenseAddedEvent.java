@@ -28,10 +28,10 @@ import com.xwiki.licensing.LicensedFeatureId;
  * @version $Id$
  * @since 1.31
  */
-public class LicenseAddedEvent extends LicenseEvent
+public class LicenseAddedEvent extends LicenseOperationEvent
 {
     /**
-     * Match any license added event.
+     * For use in listeners to match any license added event.
      */
     public LicenseAddedEvent()
     {
@@ -39,9 +39,9 @@ public class LicenseAddedEvent extends LicenseEvent
     }
 
     /**
-     * Match any license managing the given feature.
+     * For use in listeners to match any license managing the given feature.
      *
-     * @param featureId
+     * @param featureId the feature id to match
      */
     public LicenseAddedEvent(LicensedFeatureId featureId)
     {
@@ -51,7 +51,7 @@ public class LicenseAddedEvent extends LicenseEvent
     /**
      * Default constructor for events.
      *
-     * @param license the license which was updated
+     * @param license the license which was added
      */
     public LicenseAddedEvent(License license)
     {

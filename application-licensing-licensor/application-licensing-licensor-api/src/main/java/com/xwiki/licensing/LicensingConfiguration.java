@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.List;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 /**
  * Configuration of the licensing module.
@@ -80,4 +81,11 @@ public interface LicensingConfiguration
      * @return the email of the licensing owner or null if the value of the property is not filled up
      */
     String getLicensingOwnerEmail();
+
+    /**
+     * @return the threshold of active users on the instance after which warning notifications are sent.
+     * @since 1.31
+     */
+    @Unstable
+    String getUserLimitWarningThreshold();
 }

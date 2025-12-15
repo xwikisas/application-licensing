@@ -74,6 +74,10 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Named("LicensingOwnerConfigurationSource")
     private ConfigurationSource ownerConfig;
 
+    @Inject
+    @Named("LicensingWarningThresholdConfigurationSource")
+    private ConfigurationSource notificationConfig;
+
     private File localStorePath;
 
     @Override
@@ -135,6 +139,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     public String getStoreRenewURL()
     {
         return this.storeConfig.getProperty("storeRenewURL");
+    }
+
+    @Override
+    public String getUserLimitWarningThreshold()
+    {
+        return this.notificationConfig.getProperty("userLimitWarningThreshold");
     }
 
     @SuppressWarnings("unchecked")

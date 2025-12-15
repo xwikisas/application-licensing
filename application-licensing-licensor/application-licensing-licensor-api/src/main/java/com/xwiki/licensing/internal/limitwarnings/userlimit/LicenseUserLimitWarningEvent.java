@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing.internal.userlimit.notifications;
+package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
 import java.util.Set;
 
@@ -27,11 +27,17 @@ import com.xwiki.licensing.License;
 
 /**
  * Notification event for licenses which have almost reached their user limit.
+ * TODO: After the parent is >15.5, implement a Notification Grouping Strategy so licensor emails are not bundled
+ *  together with other notifications, similar to the mentions macro emails.
  *
  * @version $Id$
  */
 public class LicenseUserLimitWarningEvent implements TargetableEvent
 {
+    public static final String EVENT_TYPE =
+        "com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent";
+
+    // TODO: Make a parent event class to inherit?
     private final License license;
 
     private final long userDiff;
@@ -81,18 +87,12 @@ public class LicenseUserLimitWarningEvent implements TargetableEvent
     public boolean matches(Object otherEvent)
     {
         return otherEvent instanceof LicenseUserLimitWarningEvent;
-//        if (otherEvent instanceof LicenseUserLimitWarningEvent) {
-//            return this.license == null || ((LicenseUserLimitWarningEvent) otherEvent).license == null
-//                || this.license.getId().equals(((LicenseUserLimitWarningEvent) otherEvent).license.getId());
-//        } else {
-//            return false;
-//        }
     }
 
     @Override
     public Set<String> getTarget()
     {
-        // TODO: Maybe make this customizable from the licensor Admin Section.
+        // TODO: Make this customizable from the licensor Admin Section.
         return Set.of("xwiki:XWiki.XWikiAdminGroup", "XWiki.XWikiAdminGroup", "XWikiAdminGroup", "XWiki.Admin",
             "xwiki:XWiki.Admin", "Admin", "Administrator");
     }

@@ -75,7 +75,7 @@
       </notificationTemplate>
     </class>
     <property>
-      <eventType>com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent</eventType>
+      <eventType>com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent</eventType>
     </property>
     <property>
       <notificationTemplate>#template('notification/macros.vm')
@@ -113,7 +113,7 @@
 #define ($details)
   #define ($rows)
     #foreach ($thisEvent in $event.events)
-      #if ($thisEvent.type == 'com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent')
+      #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
         #displayEventDetails($thisEvent)
       #end
     #end
@@ -191,7 +191,7 @@
       <emailSubject/>
     </property>
     <property>
-      <eventType>com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent</eventType>
+      <eventType>com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent</eventType>
     </property>
     <property>
       <htmlTemplate>#template('notification/email/macros.vm')
@@ -222,7 +222,7 @@
 #macro (displayTaskNotificationDetails $event)
   &lt;table class="notification-event-details"&gt;
     #foreach ($thisEvent in $event.events)
-      #if ($thisEvent.type == 'com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEvent')
+      #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
         #displayTaskChangedEventDetails($thisEvent)
       #end
     #end

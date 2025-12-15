@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.licensing.internal.userlimit.notifications;
+package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  */
 @Component
 @Singleton
-@Named("com.xwiki.licensing.internal.userlimit.notifications.LicenseUserLimitWarningEventConverter")
+@Named(LicenseUserLimitWarningEvent.EVENT_TYPE)
 public class LicenseUserLimitWarningEventConverter implements RecordableEventConverter
 {
     @Inject
@@ -55,7 +55,8 @@ public class LicenseUserLimitWarningEventConverter implements RecordableEventCon
     @Override
     public Event convert(RecordableEvent recordableEvent, String source, Object data) throws Exception
     {
-        LicenseUserLimitWarningEvent event = (LicenseUserLimitWarningEvent) recordableEvent;
+        LicenseUserLimitWarningEvent
+            event = (LicenseUserLimitWarningEvent) recordableEvent;
 
         Event convertedEvent = this.defaultConverter.convert(event, source, data);
 

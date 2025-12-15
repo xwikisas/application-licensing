@@ -254,4 +254,37 @@
       <storeUpdateURL>https://store.xwiki.com/xwiki/bin/get/Store/GetLicenses</storeUpdateURL>
     </property>
   </object>
+  <object>
+    <name>Licenses.Code.LicensingConfig</name>
+    <number>0</number>
+    <className>Licenses.Code.LicensingWarningNotificationThresholdClass</className>
+    <guid>c2d85c78-cde2-4b11-bab7-10b1e3c405d6</guid>
+    <class>
+      <name>Licenses.Code.LicensingWarningNotificationThresholdClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <userLimitWarningThreshold>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>userLimitWarningThreshold</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>userLimitWarningThreshold</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </userLimitWarningThreshold>
+    </class>
+    <property>
+      <userLimitWarningThreshold>5</userLimitWarningThreshold>
+    </property>
+  </object>
 </xwikidoc>

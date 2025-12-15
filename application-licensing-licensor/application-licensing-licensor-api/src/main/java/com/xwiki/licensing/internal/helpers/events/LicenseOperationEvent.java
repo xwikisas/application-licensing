@@ -25,21 +25,21 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicensedFeatureId;
 
 /**
- * Event regarding licenses.
+ * Event regarding operations on licenses, such as adding or removing a license on the instance.
  *
  * @version $Id$
  * @since 1.31
  */
-public class LicenseEvent implements Event
+public class LicenseOperationEvent implements Event
 {
     private License license;
-
+    // TODO: Maybe this class does too much to be a parent class.
     private LicensedFeatureId featureId;
 
     /**
      * Constructor for use in listeners to match any license.
      */
-    public LicenseEvent()
+    public LicenseOperationEvent()
     {
     }
 
@@ -48,7 +48,7 @@ public class LicenseEvent implements Event
      *
      * @param featureId the feature id to match
      */
-    public LicenseEvent(LicensedFeatureId featureId)
+    public LicenseOperationEvent(LicensedFeatureId featureId)
     {
         this.featureId = featureId;
     }
@@ -58,7 +58,7 @@ public class LicenseEvent implements Event
      *
      * @param license the license which was updated
      */
-    public LicenseEvent(License license)
+    public LicenseOperationEvent(License license)
     {
         this.license = license;
     }
@@ -74,7 +74,7 @@ public class LicenseEvent implements Event
     @Override
     public boolean matches(Object otherEvent)
     {
-        if (!(otherEvent instanceof LicenseEvent)) {
+        if (!(otherEvent instanceof LicenseOperationEvent)) {
             return false;
         }
         if (this.license == null && this.featureId == null) {
@@ -82,7 +82,7 @@ public class LicenseEvent implements Event
         } else if (this.featureId != null) {
             return this.getLicense().getFeatureIds().stream().anyMatch(fId -> fId.equals(featureId));
         } else {
-            return this.license.equals(((LicenseEvent) otherEvent).license);
+            return this.license.equals(((LicenseOperationEvent) otherEvent).license);
         }
     }
 }
