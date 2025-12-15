@@ -19,11 +19,11 @@
  */
 package com.xwiki.licensing.internal.upgrades.notifications.newVersion;
 
-import java.util.Collections;
 import java.util.Set;
 
-import org.xwiki.eventstream.TargetableEvent;
 import org.xwiki.extension.ExtensionId;
+
+import com.xwiki.licensing.internal.upgrades.AbstractLicensorTargetableEvent;
 
 /**
  * The event send when a new version of a licensed extension is available.
@@ -31,7 +31,7 @@ import org.xwiki.extension.ExtensionId;
  * @version $Id$
  * @since 1.23
  */
-public class NewExtensionVersionAvailableEvent implements TargetableEvent
+public class NewExtensionVersionAvailableEvent extends AbstractLicensorTargetableEvent
 {
     /**
      * The name of this component.
@@ -41,8 +41,6 @@ public class NewExtensionVersionAvailableEvent implements TargetableEvent
     private ExtensionId extensionId;
 
     private String namespace;
-
-    private Set<String> notifiedGroups = Collections.emptySet();
 
     /**
      * The default constructor.
@@ -77,7 +75,7 @@ public class NewExtensionVersionAvailableEvent implements TargetableEvent
     {
         this.extensionId = extensionId;
         this.namespace = namespace;
-        this.notifiedGroups = notifiedGroups;
+        this.setNotifiedGroups(notifiedGroups);
     }
 
     @Override
@@ -101,11 +99,5 @@ public class NewExtensionVersionAvailableEvent implements TargetableEvent
     public String getNamespace()
     {
         return this.namespace;
-    }
-
-    @Override
-    public Set<String> getTarget()
-    {
-        return notifiedGroups;
     }
 }

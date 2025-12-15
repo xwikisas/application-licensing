@@ -19,10 +19,9 @@
  */
 package com.xwiki.licensing.internal.upgrades.notifications;
 
-import java.util.HashSet;
 import java.util.Set;
 
-import org.xwiki.eventstream.TargetableEvent;
+import com.xwiki.licensing.internal.upgrades.AbstractLicensorTargetableEvent;
 
 /**
  * The event send when an application is automatically upgraded. Used in UpgradeExtensionHandler.
@@ -30,21 +29,18 @@ import org.xwiki.eventstream.TargetableEvent;
  * @version $Id$
  * @since 1.17
  */
-public class ExtensionAutoUpgradedEvent implements TargetableEvent
+public class ExtensionAutoUpgradedEvent extends AbstractLicensorTargetableEvent
 {
     /**
      * The event type used for this component.
      */
     public static final String EVENT_TYPE = "ExtensionAutoUpgradedEvent";
 
-    private Set<String> notifiedGroups;
-
     /**
      * The default constructor.
      */
     public ExtensionAutoUpgradedEvent()
     {
-        notifiedGroups = new HashSet<>();
     }
 
     /**
@@ -55,18 +51,12 @@ public class ExtensionAutoUpgradedEvent implements TargetableEvent
      */
     public ExtensionAutoUpgradedEvent(Set<String> notifiedGroups)
     {
-        this.notifiedGroups = notifiedGroups;
+        this.setNotifiedGroups(notifiedGroups);
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
         return otherEvent instanceof ExtensionAutoUpgradedEvent;
-    }
-
-    @Override
-    public Set<String> getTarget()
-    {
-        return notifiedGroups;
     }
 }
