@@ -59,8 +59,6 @@ public class UserCounterTest
 
     private QueryFilter countFilter;
 
-    private QueryFilter uniqueFilter;
-
     private String statement;
 
     @Before
@@ -69,7 +67,6 @@ public class UserCounterTest
         this.wikiDescriptorManager = this.mocker.getInstance(WikiDescriptorManager.class);
         this.queryManager = this.mocker.getInstance(QueryManager.class);
         this.countFilter = this.mocker.getInstance(QueryFilter.class, "count");
-        this.uniqueFilter = this.mocker.getInstance(QueryFilter.class, "unique");
 
         StringBuilder stringBuilder = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
         stringBuilder.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
@@ -91,20 +88,20 @@ public class UserCounterTest
     {
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(Arrays.asList("foo", "bar"));
 
-        Query fooQuery = createMockQuery("foo");
-        Query barQuery = createMockQuery("bar");
+        Query fooQuery = mock(Query.class, "foo");
+        Query barQuery = mock(Query.class, "bar");
         when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(fooQuery.addFilter(this.countFilter)).thenReturn(fooQuery);
+        when(barQuery.addFilter(this.countFilter)).thenReturn(barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenReturn(Collections.singletonList(4L));
 
         assertEquals(7L, this.mocker.getComponentUnderTest().getUserCount());
 
         verify(fooQuery).addFilter(this.countFilter);
-        verify(fooQuery).addFilter(this.uniqueFilter);
         verify(fooQuery).setWiki("foo");
 
         verify(barQuery).addFilter(this.countFilter);
-        verify(barQuery).addFilter(this.uniqueFilter);
         verify(barQuery).setWiki("bar");
     }
 
@@ -113,9 +110,11 @@ public class UserCounterTest
     {
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(Arrays.asList("foo", "bar"));
 
-        Query fooQuery = createMockQuery("foo");
-        Query barQuery = createMockQuery("bar");
+        Query fooQuery = mock(Query.class, "foo");
+        Query barQuery = mock(Query.class, "bar");
         when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(fooQuery.addFilter(this.countFilter)).thenReturn(fooQuery);
+        when(barQuery.addFilter(this.countFilter)).thenReturn(barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenThrow(new QueryException("message", barQuery, null));
 
@@ -132,8 +131,9 @@ public class UserCounterTest
     {
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(Collections.singletonList("foo"));
 
-        Query fooQuery = createMockQuery("foo");
+        Query fooQuery = mock(Query.class, "foo");
         when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery);
+        when(fooQuery.addFilter(this.countFilter)).thenReturn(fooQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
 
         assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
@@ -155,11 +155,5 @@ public class UserCounterTest
 
         verify(this.wikiDescriptorManager, times(2)).getAllIds();
         verify(fooQuery, times(2)).execute();
-    }
-
-    private Query createMockQuery(String queryName) {
-        Query query = mock(Query.class, queryName);
-        when(query.addFilter(any())).thenReturn(query);
-        return query;
     }
 }

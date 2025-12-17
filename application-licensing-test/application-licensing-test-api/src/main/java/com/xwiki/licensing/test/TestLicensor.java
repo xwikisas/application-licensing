@@ -19,16 +19,11 @@
  */
 package com.xwiki.licensing.test;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.model.reference.EntityReference;
-import org.xwiki.model.reference.EntityReferenceSerializer;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
@@ -44,13 +39,7 @@ import com.xwiki.licensing.Licensor;
 @Singleton
 public class TestLicensor implements Licensor
 {
-    // This map is used for storing custom licenses (FREE, TRIAL, PAID) used for tests.
-    private static final Map<String, License> CUSTOM_LICENSES = new ConcurrentHashMap<>();
-
     private final License freeLicense;
-
-    @Inject
-    private EntityReferenceSerializer<String> serializer;
 
     public TestLicensor()
     {
@@ -85,62 +74,12 @@ public class TestLicensor implements Licensor
     @Override
     public License getLicense(ExtensionId extensionId)
     {
-        License custom = CUSTOM_LICENSES.get(extensionId.toString());
-        return custom != null ? custom : freeLicense;
+        return freeLicense;
     }
 
     @Override
     public License getLicense(EntityReference reference)
     {
-        License custom = CUSTOM_LICENSES.get(this.serializer.serialize(reference));
-        return custom != null ? custom : freeLicense;
-    }
-
-    public static void clearCustomLicenses()
-    {
-        CUSTOM_LICENSES.clear();
-    }
-
-    public License addLicense(ExtensionId extensionId, LicenseType licenseType)
-    {
-        License license = new License();
-        license.setType(licenseType);
-        CUSTOM_LICENSES.put(extensionId.toString(), license);
-
-        return license;
-    }
-
-    public License addLicense(ExtensionId extensionId, LicenseType licenseType, int expirationDays, long maxUserCount)
-    {
-        License license = new License();
-        license.setType(licenseType);
-        license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
-        license.setMaxUserCount(maxUserCount);
-        CUSTOM_LICENSES.put(extensionId.toString(), license);
-
-        return license;
-    }
-
-    public License addLicense(EntityReference entityReference, LicenseType licenseType)
-    {
-        License license = new License();
-        license.setType(licenseType);
-        String entityString = this.serializer.serialize(entityReference);
-        CUSTOM_LICENSES.put(entityString, license);
-
-        return license;
-    }
-
-    public License addLicense(EntityReference entityReference, LicenseType licenseType, int expirationDays,
-        long maxUserCount)
-    {
-        License license = new License();
-        license.setType(licenseType);
-        license.setExpirationDate(System.currentTimeMillis() + (expirationDays * 24L * 60 * 60 * 1000));
-        license.setMaxUserCount(maxUserCount);
-        String entityString = this.serializer.serialize(entityReference);
-        CUSTOM_LICENSES.put(entityString, license);
-
-        return license;
+        return freeLicense;
     }
 }

@@ -50,7 +50,7 @@ import com.xwiki.licensing.Licensor;
 
 /**
  * Listen to licensed extensions upgrades or install in order to trigger a license renewal if needed. A license renew
- * is needed if licensed dependencies (direct or transitive) have changed between versions, or if the current license
+ * it's needed if licensed dependencies (direct or transitive) have changed between versions, or if the currnt license
  * has outdated feature ids. Listen also for the install event in case a license was already generated for an older
  * uninstalled version.
  *

@@ -30,7 +30,7 @@ import org.xwiki.component.annotation.Role;
 public interface LicenseValidator
 {
     /**
-     * A LicenseValidator that always returns false. Used when the license validator received is not pristine.
+     * A LicenseValidator that always reply false. Used when the license validator received is not pristine.
      */
     LicenseValidator INVALIDATOR = new LicenseValidator() {
         @Override
@@ -69,7 +69,7 @@ public interface LicenseValidator
     boolean isSigned(License license);
 
     /**
-     * Check if a license is valid, its constraints are respected.
+     * Check if a license is valid, its constrains are respected.
      * The instance constraint is NOT checked, see {@link #isApplicable(License)}
      *
      * @param license the license to be checked.

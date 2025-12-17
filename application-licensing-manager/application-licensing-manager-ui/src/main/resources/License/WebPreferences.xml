@@ -905,7 +905,7 @@
         <name>ldap_server</name>
         <number>51</number>
         <picker>0</picker>
-        <prettyName>Ldap server address</prettyName>
+        <prettyName>Ldap server adress</prettyName>
         <size>60</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>

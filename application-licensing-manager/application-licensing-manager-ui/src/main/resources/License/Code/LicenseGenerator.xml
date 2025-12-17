@@ -59,7 +59,7 @@
     #stop
   #end
   ## Allow for custom expiration date, which is needed when extending an existing license.
-  #set ($licenseDetails.expirationDate = $datetool.toDate($numbertool.toNumber($request.expirationDate)))
+  #set ($licenseDetails.expirationDate = $datetool.toDate($mathtool.toNumber($request.expirationDate)))
   #addLicenseDetails($licenseDetails true $license)
   #if ("$!license" == '')
     #set ($discard = $response.setStatus(500))
