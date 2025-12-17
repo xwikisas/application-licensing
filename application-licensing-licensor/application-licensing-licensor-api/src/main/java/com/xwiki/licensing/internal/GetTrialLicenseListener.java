@@ -98,7 +98,7 @@ public class GetTrialLicenseListener implements EventListener
     }
 
     /**
-     * Try to generate a trial license for the given extension. Since a free extension has no license to cover it's
+     * Try to generate a trial license for the given extension. Since a free extension has no license to cover its
      * dependencies, check also to see if there aren't any paid dependencies, direct or transitive, that need a trial
      * license.
      *

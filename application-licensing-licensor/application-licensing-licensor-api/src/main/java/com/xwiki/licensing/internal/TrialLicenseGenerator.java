@@ -126,7 +126,7 @@ public class TrialLicenseGenerator
      *
      * @param extensionId extension for which the trial license is needed
      * @return the URL for getting a trial license, or null if it couldn't be constructed
-     * @throws Exception if an error occured while constructing the url
+     * @throws Exception if an error occurred while constructing the url
      */
     private URL getTrialURL(ExtensionId extensionId) throws Exception
     {
