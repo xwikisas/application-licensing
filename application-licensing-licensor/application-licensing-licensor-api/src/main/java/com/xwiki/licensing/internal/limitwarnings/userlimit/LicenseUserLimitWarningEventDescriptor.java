@@ -19,9 +19,8 @@
  */
 package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -37,10 +36,10 @@ import org.xwiki.eventstream.RecordableEventDescriptor;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.notifications.NotificationException;
 import org.xwiki.notifications.NotificationFormat;
+import org.xwiki.notifications.preferences.NotificationPreference;
 import org.xwiki.notifications.preferences.NotificationPreferenceCategory;
 import org.xwiki.notifications.preferences.NotificationPreferenceManager;
 import org.xwiki.notifications.preferences.NotificationPreferenceProperty;
-import org.xwiki.notifications.preferences.TargetableNotificationPreference;
 import org.xwiki.notifications.preferences.TargetableNotificationPreferenceBuilder;
 import org.xwiki.notifications.preferences.internal.WikiNotificationPreferenceProvider;
 
@@ -71,20 +70,20 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public void initialize()
     {
-        /// Taken from {@link MentionEventDescriptor}.
         WikiReference wikiReference = this.contextProvider.get().getWikiReference();
-        Map<NotificationPreferenceProperty, Object> properties = new HashMap<>();
-        properties.put(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE);
-        // Create the preference
-        TargetableNotificationPreference notificationPreference =
+        Map<NotificationPreferenceProperty, Object> properties =
+            Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE);
+        // Create the preference for alerts and emails.
+        List<NotificationPreference> notificationPreferences = List.of(
             this.targetableNotificationPreferenceBuilder.prepare().setCategory(NotificationPreferenceCategory.DEFAULT)
                 .setEnabled(true).setFormat(NotificationFormat.ALERT).setProperties(properties)
                 .setProviderHint(WikiNotificationPreferenceProvider.NAME).setStartDate(new Date())
-                .setTarget(wikiReference).build();
+                .setTarget(wikiReference).build(),
+            this.targetableNotificationPreferenceBuilder.setFormat(NotificationFormat.EMAIL).build());
 
-        // Save it
+        // Save it.
         try {
-            this.notificationPreferenceManager.savePreferences(Collections.singletonList(notificationPreference));
+            this.notificationPreferenceManager.savePreferences(notificationPreferences);
         } catch (NotificationException e) {
             // We don't throw an InitializationException since it doesn't prevent the component to be used.
             this.logger.warn("Error while enabling LicenseUserLimitWarningEvent for the wiki {}: {}", wikiReference,
@@ -107,7 +106,7 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public String getDescription()
     {
-        return "licensor.events.LicenseUserLimitWarningEvent";
+        return "licensor.events.LicenseUserLimitWarningEvent.description";
     }
 
     @Override
