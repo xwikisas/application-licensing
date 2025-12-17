@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -42,7 +41,6 @@ import org.xwiki.observation.event.Event;
 import org.xwiki.observation.event.filter.EventFilter;
 import org.xwiki.observation.event.filter.RegexEventFilter;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.License;
@@ -50,7 +48,6 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.UserCounter;
 import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
-import com.xwiki.licensing.internal.helpers.events.LicenseOperationEvent;
 
 import static org.xwiki.user.internal.UserPropertyConstants.ACTIVE;
 
@@ -82,9 +79,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
     private UserCounter userCounter;
 
     @Inject
-    private Provider<XWikiContext> xcontextProvider;
-
-    @Inject
     private ObservationManager observationManager;
 
     @Inject
@@ -103,25 +97,23 @@ public class LicenseUserLimitListener extends AbstractEventListener
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        Collection<License> potentiallyInvalidatedLicenses = null;
-        if (event instanceof AbstractDocumentEvent) {
-            if (shouldTriggerOnDocumentEvent(source)) {
-                // If the event was triggered because of a user page update, we need to search for all licenses that
-                // might be nearing their user limit.
-                potentiallyInvalidatedLicenses = getUsedLicensesWithUserLimits();
-            }
-        } else if (event instanceof LicenseOperationEvent) {
+        Collection<License> potentiallyInvalidatedLicenses = List.of();
+        if (event instanceof AbstractDocumentEvent && shouldTriggerOnDocumentEvent(source)) {
+            // If the event was triggered because of a user page update, we need to search for all licenses that
+            // might be nearing their user limit.
+            potentiallyInvalidatedLicenses = getUsedLicensesWithUserLimits();
+        } else if (event instanceof LicenseAddedEvent) {
             // We know exactly which license was added, so check if it almost exceeds the user limit.
-            potentiallyInvalidatedLicenses = List.of(((LicenseOperationEvent) event).getLicense());
+            potentiallyInvalidatedLicenses = List.of(((LicenseAddedEvent) event).getLicense());
         }
 
-        if (null == potentiallyInvalidatedLicenses || potentiallyInvalidatedLicenses.isEmpty()) {
+        if (potentiallyInvalidatedLicenses.isEmpty()) {
             return;
         }
 
         try {
             long userCount = userCounter.getUserCount();
-            potentiallyInvalidatedLicenses.forEach(license -> notifyForLicense(license, userCount));
+            notifyForLicenses(potentiallyInvalidatedLicenses, userCount);
         } catch (Exception e) {
             logger.error("Failed to get count of users for license user limit warning. Cause: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
@@ -130,7 +122,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private boolean shouldTriggerOnDocumentEvent(Object source)
     {
-        /// Copied from {@link com.xwiki.licensing.internal.UserCounter.UserListener.onEvent}.
         XWikiDocument newDocument = (XWikiDocument) source;
         XWikiDocument oldDocument = newDocument.getOriginalDocument();
 
@@ -144,30 +135,31 @@ public class LicenseUserLimitListener extends AbstractEventListener
         int newActive = newDocumentIsUser ? newObject.getIntValue(ACTIVE) : -1;
         int oldActive = oldDocumentIsUser ? oldObject.getIntValue(ACTIVE) : -1;
 
-        // The user object is either added/removed or set to active/inactive.
-        // User was enabled.
         if (newDocumentIsUser != oldDocumentIsUser) {
-            // User deleted/created.
+            // User page was just created.
             return true;
         } else {
-            return newDocumentIsUser && newActive == 1 && newActive != oldActive;
+            // User was enabled.
+            return newDocumentIsUser && newActive == 1 && oldActive == 0;
         }
     }
 
-    private void notifyForLicense(License license, long userCount)
+    private void notifyForLicenses(Collection<License> licenses, long userCount)
     {
-        long userDiff = license.getMaxUserCount() - userCount;
-        if (0 <= userDiff && userDiff < getUserNotificationThresholdForLicense(license)) {
-            // Unless the user watches the Licenses.WebHome page, they won't receive the notification. This may be
-            // helpful if the user wants to have an exclusive filter on the entire wiki but still receive licensing
-            // notifications.
-            // TODO: The Licenses.WebHome page is not visible for guests, so email notifications list the page as $title
-            //  Would need to pick a public marker page? Or replace the $title with something else by means of
-            //  velocity workarounds.
-            observationManager.notify(new LicenseUserLimitWarningEvent(license, userDiff),
-                "com.xwiki.licensing:application-licensing-licensor-api",
-                new XWikiDocument(new DocumentReference("xwiki", "Licenses", "WebHome")));
-        }
+        Collection<License> filteredLicenses = licenses.stream().filter(license -> {
+            long userDiff = license.getMaxUserCount() - userCount;
+            return 0 <= userDiff && userDiff < getUserNotificationThresholdForLicense(license);
+        }).collect(Collectors.toSet());
+
+        // Unless the user watches the Licenses.WebHome page, they won't receive the notification. This may be
+        // helpful if the user wants to have an exclusive filter on the entire wiki but still receive licensing
+        // notifications.
+        // TODO: The Licenses.WebHome page is not visible for guests, so email notifications list the page as $title
+        //  Would need to pick a public marker page? Or replace the $title with something else by means of
+        //  velocity workarounds.
+        observationManager.notify(new LicenseUserLimitWarningEvent(filteredLicenses, userCount),
+            "com.xwiki.licensing:application-licensing-licensor-api",
+            new XWikiDocument(new DocumentReference("xwiki", "Licenses", "WebHome")));
     }
 
     private long getUserNotificationThresholdForLicense(License license)

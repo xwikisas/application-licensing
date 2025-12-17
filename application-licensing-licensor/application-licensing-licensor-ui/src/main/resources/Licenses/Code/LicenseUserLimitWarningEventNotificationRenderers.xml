@@ -82,43 +82,81 @@
 
 #set ($mainIcon = 'warning')
 #set ($smallIcon = '')
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+#set ($maxExtensionsCount = 3)
 
-#macro (displayEventDetails $event)
-  #set ($customEventInfo = $jsontool.fromString($event.getBody()))
-  #set ($localizationId = 'licensor.notification.userLimitWarning.description')
-  #if ($customEventInfo['userDiff'] == 1)
-    #set ($localizationId = $localizationId + '.under.singular')
-  #elseif ($customEventInfo['userDiff'] &gt; 0)
-    #set ($localizationId = $localizationId + '.under')
-  #elseif ($customEventInfo['userDiff'] == 0)
-    #set ($localizationId = $localizationId + '.limit')
+#define ($licensesAdminSectionURL)
+  ## We target the main wiki explicitly because licenses are managed globally.
+  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+      'admin', 'editor=globaladmin&amp;section=Licenses')##
   #else
-    #set ($localizationId = $localizationId + '.over')
+    ## Fall-back in case the Administration Application is not installed.
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
   #end
-  &lt;tr&gt;
-    &lt;td class="description"&gt;$services.localization.render($localizationId, [$customEventInfo['license'], $customEventInfo['userDiff']])&lt;/td&gt;
-    &lt;td class="text-right text-muted"&gt;
-      $escapetool.xml($xwiki.formatDate($event.date))
-    &lt;/td&gt;
-  &lt;/tr&gt;
 #end
 
-#define ($content)
-  &lt;div class="notification-description"&gt;
-    $services.localization.render('licensor.notification.userLimitWarning.title', 'xhtml/1.0', [])
-    &lt;div&gt;&lt;small class="text-muted"&gt;$escapetool.xml($!services.date.displayTimeAgo($!event.events[0].date))&lt;/small&gt;&lt;/div&gt;
-  &lt;/div&gt;
-#end
-
-#define ($details)
-  #define ($rows)
-    #foreach ($thisEvent in $event.events)
-      #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
-        #displayEventDetails($thisEvent)
+#macro (getExtensionsWithWarning)
+  ## Get the extension objects which contain the pretty name of all extensions.
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectiontool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+  ## Get the extensions which are at risk of going over the user limit.
+  #set ($extensionsWitNotifications = $collectiontool.set)
+  #set ($licensesInfos = $collectiontool.map)
+  ## Take events in the reverse order, so the licensesInfo map contains the latest information.
+  #set ($eventsSize = $event.events.size() - 1)
+  #foreach ($i in [$eventsSize..0])
+    #set ($thisEvent = $event.events[$i])
+    #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
+      #set ($eventInfo = $jsontool.fromString($thisEvent.getBody()))
+      #set ($userCount = $eventInfo.userCount)
+      #set ($discard = $licensesInfos.putAll($eventInfo['licenses']))
+      #foreach ($licenseInfo in $eventInfo['licenses'])
+        #set ($discard = $extensionsWitNotifications.addAll($licenseInfo.affectedExtensions))
       #end
     #end
   #end
-  #displayNotificationEventDetailsSkeletons($event.events.size(), $rows)
+  ## Get only the top-level pro extensions, which are listed in the licensor page.
+  #set ($mandatoryExtensionsWithVersion =
+    $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
+  #set ($mandatoryExtensions = $collectiontool.set)
+  #foreach ($mandatoryExtension in $mandatoryExtensionsWithVersion)
+    #set ($discard = $mandatoryExtensions.add($mandatoryExtension.getId()))
+  #end
+  ## Get the pretty names.
+  #set ($extensionsWithWarning = $collectiontool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    #if ($mandatoryExtensions.contains($paidExtension.getId().getId())
+        &amp;&amp; $extensionsWitNotifications.contains($paidExtension.getId().getId()))
+      #set ($discard = $extensionsWithWarning.add($paidExtension))
+    #end
+  #end
+#end
+
+#define ($content)
+  &lt;div class="notification-page"&gt;&lt;a href="$escapetool.xml($licensesAdminSectionURL)"&gt;
+    $escapetool.xml($services.localization.render('licensor.events.LicenseUserLimitWarningEvent.title'))
+  &lt;/a&gt;&lt;/div&gt;
+  &lt;div class="notification-description"&gt;
+    #getExtensionsWithWarning
+    #foreach ($extension in $extensionsWithWarning)
+      $extension.name
+      #if ($foreach.index &lt; $maxExtensionsCount - 1 &amp;&amp; $foreach.index &lt; $extensionsWithWarning.size() - 1)
+        , ##
+      #else
+        #if ($foreach.index == $maxExtensionsCount - 1)
+          #set ($remainingExtensions = $extensionsWithWarning.size() - 1 - $foreach.index)
+          ...
+        ($!escapetool.xml($services.localization.render('licensor.events.LicenseUserLimitWarningEvent.description.truncatedExtensionCount', [$remainingExtensions])))
+        #end
+        #break
+      #end
+    #end
+    &lt;div&gt;&lt;small class="text-muted"&gt;$escapetool.xml($!services.date.displayTimeAgo($!event.events[0].date))&lt;/small&gt;&lt;/div&gt;
+  &lt;/div&gt;
 #end
 
 #displayNotificationEventSkeleton($mainIcon $smallIcon $content $details)</notificationTemplate>
@@ -198,33 +236,106 @@
 
 #set ($mainIcon = 'warning')
 #set ($smallIcon = '')
+#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+#set ($LONG_MAX_VALUE = $mathtool.pow(2,63))
 
-#macro (displayTaskChangedEventDetails $event)
-  #set ($customEventInfo = $jsontool.fromString($event.getBody()))
-  #set ($localizationId = 'licensor.notification.userLimitWarning.description')
-  #if ($customEventInfo['userDiff'] == 1)
-    #set ($localizationId = $localizationId + '.under.singular')
-  #elseif ($customEventInfo['userDiff'] &gt; 0)
-    #set ($localizationId = $localizationId + '.under')
-  #elseif ($customEventInfo['userDiff'] == 0)
-    #set ($localizationId = $localizationId + '.limit')
+#define ($licensesAdminSectionURL)
+  ## We target the main wiki explicitly because licenses are managed globally.
+  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+      'admin', 'editor=globaladmin&amp;section=Licenses')##
   #else
-    #set ($localizationId = $localizationId + '.over')
+    ## Fall-back in case the Administration Application is not installed.
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
   #end
-  &lt;tr style="vertical-align: top;"&gt;
-    &lt;td class="description"&gt;$services.localization.render($localizationId, [$customEventInfo['license'], $customEventInfo['userDiff']])&lt;/td&gt;
-    &lt;td style="text-align: right;"&gt;
-      $escapetool.xml($xwiki.formatDate($event.date))
-    &lt;/td&gt;
+#end
+
+#macro (getExtensionsWithWarning)
+  ## Get the extension objects which contain the pretty name of all extensions.
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectiontool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+  ## Get the extensions which are at risk of going over the user limit.
+  #set ($extensionsWitNotifications = $collectiontool.set)
+  #set ($licensesInfos = $collectiontool.map)
+  ## Take events in the reverse order, so the licensesInfo map contains the latest information.
+  #set ($eventsSize = $event.events.size() - 1)
+  #foreach ($i in [$eventsSize..0])
+    #set ($thisEvent = $event.events[$i])
+    #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
+      #set ($eventInfo = $jsontool.fromString($thisEvent.getBody()))
+      #set ($userCount = $eventInfo.userCount)
+      #set ($discard = $licensesInfos.putAll($eventInfo['licenses']))
+      #foreach ($licenseInfo in $eventInfo['licenses'])
+        #set ($discard = $extensionsWitNotifications.addAll($licenseInfo.affectedExtensions))
+      #end
+    #end
+  #end
+  ## Get only the top-level pro extensions, which are listed in the licensor page.
+  #set ($mandatoryExtensionsWithVersion =
+    $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
+  #set ($mandatoryExtensions = $collectiontool.set)
+  #foreach ($mandatoryExtension in $mandatoryExtensionsWithVersion)
+    #set ($discard = $mandatoryExtensions.add($mandatoryExtension.getId()))
+  #end
+  ## Get the pretty names.
+  #set ($extensionsWithWarning = $collectiontool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    #if ($mandatoryExtensions.contains($paidExtension.getId().getId())
+        &amp;&amp; $extensionsWitNotifications.contains($paidExtension.getId().getId()))
+      #set ($discard = $extensionsWithWarning.add($paidExtension))
+    #end
+  #end
+#end
+
+#macro (displayLicensorExtensionDetails $extension)
+  #set ($license = $services.licensing.licensor.getLicenseForExtension($extension.id))
+  ##
+  ## Expiration Date
+  ##
+  #if (!$license || $license.expirationDate == 0)
+    #set ($expDateStatus = 'danger')
+    #set ($expDate = $services.localization.render('licensor.status.noLicenseAvailable'))
+  #elseif ($license.expirationDate == $LONG_MAX_VALUE)
+    #set ($expDateStatus = 'success')
+    #set ($expDate = $services.localization.render('licensor.status.infinite'))
+  #else
+    #set ($expDateStatus = "#if ($license.expirationDate &gt; $datetool.date.time)success#{else}danger#end")
+    #set ($expDate = $datetool.format('dd/MM/yyyy', $license.expirationDate))
+  #end
+  ##
+  ## User Limit
+  ##
+  #if (!$license || !$license.maxUserCount || $license.maxUserCount == $LONG_MAX_VALUE
+      || ($license.maxUserCount == 0 &amp;&amp; $license.expirationDate == 0))
+    ## The default value for the maxUserCount field of a license is Long.MAX_VALUE so when we encounter this value
+    ## we consider that the max user count was not specified.
+    #set ($userLimitStatus = 'muted')
+    #set ($userLimit = $services.localization.render('licensor.userLimit.unspecified'))
+  #elseif ($license.maxUserCount &lt; 0)
+    #set ($userLimitStatus = 'success')
+    #set ($userLimit = $services.localization.render('licensor.userLimit.unlimited'))
+  #else
+    #set ($userLimitStatus = "#if ($userCount &lt;= $license.maxUserCount)success#{else}danger#end")
+    #set ($userLimit = "$!userCount / $!license.maxUserCount")
+  #end
+  #set ($extensionStatusColor =
+    "#if ($userLimitStatus == 'danger' || $expDateStatus == 'danger')#f2dede#{else}#fcf8e3#end")
+  &lt;tr style="vertical-align: top; border: 1px solid; border-collapse: collapse; background-color:$extensionStatusColor;"&gt;
+    &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$extension.name&lt;/td&gt;
+    &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$!escapetool.xml($userLimit)&lt;/td&gt;
+    &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$!escapetool.xml($expDate)&lt;/td&gt;
   &lt;/tr&gt;
 #end
 
-#macro (displayTaskNotificationDetails $event)
-  &lt;table class="notification-event-details"&gt;
-    #foreach ($thisEvent in $event.events)
-      #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
-        #displayTaskChangedEventDetails($thisEvent)
-      #end
+#macro (displayLicensorNotificationDetails $event)
+  #getExtensionsWithWarning
+  &lt;table style="border: 1px solid; border-collapse: collapse; width:100%;"&gt;
+    ## Render a report on all provided extensions.
+    #foreach ($extension in $extensionsWithWarning)
+        #displayLicensorExtensionDetails($extension)
     #end
   &lt;/table&gt;
 #end
@@ -233,12 +344,20 @@
   ###
   ### Description, users and date
   ###
-  $services.localization.render('licensor.notification.userLimitWarning.title', 'xhtml/1.0', [])
+  $escapetool.xml($services.localization.render('licensor.events.LicenseUserLimitWarningEvent.title'))
   #displayNotificationDate($event)
   ###
   ### Details
   ###
-  #displayTaskNotificationDetails($event)
+  #displayLicensorNotificationDetails($event)
+  &lt;p style="color: #777777; font-size: 0.8em;"&gt;
+    #set ($adminLink = $escapetool.xml(
+      $services.localization.render('licensor.events.LicenseUserLimitWarningEvent.email.adminSectionHint.linkText')))
+    #set ($adminLink = $escapetool.xml(
+        $services.localization.render('licensor.events.LicenseUserLimitWarningEvent.email.adminSectionHint.text')
+      ).replace('__adminSectionLink__', "&lt;a href="$escapetool.xml($licensesAdminSectionURL)"&gt;$adminLink&lt;/a&gt;"))
+    $adminLink
+  &lt;/p&gt;
 #end
 
 #define ($leftCell)

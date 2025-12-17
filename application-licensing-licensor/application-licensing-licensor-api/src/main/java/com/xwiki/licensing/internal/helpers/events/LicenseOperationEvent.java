@@ -33,7 +33,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 public class LicenseOperationEvent implements Event
 {
     private License license;
-    // TODO: Maybe this class does too much to be a parent class.
+
     private LicensedFeatureId featureId;
 
     /**

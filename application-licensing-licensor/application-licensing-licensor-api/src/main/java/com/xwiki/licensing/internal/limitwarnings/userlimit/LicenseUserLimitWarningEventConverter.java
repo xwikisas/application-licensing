@@ -21,6 +21,7 @@ package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,6 +36,8 @@ import org.xwiki.eventstream.RecordableEventConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicensedFeatureId;
 
 /**
  * Descriptor for the event {@link LicenseUserLimitWarningEvent}.
@@ -55,14 +58,15 @@ public class LicenseUserLimitWarningEventConverter implements RecordableEventCon
     @Override
     public Event convert(RecordableEvent recordableEvent, String source, Object data) throws Exception
     {
-        LicenseUserLimitWarningEvent
-            event = (LicenseUserLimitWarningEvent) recordableEvent;
+        LicenseUserLimitWarningEvent event = (LicenseUserLimitWarningEvent) recordableEvent;
 
         Event convertedEvent = this.defaultConverter.convert(event, source, data);
 
-        convertedEvent.setBody(serializeParams(Map.of("license", event.getLicense().getId().toString(), "userDiff",
-            event.getUserDiff())));
-
+        convertedEvent.setBody(serializeParams(Map.of("userCount", event.getUserCount(), "licenses",
+            event.getLicenses().stream().collect(Collectors.toMap((License license) -> license.getId().getId(),
+                (License license) -> Map.of("affectedExtensions",
+                    license.getFeatureIds().stream().map(LicensedFeatureId::getId).collect(Collectors.toList()),
+                    "maxUserCount", license.getMaxUserCount()))))));
         return convertedEvent;
     }
 

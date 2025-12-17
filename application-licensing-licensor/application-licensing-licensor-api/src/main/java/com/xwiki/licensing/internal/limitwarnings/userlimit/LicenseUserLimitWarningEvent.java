@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.xwiki.eventstream.TargetableEvent;
@@ -34,33 +35,41 @@ import com.xwiki.licensing.License;
  */
 public class LicenseUserLimitWarningEvent implements TargetableEvent
 {
+    /**
+     * The name of components related to this event.
+     */
     public static final String EVENT_TYPE =
         "com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent";
 
-    // TODO: Make a parent event class to inherit?
-    private final License license;
+    /**
+     * Licenses which risk to be invalid because of the user limit.
+     */
+    private final Collection<License> licenses;
 
-    private final long userDiff;
+    /**
+     * The number of users on the instance.
+     */
+    private final long userCount;
 
     /**
      * Constructor for listeners and matchers.
      */
     public LicenseUserLimitWarningEvent()
     {
-        this.license = null;
-        this.userDiff = 0;
+        this.licenses = Set.of();
+        this.userCount = 0;
     }
 
     /**
      * Default constructor.
      *
-     * @param license the license with the user limit which was almost exceeded
-     * @param userDiff the number of users left until the user limit is exceeded
+     * @param licenses the licenses for which the user limit which was almost exceeded
+     * @param userCount the number of users on the instance
      */
-    public LicenseUserLimitWarningEvent(License license, long userDiff)
+    public LicenseUserLimitWarningEvent(Collection<License> licenses, long userCount)
     {
-        this.license = license;
-        this.userDiff = userDiff;
+        this.licenses = licenses;
+        this.userCount = userCount;
     }
 
     /**
@@ -68,9 +77,9 @@ public class LicenseUserLimitWarningEvent implements TargetableEvent
      *
      * @return license
      */
-    public License getLicense()
+    public Collection<License> getLicenses()
     {
-        return license;
+        return licenses;
     }
 
     /**
@@ -78,9 +87,9 @@ public class LicenseUserLimitWarningEvent implements TargetableEvent
      *
      * @return the number of users left until the license user limit is exceeded
      */
-    public long getUserDiff()
+    public long getUserCount()
     {
-        return userDiff;
+        return userCount;
     }
 
     @Override
@@ -93,7 +102,6 @@ public class LicenseUserLimitWarningEvent implements TargetableEvent
     public Set<String> getTarget()
     {
         // TODO: Make this customizable from the licensor Admin Section.
-        return Set.of("xwiki:XWiki.XWikiAdminGroup", "XWiki.XWikiAdminGroup", "XWikiAdminGroup", "XWiki.Admin",
-            "xwiki:XWiki.Admin", "Admin", "Administrator");
+        return Set.of("xwiki:XWiki.XWikiAdminGroup", "XWiki.XWikiAdminGroup", "XWikiAdminGroup");
     }
 }

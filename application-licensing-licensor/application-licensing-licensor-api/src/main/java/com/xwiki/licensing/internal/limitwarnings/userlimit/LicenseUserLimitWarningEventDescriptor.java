@@ -66,7 +66,6 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-
     private Logger logger;
 
     @Override
@@ -108,7 +107,7 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public String getDescription()
     {
-        return "licensor.events.LicenseUserLimitWarningEvent.description";
+        return "licensor.events.LicenseUserLimitWarningEvent";
     }
 
     @Override
@@ -120,6 +119,6 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public String getEventTitle()
     {
-        return "licensing.events.LicenseUserLimitWarningEvent.title";
+        return "licensor.events.LicenseUserLimitWarningEvent.title";
     }
 }
