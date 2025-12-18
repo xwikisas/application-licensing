@@ -36,54 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output="false"}}
-#set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
-#macro (getPaidExtensions)
-  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  #set ($paidExtensions = $collectiontool.set)
-  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
-    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
-  #end
-#end
-#macro (getLicensesAdminSectionURL)
-  ## We target the main wiki explicitly because licenses are managed globally.
-  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
-    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
-      'admin', 'editor=globaladmin&amp;section=Licenses')##
-  #else
-    ## Fall-back in case the Administration Application is not installed.
-    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
-  #end
-#end
-#macro (getVisiblePaidExtensions)
-  #getPaidExtensions
-  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
-  #set ($visiblePaidExtensions = $collectiontool.set)
-  #foreach ($paidExtension in $paidExtensions)
-    #if ($mandatoryExtensions.contains($paidExtension.getId()))
-      #set ($discard = $visiblePaidExtensions.add($paidExtension))
-    #end
-  #end
-#end
-#macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
-  &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
-    &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
-    &lt;ul&gt;
-      &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
-      #if ($showMore)
-        &lt;li&gt;...&lt;/li&gt;
-      #end
-    &lt;/ul&gt;
-    &lt;/br&gt;
-    #if ($hasAdmin &amp;&amp; $hasProgramming)
-      &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
-        $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
-    #else
-      &lt;p&gt;$escapetool.xml($services.localization.render("${translation}.notifyAdmin"))&lt;/p&gt;
-    #end
-  &lt;/$licensesNotificationWrapperTagName&gt;
-#end
-{{/velocity}}
+  <content>{{include reference="Licenses.Code.PublicMacros" /}}
 
 {{velocity}}
 #if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
@@ -523,7 +476,7 @@
     </property>
     <property>
       <content>{{velocity}}
-#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $isAdvancedUser || $hasAdmin)
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
   #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
   #set ($licensesNotificationWrapperTagName = 'li')
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}

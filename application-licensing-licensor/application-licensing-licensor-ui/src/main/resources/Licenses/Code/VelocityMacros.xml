@@ -46,7 +46,7 @@
 #set ($userCount = $services.licensing.licensor.userCount)
 #set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
 #includeMacros("XWiki.AdminFieldsDisplaySheet")
-#includeMacros("Licenses.Code.LicensesNotificationsUIX")
+#includeMacros('Licenses.Code.PublicMacros')
 
 #macro (getInstanceIdFormField)
   &lt;dt&gt;
@@ -113,6 +113,7 @@
   #if ($section == 'Licenses')
     #set($formId = "${section.toLowerCase()}_${notificationClass}")
     {{html clean=false}}
+    &lt;br&gt;
     &lt;form id="$escapetool.xml($formId)" method="post"
         action="$escapetool.xml($xwiki.getURL($licensingConfigDoc, 'saveandcontinue'))"
         class="xform"&gt;
