@@ -84,6 +84,67 @@
   <object>
     <name>Licenses.Code.LicensingConfig</name>
     <number>0</number>
+    <className>Licenses.Code.LicensingNotificationClass</className>
+    <guid>7520997e-c29d-4783-acae-4a809c71951a</guid>
+    <class>
+      <name>Licenses.Code.LicensingNotificationClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <notifiedGroups>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue>XWiki.XWikiAdminGroup</defaultValue>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <freeText>discouraged</freeText>
+        <hint/>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>notifiedGroups</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Notified groups</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators/>
+        <size>20</size>
+        <sort/>
+        <unmodifiable>0</unmodifiable>
+        <usesList>0</usesList>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
+      </notifiedGroups>
+      <userLimitWarningThreshold>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>userLimitWarningThreshold</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>User Limit Warning Threshold</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage>This value must be a positive number (123) or a percentage (20%)</validationMessage>
+        <validationRegExp>^(\d*|1?[0-9]?[0-9]%)$</validationRegExp>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </userLimitWarningThreshold>
+    </class>
+    <property>
+      <notifiedGroups>XWiki.XWikiAdminGroup,XWiki.XWikiAllGroup</notifiedGroups>
+    </property>
+    <property>
+      <userLimitWarningThreshold>5</userLimitWarningThreshold>
+    </property>
+  </object>
+  <object>
+    <name>Licenses.Code.LicensingConfig</name>
+    <number>0</number>
     <className>Licenses.Code.LicensingOwnerClass</className>
     <guid>aa66d528-6926-410d-b239-8d7203cb466b</guid>
     <class>
@@ -252,39 +313,6 @@
     </property>
     <property>
       <storeUpdateURL>https://store.xwiki.com/xwiki/bin/get/Store/GetLicenses</storeUpdateURL>
-    </property>
-  </object>
-  <object>
-    <name>Licenses.Code.LicensingConfig</name>
-    <number>0</number>
-    <className>Licenses.Code.LicensingWarningNotificationThresholdClass</className>
-    <guid>c2d85c78-cde2-4b11-bab7-10b1e3c405d6</guid>
-    <class>
-      <name>Licenses.Code.LicensingWarningNotificationThresholdClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <userLimitWarningThreshold>
-        <customDisplay/>
-        <disabled>0</disabled>
-        <hint/>
-        <name>userLimitWarningThreshold</name>
-        <number>1</number>
-        <picker>1</picker>
-        <prettyName>userLimitWarningThreshold</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </userLimitWarningThreshold>
-    </class>
-    <property>
-      <userLimitWarningThreshold>5</userLimitWarningThreshold>
     </property>
   </object>
 </xwikidoc>

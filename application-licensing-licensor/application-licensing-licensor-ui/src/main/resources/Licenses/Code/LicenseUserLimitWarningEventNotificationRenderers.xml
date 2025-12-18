@@ -322,7 +322,7 @@
     #set ($userLimit = "$!userCount / $!license.maxUserCount")
   #end
   #set ($extensionStatusColor =
-    "#if ($userLimitStatus == 'danger' || $expDateStatus == 'danger')#ffcccc#{else}#ccffcc#end")
+    "#if ($userLimitStatus == 'danger' || $expDateStatus == 'danger')#ffcccc#{else}#ffffcc#end")
   &lt;tr style="vertical-align: top; border: 1px solid; border-collapse: collapse; background-color:$extensionStatusColor;"&gt;
     &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$extension.name&lt;/td&gt;
     &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$!escapetool.xml($userLimit)&lt;/td&gt;

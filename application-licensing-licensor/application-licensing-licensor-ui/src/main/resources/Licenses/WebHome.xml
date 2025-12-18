@@ -37,8 +37,6 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
-#includeMacros('Licenses.Code.VelocityMacros')
-
 #macro (displayLicensesLiveTable)
   {{html clean="false"}}
   &lt;fieldset class="header"&gt;
@@ -106,8 +104,10 @@
   $services.localization.render('licensor.accessDenied')
   {{/error}}
 #else
+  #includeMacros('Licenses.Code.VelocityMacros')
   #set ($discard = $xwiki.ssx.use('Licenses.WebHome'))
   #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
+  #displayNotificationsConfiguration
   #displayOwnerDetailsForm
   #displayLicensesLiveTable
   #displayAddLicenseForm
@@ -982,89 +982,6 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
     </property>
     <property>
       <use>currentPage</use>
-    </property>
-  </object>
-  <object>
-    <name>Licenses.WebHome</name>
-    <number>0</number>
-    <className>XWiki.XWikiRights</className>
-    <guid>286433ec-7014-48df-b1e9-da8775e8ecc6</guid>
-    <class>
-      <name>XWiki.XWikiRights</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <allow>
-        <defaultValue>1</defaultValue>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>allow</displayType>
-        <name>allow</name>
-        <number>4</number>
-        <prettyName>Allow/Deny</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </allow>
-      <groups>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>input</displayType>
-        <multiSelect>1</multiSelect>
-        <name>groups</name>
-        <number>1</number>
-        <picker>1</picker>
-        <prettyName>Groups</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <size>5</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
-      </groups>
-      <levels>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>1</multiSelect>
-        <name>levels</name>
-        <number>2</number>
-        <prettyName>Levels</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <size>3</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.LevelsClass</classType>
-      </levels>
-      <users>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>input</displayType>
-        <multiSelect>1</multiSelect>
-        <name>users</name>
-        <number>3</number>
-        <picker>1</picker>
-        <prettyName>Users</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <size>5</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
-      </users>
-    </class>
-    <property>
-      <allow>1</allow>
-    </property>
-    <property>
-      <groups>XWiki.XWikiAllGroup</groups>
-    </property>
-    <property>
-      <levels>view</levels>
-    </property>
-    <property>
-      <users/>
     </property>
   </object>
 </xwikidoc>

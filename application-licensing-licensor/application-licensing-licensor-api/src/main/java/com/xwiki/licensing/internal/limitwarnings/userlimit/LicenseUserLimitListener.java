@@ -151,15 +151,17 @@ public class LicenseUserLimitListener extends AbstractEventListener
             return 0 <= userDiff && userDiff < getUserNotificationThresholdForLicense(license);
         }).collect(Collectors.toSet());
 
-        // Unless the user watches the Licenses.WebHome page, they won't receive the notification. This may be
-        // helpful if the user wants to have an exclusive filter on the entire wiki but still receive licensing
-        // notifications.
-        // TODO: The Licenses.WebHome page is not visible for guests, so email notifications list the page as $title
-        //  Would need to pick a public marker page? Or replace the $title with something else by means of
-        //  velocity workarounds.
-        observationManager.notify(new LicenseUserLimitWarningEvent(filteredLicenses, userCount),
-            "com.xwiki.licensing:application-licensing-licensor-api",
-            new XWikiDocument(new DocumentReference("xwiki", "Licenses", "WebHome")));
+        if (!filteredLicenses.isEmpty()) {
+            // Unless the user watches the Licenses.WebHome page, they won't receive the notification. This may be
+            // helpful if the user wants to have an exclusive filter on the entire wiki but still receive licensing
+            // notifications.
+            // TODO: The Licenses.WebHome page is not visible for guests, so email notifications list the page as $title
+            //  Would need to pick a public marker page? Or replace the $title with something else by means of
+            //  velocity workarounds.
+            observationManager.notify(new LicenseUserLimitWarningEvent(filteredLicenses, userCount),
+                "com.xwiki.licensing:application-licensing-licensor-api",
+                new XWikiDocument(new DocumentReference("xwiki", "Licenses", "WebHome")));
+        }
     }
 
     private long getUserNotificationThresholdForLicense(License license)
