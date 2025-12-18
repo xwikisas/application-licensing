@@ -166,7 +166,13 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private long getUserNotificationThresholdForLicense(License license)
     {
-        String threshold = licensingConfiguration.getUserLimitWarningThreshold().trim();
+        String threshold = licensingConfiguration.getUserLimitWarningThreshold();
+        if (null == threshold) {
+            // The configuration object is missing or can't be retrieved.
+            return USER_LIMIT_THRESHOLD_DEFAULT;
+        }
+
+        threshold = threshold.trim();
         try {
             if (threshold.endsWith(PERCENT)) {
                 // The threshold is specified as a % of the license user limit.
