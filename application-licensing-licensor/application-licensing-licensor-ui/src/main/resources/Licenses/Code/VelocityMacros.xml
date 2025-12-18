@@ -48,17 +48,6 @@
 #includeMacros("XWiki.AdminFieldsDisplaySheet")
 #includeMacros("Licenses.Code.LicensesNotificationsUIX")
 
-#macro (getLicensesAdminSectionURL)
-  ## We target the main wiki explicitly because licenses are managed globally.
-  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
-    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
-      'admin', 'editor=globaladmin&amp;section=Licenses')##
-  #else
-    ## Fall-back in case the Administration Application is not installed.
-    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
-  #end
-#end
-
 #macro (getInstanceIdFormField)
   &lt;dt&gt;
     &lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;

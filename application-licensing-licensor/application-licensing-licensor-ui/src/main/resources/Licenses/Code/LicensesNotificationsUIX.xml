@@ -45,6 +45,16 @@
     #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
   #end
 #end
+#macro (getLicensesAdminSectionURL)
+  ## We target the main wiki explicitly because licenses are managed globally.
+  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+      'admin', 'editor=globaladmin&amp;section=Licenses')##
+  #else
+    ## Fall-back in case the Administration Application is not installed.
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
+  #end
+#end
 #macro (getVisiblePaidExtensions)
   #getPaidExtensions
   #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
@@ -65,8 +75,12 @@
       #end
     &lt;/ul&gt;
     &lt;/br&gt;
-    &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
-      $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
+    #if ($hasAdmin &amp;&amp; $hasProgramming)
+      &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
+        $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
+    #else
+      &lt;p&gt;$escapetool.xml($services.localization.render("${translation}.notifyAdmin"))&lt;/p&gt;
+    #end
   &lt;/$licensesNotificationWrapperTagName&gt;
 #end
 {{/velocity}}
