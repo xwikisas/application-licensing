@@ -175,6 +175,7 @@ public class UserCounter
             }
             cachedSortedUsersLookupTable =
                 cachedSortedUsers.stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
+            cachedUserCount = (long) cachedSortedUsers.size();
         }
         return cachedSortedUsers;
     }
