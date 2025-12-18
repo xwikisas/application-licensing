@@ -37,14 +37,14 @@ import org.xwiki.model.reference.LocalDocumentReference;
  * @since 1.31
  */
 @Component
-@Named(LicensingWarningThresholdConfigurationSource.HINT)
+@Named(LicensingNotificationConfigurationSource.HINT)
 @Singleton
-public class LicensingWarningThresholdConfigurationSource extends AbstractDocumentConfigurationSource
+public class LicensingNotificationConfigurationSource extends AbstractDocumentConfigurationSource
 {
     /**
      * Component hint.
      */
-    public static final String HINT = "LicensingWarningThresholdConfigurationSource";
+    public static final String HINT = "LicensingNotificationConfigurationSource";
 
     protected static final List<String> CODE_SPACE = Arrays.asList("Licenses", "Code");
 
@@ -52,7 +52,7 @@ public class LicensingWarningThresholdConfigurationSource extends AbstractDocume
         new LocalDocumentReference(CODE_SPACE, "LicensingConfig");
 
     protected static final LocalDocumentReference OWNER_CLASS =
-        new LocalDocumentReference(CODE_SPACE, "LicensingWarningNotificationThresholdClass");
+        new LocalDocumentReference(CODE_SPACE, "LicensingNotificationClass");
 
     @Override
     protected DocumentReference getDocumentReference()

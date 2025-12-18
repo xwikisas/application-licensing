@@ -75,7 +75,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     private ConfigurationSource ownerConfig;
 
     @Inject
-    @Named("LicensingWarningThresholdConfigurationSource")
+    @Named("LicensingNotificationConfigurationSource")
     private ConfigurationSource notificationConfig;
 
     private File localStorePath;

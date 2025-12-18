@@ -87,5 +87,8 @@ public interface LicensingConfiguration
      * @since 1.31
      */
     @Unstable
-    String getUserLimitWarningThreshold();
+    default String getUserLimitWarningThreshold()
+    {
+        return "5";
+    }
 }
