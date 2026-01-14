@@ -20,9 +20,11 @@
 package com.xwiki.licensing.internal;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -33,8 +35,13 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.LicensingConfiguration;
+import com.xwiki.licensing.internal.helpers.LicensingNotificationConfigurationSource;
 
 /**
  * Default implementation of {@link LicensingConfiguration}.
@@ -73,6 +80,17 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Inject
     @Named("LicensingOwnerConfigurationSource")
     private ConfigurationSource ownerConfig;
+
+    @Inject
+    @Named(LicensingNotificationConfigurationSource.HINT)
+    private ConfigurationSource notificationConfig;
+
+    @Inject
+    @Named("current")
+    private DocumentReferenceResolver<String> referenceResolver;
+
+    @Inject
+    private Provider<XWikiContext> wikiContextProvider;
 
     private File localStorePath;
 
@@ -135,6 +153,28 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     public String getStoreRenewURL()
     {
         return this.storeConfig.getProperty("storeRenewURL");
+    }
+
+    @Override
+    public List<String> getNotifiedGroups()
+    {
+        return convertObjectToStringList(notificationConfig.getProperty("notifiedGroups", new ArrayList<>()));
+    }
+
+    @Override
+    public Set<String> getNotifiedGroupsSet()
+    {
+        return getNotifiedGroups().stream().map(referenceResolver::resolve).map(DocumentReference::toString)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean isMemberOfNotifiedGroups()
+    {
+        List<String> notifiedGroups = getNotifiedGroups();
+        XWikiContext wikiContext = wikiContextProvider.get();
+        XWiki wiki = wikiContext.getWiki();
+        return notifiedGroups.stream().anyMatch(group -> wiki.getUser(wikiContext).isUserInGroup(group));
     }
 
     @SuppressWarnings("unchecked")

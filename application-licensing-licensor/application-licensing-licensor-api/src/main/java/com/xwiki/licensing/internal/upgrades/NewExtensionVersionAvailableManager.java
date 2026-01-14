@@ -23,8 +23,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -34,10 +36,13 @@ import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.version.Version;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.ObservationManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEvent;
@@ -73,6 +78,12 @@ public class NewExtensionVersionAvailableManager
 
     @Inject
     private NewVersionNotificationManager newVersionNotificationManager;
+
+    @Inject
+    private EntityReferenceSerializer<String> serializer;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     /**
      * Notify the administrators when one of the installed licensed applications has a new version available. Do nothing
@@ -118,9 +129,10 @@ public class NewExtensionVersionAvailableManager
                 extensionInfo.put("extensionName", installedExtension.getName());
                 extensionInfo.put("namespace", namespaceName);
                 extensionInfo.put("version", installableVersions.get(0).getValue());
+                Set<String> notifiedGroups = getTargetGroups();
 
                 this.observationManager.notify(new NewExtensionVersionAvailableEvent(
-                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace),
+                        new ExtensionId(extensionId.getId(), installableVersions.get(0)), namespace, notifiedGroups),
                     extensionId.getId(), (new ObjectMapper()).writeValueAsString(extensionInfo));
                 this.newVersionNotificationManager.markNotificationAsSent(extensionId.getId(), namespaceName,
                     installableVersions.get(0).getValue());
@@ -129,5 +141,14 @@ public class NewExtensionVersionAvailableManager
             this.logger.warn("Failed to send a NewExtensionVersionAvailableEvent for [{}]. Root cause is [{}]",
                 extensionId.getId(), ExceptionUtils.getRootCauseMessage(e));
         }
+    }
+
+    private Set<String> getTargetGroups()
+    {
+        Set<String> notifiedGroups = licensingConfig.getNotifiedGroupsSet();
+        DocumentReference adminGroupDocument =
+            new DocumentReference(contextProvider.get().getWikiId(), "XWiki", "XWikiAdminGroup");
+        notifiedGroups.add(serializer.serialize(adminGroupDocument));
+        return notifiedGroups;
     }
 }

@@ -27,7 +27,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.xwiki.licensing.LicensedExtensionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
@@ -51,6 +50,8 @@ import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
+import com.xwiki.licensing.LicensedExtensionManager;
+import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
 import com.xwiki.licensing.internal.UserCounter;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
@@ -99,12 +100,27 @@ public class LicensorScriptService implements ScriptService, Initializable
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
 
+    @Inject
+    private LicensingConfiguration licensingConfig;
+
     @Override
     public void initialize() throws InitializationException
     {
         if (!LicensingUtils.isPristineImpl(licensor)) {
             throw new InitializationException("Integrity check failed while loading the licensor.");
         }
+    }
+
+    /**
+     * Check if the current user is a member of the groups targeted by licensor notifications.
+     *
+     * @return {@code true} if the user is member of the target groups, or {@code false} otherwise
+     * @since 1.31
+     */
+    @Unstable
+    public boolean isMemberOfNotifiedGroups()
+    {
+        return this.licensingConfig.isMemberOfNotifiedGroups();
     }
 
     /**

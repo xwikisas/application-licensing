@@ -44,36 +44,9 @@
 #set ($storeAccessURL = $licensingConfigDoc.storeAccessURL)
 #set ($ownerObj = $licensingConfigDoc.getObject('Licenses.Code.LicensingOwnerClass'))
 #set ($userCount = $services.licensing.licensor.userCount)
-
-#macro (getPaidExtensions)
-  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
-  #set ($paidExtensions = $collectiontool.set)
-  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
-    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
-  #end
-#end
-
-#macro (getVisiblePaidExtensions)
-  #getPaidExtensions
-  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
-  #set ($visiblePaidExtensions = $collectiontool.set)
-  #foreach ($paidExtension in $paidExtensions)
-    #if ($mandatoryExtensions.contains($paidExtension.getId()))
-      #set ($discard = $visiblePaidExtensions.add($paidExtension))
-    #end
-  #end
-#end
-
-#macro (getLicensesAdminSectionURL)
-  ## We target the main wiki explicitly because licenses are managed globally.
-  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
-    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
-      'admin', 'editor=globaladmin&amp;section=Licenses')##
-  #else
-    ## Fall-back in case the Administration Application is not installed.
-    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
-  #end
-#end
+#set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
+#includeMacros("XWiki.AdminFieldsDisplaySheet")
+#includeMacros('Licenses.Code.PublicMacros')
 
 #macro (getInstanceIdFormField)
   &lt;dt&gt;
@@ -125,6 +98,58 @@
     &lt;/fieldset&gt;
   &lt;/form&gt;
   {{/html}}
+#end
+
+#macro (getLicensingNotificationClassFields)
+  #set ($obj = $licensingConfigDoc.getObject($notificationClass))
+  #foreach ($prop in $obj.properties)
+    #set ($field = $obj.xWikiClass.get($prop.name))
+    #__displayXProperty($field)
+  #end
+#end
+
+#macro (displayNotificationsConfiguration)
+  #set ($section = $request.section)
+  #if ($section == 'Licenses')
+    #set($formId = "${section.toLowerCase()}_${notificationClass}")
+    {{html clean=false}}
+    &lt;br&gt;
+    &lt;form id="$escapetool.xml($formId)" method="post"
+        action="$escapetool.xml($xwiki.getURL($licensingConfigDoc, 'saveandcontinue'))"
+        class="xform"&gt;
+      &lt;fieldset class="licensingnotification"&gt;
+        &lt;legend&gt;
+          $escapetool.xml($services.localization.render('licensor.notificationSettings.heading'))
+        &lt;/legend&gt;
+        &lt;p&gt;$escapetool.xml($services.localization.render('licensor.notificationSettings.hint'))&lt;/p&gt;
+        &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
+        &lt;dl&gt;
+          #getLicensingNotificationClassFields()
+        &lt;/dl&gt;
+      &lt;/fieldset&gt;
+      #notificationSubmitButton()
+    &lt;/form&gt;
+    {{/html}}
+  #end
+#end
+
+#macro (notificationSubmitButton)
+  &lt;div class="hidden"&gt;
+    &lt;input type="hidden" name="form_token" value="$!{services.csrf.getToken()}" /&gt;
+    &lt;input type="hidden" name="xcontinue" value="$xwiki.getURL($currentDoc, 'admin',
+      "editor=${escapetool.url(${editor})}&amp;section=${escapetool.url(${section})}&amp;" + 
+      "space=${escapetool.url(${currentSpace})}")" /&gt;
+    &lt;input type="hidden" name="xredirect" value="$xwiki.getURL($currentDoc, 'admin',
+      "editor=${escapetool.url(${editor})}&amp;section=${escapetool.url(${section})}&amp;" +
+      "space=${escapetool.url(${currentSpace})}")" /&gt;
+    &lt;input type="hidden" name="classname" value="$escapetool.xml($configClassName)" /&gt;
+  &lt;/div&gt;
+  &lt;div class="bottombuttons"&gt;
+    &lt;p class="admin-buttons"&gt;
+      &lt;span class="buttonwrapper"&gt;&lt;input class="button" type="submit" name="formactionsac"
+        value="$escapetool.xml($services.localization.render('admin.save'))" /&gt;&lt;/span&gt;
+    &lt;/p&gt;
+  &lt;/div&gt;
 #end
 
 #macro (licenseButton $licenseType $cssClass $iconName $key $jsonData)

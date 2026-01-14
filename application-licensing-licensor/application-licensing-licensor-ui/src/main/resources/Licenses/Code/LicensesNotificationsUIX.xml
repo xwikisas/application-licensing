@@ -36,27 +36,10 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Licenses.Code.VelocityMacros" /}}
-
-{{velocity output="false"}}
-#macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
-  &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
-    &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
-    &lt;ul&gt;
-      &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
-      #if ($showMore)
-        &lt;li&gt;...&lt;/li&gt;
-      #end
-    &lt;/ul&gt;
-    &lt;/br&gt;
-    &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
-      $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
-  &lt;/$licensesNotificationWrapperTagName&gt;
-#end
-{{/velocity}}
+  <content>{{include reference="Licenses.Code.PublicMacros" /}}
 
 {{velocity}}
-#if ($hasAdmin &amp;&amp; $hasProgramming)
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
   #set ($invalidExtensionNames = $collectiontool.sortedSet)
@@ -483,17 +466,17 @@
       </scope>
     </class>
     <property>
-      <async_cached/>
+      <async_cached>0</async_cached>
     </property>
     <property>
       <async_context/>
     </property>
     <property>
-      <async_enabled/>
+      <async_enabled>0</async_enabled>
     </property>
     <property>
       <content>{{velocity}}
-#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX'))
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
   #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
   #set ($licensesNotificationWrapperTagName = 'li')
   {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
@@ -516,6 +499,89 @@ separator:true</parameters>
     </property>
     <property>
       <scope>wiki</scope>
+    </property>
+  </object>
+  <object>
+    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <number>0</number>
+    <className>XWiki.XWikiRights</className>
+    <guid>ee662140-f6d8-4bc9-b514-fc20315e4284</guid>
+    <class>
+      <name>XWiki.XWikiRights</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <allow>
+        <defaultValue>1</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>allow</displayType>
+        <name>allow</name>
+        <number>4</number>
+        <prettyName>Allow/Deny</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </allow>
+      <groups>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>groups</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Groups</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
+      </groups>
+      <levels>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>1</multiSelect>
+        <name>levels</name>
+        <number>2</number>
+        <prettyName>Levels</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>3</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.LevelsClass</classType>
+      </levels>
+      <users>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <multiSelect>1</multiSelect>
+        <name>users</name>
+        <number>3</number>
+        <picker>1</picker>
+        <prettyName>Users</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
+      </users>
+    </class>
+    <property>
+      <allow>1</allow>
+    </property>
+    <property>
+      <groups>XWiki.XWikiAllGroup</groups>
+    </property>
+    <property>
+      <levels>view</levels>
+    </property>
+    <property>
+      <users/>
     </property>
   </object>
 </xwikidoc>

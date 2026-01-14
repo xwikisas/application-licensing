@@ -19,16 +19,19 @@
  */
 package com.xwiki.licensing.internal.upgrades.notifications.newVersion;
 
-import org.xwiki.eventstream.RecordableEvent;
+import java.util.Set;
+
 import org.xwiki.extension.ExtensionId;
+
+import com.xwiki.licensing.internal.upgrades.AbstractLicensorTargetableEvent;
 
 /**
  * The event send when a new version of a licensed extension is available.
- * 
+ *
  * @version $Id$
  * @since 1.23
  */
-public class NewExtensionVersionAvailableEvent implements RecordableEvent
+public class NewExtensionVersionAvailableEvent extends AbstractLicensorTargetableEvent
 {
     /**
      * The name of this component.
@@ -51,12 +54,28 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
      *
      * @param extensionId the extension id of the new extension version detected
      * @param namespace the namespace where the new extension version was detected, where {@code null} means root
-     *            namespace (i.e. all namespaces)
+     *     namespace (i.e. all namespaces)
      */
     public NewExtensionVersionAvailableEvent(ExtensionId extensionId, String namespace)
     {
         this.extensionId = extensionId;
         this.namespace = namespace;
+    }
+
+    /**
+     * See {@link #NewExtensionVersionAvailableEvent(ExtensionId, String)}.
+     *
+     * @param extensionId the extension id of the new extension version detected
+     * @param namespace the namespace where the new extension version was detected, where {@code null} means root
+     *     namespace (i.e. all namespaces)
+     * @param notifiedGroups the groups that should be notified about the new version. An empty {@link Set} means
+     *     all users will be notified, no matter the group
+     */
+    public NewExtensionVersionAvailableEvent(ExtensionId extensionId, String namespace, Set<String> notifiedGroups)
+    {
+        this.extensionId = extensionId;
+        this.namespace = namespace;
+        this.setNotifiedGroups(notifiedGroups);
     }
 
     @Override
@@ -75,7 +94,7 @@ public class NewExtensionVersionAvailableEvent implements RecordableEvent
 
     /**
      * @return the namespace where the new extension version was detected. {@code null} means root namespace (i.e all
-     *         namespaces)
+     *     namespaces)
      */
     public String getNamespace()
     {
