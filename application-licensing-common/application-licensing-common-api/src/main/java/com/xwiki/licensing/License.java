@@ -52,6 +52,11 @@ public class License implements Comparable<License>
     public static final String LICENSEE_EMAIL = "email";
 
     /**
+     * The key used to store the licensee issue date.
+     */
+    public static final String LICENSE_ISSUE_DATE = "issueDate";
+
+    /**
      * An empty constant object used when you need to explicitly assign no license.
      */
     public static final License UNLICENSED = new License();
@@ -324,6 +329,24 @@ public class License implements Comparable<License>
 
         if (Objects.equals(license1.getId(), license2.getId())) {
             return license1;
+        }
+
+        boolean license1HasIssueDate = license1.getLicensee().containsKey(LICENSE_ISSUE_DATE);
+        boolean license2HasIssueDate = license2.getLicensee().containsKey(LICENSE_ISSUE_DATE);
+
+        if (license1HasIssueDate && !license2HasIssueDate) {
+            return license1;
+        }
+
+        if (!license1HasIssueDate && license2HasIssueDate) {
+            return license2;
+        }
+
+        if (license1HasIssueDate && license2HasIssueDate) {
+            long license1IssueDate = Long.parseLong(license1.getLicensee().get(LICENSE_ISSUE_DATE));
+            long license2IssueDate = Long.parseLong(license2.getLicensee().get(LICENSE_ISSUE_DATE));
+
+            return license1IssueDate > license2IssueDate ? license1 : license2;
         }
 
         if (license1.getExpirationDate() != license2.getExpirationDate()) {

@@ -77,6 +77,7 @@
 #macro (generateLicense $licenseDetails $shouldSaveLicense $licenseDetailsReference $licenseAsString)
   ## Compute the expiration date but only if it's not defined. If defined then use the defined value.
   #computeExpirationDate($licenseDetails)
+  #set ($issueDate = $datetool.date.time)
   ## Create License object.
   #set ($license = $services.licensing.license.createLicense())
   #set ($discard = $license.setId($licenseDetailsReference.name))
@@ -84,6 +85,7 @@
   #set ($discard = $license.addInstanceId($licenseDetails.instanceId))
   #set ($discard = $license.setExpirationDate($licenseDetails.expirationDate.time))
   #set ($discard = $license.setMaxUserCount($licenseDetails.maxUserCount))
+  #set ($discard = $license.addLicenseeInfo('issueDate', $issueDate))
   #set ($discard = $license.addLicenseeInfo('firstName', $licenseDetails.firstName))
   #set ($discard = $license.addLicenseeInfo('lastName', $licenseDetails.lastName))
   #set ($discard = $license.addLicenseeInfo('email', $licenseDetails.email))
@@ -343,7 +345,7 @@
   #if ("$!licenseType" != '')
     #set ($whereClause = $whereClause + ' and license.type = :licenseType')
   #end
-  #set ($orderByClause = 'order by license.expirationDate desc, doc.creationDate desc')
+  #set ($orderByClause = 'order by license.issueDate desc, license.expirationDate desc, doc.creationDate desc')
   #set ($computedQuery = $services.query.xwql("$fromClause $whereClause $orderByClause"))
   #set ($computedQuery = $computedQuery.bindValue('instanceId', $instanceId))
   #set ($computedQuery = $computedQuery.bindValue('featureId', $featureId))
@@ -355,31 +357,33 @@
 #end
 
 #**
- * Computes the list of licenses that are currently in use (the license with the best expiration date for an instance id
+ * Computes the list of licenses that are currently in use (the license with the best issue date for an instance id
  * and feature id wins).
  *#
 #macro (getActiveLicenses $issuedBeforeYear $issuedAfterDate)
   ## Collect the best expiration date per instance id and feature id.
-  #set ($statement = "select instanceId.value, featureId.value, max(expirationDate.value)"
+  #set ($statement = "select instanceId.value, featureId.value, max(issueDate.value)"
     + " from XWikiDocument as doc, BaseObject as licenseObj, StringProperty as instanceId, StringProperty as featureId"
       + ", IntegerProperty hasLicense, DateProperty as expirationDate"
+      + ", DateProperty as issueDate"
     + " where doc.fullName = licenseObj.name and licenseObj.className = 'License.Code.LicenseDetailsClass'"
     + " and licenseObj.id = instanceId.id.id and instanceId.id.name = 'instanceId'"
     + " and licenseObj.id = featureId.id.id and featureId.id.name = 'featureId'"
     + " and licenseObj.id = hasLicense.id.id and hasLicense.id.name = 'hasLicense'"
     + " and licenseObj.id = expirationDate.id.id and expirationDate.id.name = 'expirationDate'"
+    + " and licenseObj.id = issueDate.id.id and issueDate.id.name = 'issueDate'"
     + " and hasLicense.value = 1 and expirationDate.value &gt; :now"
     + " group by instanceId.value, featureId.value")
   #set ($query = $services.query.hql($statement))
   #set ($query = $query.bindValue('now', $datetool.date))
-  #set ($bestExpirationDate = {})
+  #set ($bestIssueDate = {})
   #foreach ($result in $query.execute())
     #set ($instanceId = $result.get(0))
     #set ($featureId = $result.get(1))
-    #set ($expirationDate = $result.get(2))
-    #set ($instanceIdEntry = $bestExpirationDate.getOrDefault($instanceId, {}))
-    #set ($discard = $bestExpirationDate.put($instanceId, $instanceIdEntry))
-    #set ($discard = $instanceIdEntry.put($featureId, $expirationDate))
+    #set ($issueDate = $result.get(2))
+    #set ($instanceIdEntry = $bestIssueDate.getOrDefault($instanceId, {}))
+    #set ($discard = $bestIssueDate.put($instanceId, $instanceIdEntry))
+    #set ($discard = $instanceIdEntry.put($featureId, $issueDate))
   #end
   ## Now collect the active licenses.
   #set ($activeLicenses = [])
@@ -405,7 +409,7 @@
     #set ($licenseDetailsDocument = $xwiki.getDocument($result))
     #readLicenseDetailsFromDocument($licenseDetailsDocument)
     ## Check if this is the best license for the given instance id and feature id.
-    #if ($licenseDetails.expirationDate == $bestExpirationDate.get($licenseDetails.instanceId).get($licenseDetails.featureId))
+    #if ($licenseDetails.issueDate == $bestIssueDate.get($licenseDetails.instanceId).get($licenseDetails.featureId))
       #set ($discard = $activeLicenses.add($licenseDetails.licenseId))
     #end
   #end
