@@ -40,8 +40,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.event.filter.EventFilter;
-import org.xwiki.observation.event.filter.RegexEventFilter;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -113,8 +111,6 @@ public class UserCounter
 
         protected static final LocalDocumentReference USER_CLASS = new LocalDocumentReference("XWiki", "XWikiUsers");
 
-        private static final EventFilter XWIKI_SPACE_FILTER = new RegexEventFilter("(.*:)?XWiki\\..*");
-
         @Inject
         private UserCounter userCounter;
 
@@ -123,8 +119,8 @@ public class UserCounter
          */
         public UserListener()
         {
-            super(HINT, Arrays.asList(new DocumentCreatedEvent(XWIKI_SPACE_FILTER),
-                new DocumentUpdatedEvent(XWIKI_SPACE_FILTER), new DocumentDeletedEvent(XWIKI_SPACE_FILTER)));
+            super(HINT,
+                Arrays.asList(new DocumentCreatedEvent(), new DocumentUpdatedEvent(), new DocumentDeletedEvent()));
         }
 
         @Override
