@@ -56,7 +56,7 @@ public interface AuthExtensionUserManager
     boolean managesUser(XWikiDocument user);
 
     /**
-     * Get a list of all users managed by this manager.
+     * Get a list of all users managed by this authentication system.
      *
      * @return a list of all users managed by this manager
      */
