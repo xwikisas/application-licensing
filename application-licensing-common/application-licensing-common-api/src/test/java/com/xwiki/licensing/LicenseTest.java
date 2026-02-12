@@ -152,8 +152,11 @@ public class LicenseTest
         assertSame(bob, License.getOptimumLicense(bob, alice));
     }
 
+    /**
+     * The returned license is the one with the latest issue date, even if it has an earlier expiration date. If the
+     * issue date is not available, then the returned license is the one with the latest expiration date.
+     */
     @Test
-    // The returned license is the one with the latest issue date, even if it has an earlier expiration date. If the issue date is not available, then the returned license is the one with the latest expiration date.
     public void getOptimumLicenseBasedOnIssuedDate()
     {
         License alice = new License();
