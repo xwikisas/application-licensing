@@ -21,10 +21,14 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.SortedSet;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.EventListener;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
@@ -38,8 +42,17 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.internal.UserCounter.UserListener;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link UserCounter}.
@@ -61,8 +74,6 @@ public class UserCounterTest
 
     private QueryFilter uniqueFilter;
 
-    private String statement;
-
     @Before
     public void configure() throws Exception
     {
@@ -70,11 +81,6 @@ public class UserCounterTest
         this.queryManager = this.mocker.getInstance(QueryManager.class);
         this.countFilter = this.mocker.getInstance(QueryFilter.class, "count");
         this.uniqueFilter = this.mocker.getInstance(QueryFilter.class, "unique");
-
-        StringBuilder stringBuilder = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
-        stringBuilder.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
-        stringBuilder.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
-        this.statement = stringBuilder.toString();
     }
 
     @Test
@@ -93,7 +99,7 @@ public class UserCounterTest
 
         Query fooQuery = createMockQuery("foo");
         Query barQuery = createMockQuery("bar");
-        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenReturn(Collections.singletonList(4L));
 
@@ -115,7 +121,7 @@ public class UserCounterTest
 
         Query fooQuery = createMockQuery("foo");
         Query barQuery = createMockQuery("bar");
-        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenThrow(new QueryException("message", barQuery, null));
 
@@ -128,12 +134,52 @@ public class UserCounterTest
         }
     }
 
+    @Test
+    public void sortedUsersOperations() throws Exception
+    {
+        when(this.wikiDescriptorManager.getAllIds()).thenReturn(List.of("foo"));
+        Query fooQuery = createMockQuery("foo");
+        List<Object> userList = List.of(dummyUserDocument("User1", 100000), dummyUserDocument("User2", 50000),
+            dummyUserDocument("User3", 150000));
+        when(this.queryManager.createQuery(any(), any())).thenReturn(fooQuery);
+        when(fooQuery.execute()).thenReturn(userList);
+
+        this.mocker.getComponentUnderTest().flushCache();
+        SortedSet<XWikiDocument> result = this.mocker.getComponentUnderTest().getSortedUsers();
+
+        // Check that the query was executed.
+        verify(fooQuery).execute();
+        // Check that the users are returned in their creation order.
+        assertArrayEquals(List.of(userList.get(1), userList.get(0), userList.get(2)).toArray(), result.toArray());
+        clearInvocations(fooQuery);
+
+        // Check that further calls use the cache.
+        result = this.mocker.getComponentUnderTest().getSortedUsers();
+        assertArrayEquals(List.of(userList.get(1), userList.get(0), userList.get(2)).toArray(), result.toArray());
+        assertFalse(this.mocker.getComponentUnderTest()
+            .isUserUnderLimit(((XWikiDocument) userList.get(0)).getDocumentReference(), 1));
+        assertTrue(this.mocker.getComponentUnderTest()
+            .isUserUnderLimit(((XWikiDocument) userList.get(1)).getDocumentReference(), 1));
+        assertFalse(this.mocker.getComponentUnderTest().isUserUnderLimit(null, 1));
+        verify(fooQuery, times(0)).execute();
+    }
+
+    private XWikiDocument dummyUserDocument(String username, long creationDateMillis)
+    {
+        XWikiDocument userDoc = new XWikiDocument(new DocumentReference("xwiki", "XWiki", username));
+        Date date = new Date();
+        date.setTime(creationDateMillis);
+        userDoc.setCreationDate(date);
+        return userDoc;
+    }
+
+    @Test
     public void getUserCountWithCacheInvalidation() throws Exception
     {
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(Collections.singletonList("foo"));
 
         Query fooQuery = createMockQuery("foo");
-        when(this.queryManager.createQuery(this.statement, Query.HQL)).thenReturn(fooQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
 
         assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
@@ -142,7 +188,7 @@ public class UserCounterTest
         XWikiDocument userProfile = mock(XWikiDocument.class, "userProfile");
         when(userProfile.getOriginalDocument()).thenReturn(mock(XWikiDocument.class));
         when(userProfile.getXObject(UserListener.USER_CLASS)).thenReturn(mock(BaseObject.class));
-        EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.class.getName());
+        EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.HINT);
         userListener.onEvent(null, userProfile, null);
 
         assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
@@ -160,6 +206,7 @@ public class UserCounterTest
     private Query createMockQuery(String queryName) {
         Query query = mock(Query.class, queryName);
         when(query.addFilter(any())).thenReturn(query);
+        when(query.setWiki(any())).thenReturn(query);
         return query;
     }
 }
