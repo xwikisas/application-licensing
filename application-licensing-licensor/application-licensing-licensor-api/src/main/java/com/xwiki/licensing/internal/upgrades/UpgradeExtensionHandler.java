@@ -117,12 +117,14 @@ public class UpgradeExtensionHandler
         for (Version version : versions) {
             ExtensionId toInstallExtensionId = new ExtensionId(installedExtensionId.getId(), version);
             try {
+                // We get the configured groups before the installation extension job, as the cache is reset during the
+                // job and the configuration is no longer available.
+                Set<String> notifiedGroups = getTargetGroups();
                 installExtension(toInstallExtensionId, namespace);
 
                 String doneUpgradeMessage = this.localization.getTranslationPlain(
                     "licensor.notification.autoUpgrade.done", installedExtension.getName(),
                     installedExtensionId.getVersion().getValue(), toInstallExtensionId.getVersion().getValue());
-                Set<String> notifiedGroups = getTargetGroups();
                 this.observationManager.notify(new ExtensionAutoUpgradedEvent(notifiedGroups), LICENSOR_API_ID,
                     doneUpgradeMessage);
 
