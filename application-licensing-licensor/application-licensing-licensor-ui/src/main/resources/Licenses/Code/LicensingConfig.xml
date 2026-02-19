@@ -142,7 +142,6 @@
       <email>
         <customDisplay/>
         <disabled>0</disabled>
-        <hint/>
         <name>email</name>
         <number>3</number>
         <picker>0</picker>
@@ -156,7 +155,6 @@
       <firstName>
         <customDisplay/>
         <disabled>0</disabled>
-        <hint/>
         <name>firstName</name>
         <number>1</number>
         <picker>0</picker>
@@ -170,7 +168,6 @@
       <lastName>
         <customDisplay/>
         <disabled>0</disabled>
-        <hint/>
         <name>lastName</name>
         <number>2</number>
         <picker>0</picker>

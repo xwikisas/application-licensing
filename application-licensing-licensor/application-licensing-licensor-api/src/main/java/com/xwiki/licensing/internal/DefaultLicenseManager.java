@@ -66,7 +66,7 @@ import com.xwiki.licensing.internal.enforcer.LicensingUtils;
 @Singleton
 public class DefaultLicenseManager implements LicenseManager, Initializable
 {
-    private class LinkLicenseToInstalledExtensionsRunnable implements Runnable
+    private final class LinkLicenseToInstalledExtensionsRunnable implements Runnable
     {
         @Override
         public void run()

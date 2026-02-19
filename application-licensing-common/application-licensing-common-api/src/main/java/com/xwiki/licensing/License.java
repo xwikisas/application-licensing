@@ -425,7 +425,7 @@ public class License implements Comparable<License>
         return getId().compareTo(getId());
     }
 
-    private static class CollectionEqualsBuilder extends EqualsBuilder
+    private static final class CollectionEqualsBuilder extends EqualsBuilder
     {
         @Override
         public EqualsBuilder append(Object lhs, Object rhs)
