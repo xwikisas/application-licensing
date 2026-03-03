@@ -1,2 +1,4 @@
 com.xwiki.licensing.test.script.LicensorScriptService
 com.xwiki.licensing.test.TestLicensor
+com.xwiki.licensing.internal.UserCounter
+com.xwiki.licensing.internal.UserCounter$UserListener
