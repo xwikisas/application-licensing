@@ -52,9 +52,11 @@ import com.xpn.xwiki.objects.BaseObject;
 
 /**
  * Component used to count the existing active users.
+ * <br>
+ * Added to the test module since some external apps depend on the UserCounter class.
  * 
  * @version $Id$
- * @since 1.6
+ * @since 1.33
  */
 @Component(roles = UserCounter.class)
 @Singleton
@@ -93,9 +95,6 @@ public class UserCounter
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
      * value is changed.
-     * 
-     * @version $Id$
-     * @since 1.6
      */
     @Component
     @Singleton

@@ -45,6 +45,7 @@ public interface LicenseManager
      *
      * @param extensionId identifier of an installed extension
      * @return a license.
+     * @since 1.33
      */
     License get(String extensionId);
 
