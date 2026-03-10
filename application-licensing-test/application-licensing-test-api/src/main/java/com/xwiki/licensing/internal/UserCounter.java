@@ -52,18 +52,20 @@ import com.xpn.xwiki.objects.BaseObject;
 
 /**
  * Component used to count the existing active users.
- *
+ * <br>
+ * Added to the test module since some external apps depend on the UserCounter class.
+ * 
  * @version $Id$
- * @since 1.6
+ * @since 1.33
  */
 @Component(roles = UserCounter.class)
 @Singleton
 public class UserCounter
 {
-    protected static final String BASE_USER_QUERY =
-        ", BaseObject as obj, IntegerProperty as prop " + "where doc.space = 'XWiki' "
-            + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
-            + "and prop.id.name = 'active' and prop.value = '1'";
+    protected static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
+        + "where doc.space = 'XWiki' "
+        + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
+        + "and prop.id.name = 'active' and prop.value = '1'";
 
     @Inject
     private Logger logger;
@@ -84,7 +86,7 @@ public class UserCounter
 
     private Long cachedUserCount;
 
-    // A set of all users on the instance, from all subwikis, sorted by creation date.
+    // A set of users on the instance, sorted by creation date.
     private SortedSet<XWikiDocument> cachedSortedUsers;
 
     // Helper to find users in constant time.
@@ -93,9 +95,6 @@ public class UserCounter
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
      * value is changed.
-     * 
-     * @version $Id$
-     * @since 1.6
      */
     @Component
     @Singleton
@@ -148,8 +147,6 @@ public class UserCounter
 
     /**
      * Flush the cache of the user counter.
-     *
-     * @since 1.33
      */
     public void flushCache()
     {
@@ -159,10 +156,9 @@ public class UserCounter
     }
 
     /**
-     * Get all users on the instance, from all subwikis, sorted by creation date.
+     * Get the users sorted by creation date.
      *
      * @return the users, sorted by creation date.
-     * @since 1.33
      */
     public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
@@ -203,13 +199,20 @@ public class UserCounter
         return cachedUserCount;
     }
 
+    private long getUserCountOnWiki(String wikiId) throws QueryException
+    {
+        Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
+        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
+        List<Long> results = query.execute();
+        return results.get(0);
+    }
+
     /**
      * Return whether the given user is under the specified license user limit.
      *
      * @param user the user to check
      * @param userLimit the license max user limit
      * @return whether the given user is under the specified license user limit
-     * @since 1.33
      */
     public boolean isUserUnderLimit(DocumentReference user, long userLimit) throws Exception
     {
@@ -231,13 +234,6 @@ public class UserCounter
         }
     }
 
-    private long getUserCountOnWiki(String wikiId) throws QueryException
-    {
-        Query query = this.queryManager.createQuery(BASE_USER_QUERY, Query.HQL);
-        query.addFilter(this.uniqueFilter).addFilter(this.countFilter).setWiki(wikiId);
-        List<Long> results = query.execute();
-        return results.get(0);
-    }
 
     private List<XWikiDocument> getUsersOnWiki(String wikiId) throws QueryException
     {
