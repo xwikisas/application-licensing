@@ -21,6 +21,8 @@ package com.xwiki.licensing;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -147,6 +149,40 @@ public class LicenseTest
         bob.addInstanceId(new InstanceId("1e597805-c0a4-4477-86f5-8e0c5086d2f6"));
 
         assertSame(alice, License.getOptimumLicense(alice, bob));
+        assertSame(bob, License.getOptimumLicense(bob, alice));
+    }
+
+    /**
+     * The returned license is the one with the latest issue date, even if it has an earlier expiration date. If the
+     * issue date is not available, then the returned license is the one with the latest expiration date.
+     */
+    @Test
+    public void getOptimumLicenseBasedOnIssuedDate()
+    {
+        License alice = new License();
+        alice.setExpirationDate(4L);
+
+        License bob = new License();
+        bob.setExpirationDate(6L);
+
+        assertSame(bob, License.getOptimumLicense(alice, bob));
+        assertSame(bob, License.getOptimumLicense(bob, alice));
+
+        Map<String, String> aliceLicensee = new HashMap<>();
+        aliceLicensee.put("issueDate", "1000");
+        alice.setLicensee(aliceLicensee);
+
+        assertSame(alice, License.getOptimumLicense(alice, bob));
+        assertSame(alice, License.getOptimumLicense(bob, alice));
+
+        alice.setExpirationDate(6L);
+        bob.setExpirationDate(4L);
+
+        Map<String, String> bobLicensee = new HashMap<>();
+        bobLicensee.put("issueDate", "2000");
+        bob.setLicensee(bobLicensee);
+
+        assertSame(bob, License.getOptimumLicense(alice, bob));
         assertSame(bob, License.getOptimumLicense(bob, alice));
     }
 

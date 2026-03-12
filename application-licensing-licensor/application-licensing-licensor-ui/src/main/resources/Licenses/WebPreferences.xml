@@ -304,7 +304,7 @@
   #set ($value = $xwiki.getDefaultDocumentSyntax())
 #end
 &lt;select name="${object.getxWikiClass().name}_${object.number}_${name}" id="${object.getxWikiClass().name}_${object.number}_${name}"&gt;
-#set ($configuredSyntaxes = $services.rendering.getConfiguredSyntaxes())
+#set ($configuredSyntaxes = $collectiontool.sort($services.rendering.getConfiguredSyntaxes()))
 #foreach($syntax in $configuredSyntaxes)
   &lt;option value="$syntax.toIdString()"#if($syntax.toIdString().equalsIgnoreCase($value)) selected="selected"#end&gt;$syntax.toString()&lt;/option&gt;
 #end
@@ -744,7 +744,7 @@
         <name>ldap_server</name>
         <number>51</number>
         <picker>0</picker>
-        <prettyName>Ldap server address</prettyName>
+        <prettyName>Ldap server adress</prettyName>
         <size>60</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>

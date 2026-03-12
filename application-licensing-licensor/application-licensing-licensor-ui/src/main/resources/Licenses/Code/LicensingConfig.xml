@@ -136,7 +136,7 @@
       </userLimitWarningThreshold>
     </class>
     <property>
-      <notifiedGroups>XWiki.XWikiAdminGroup,XWiki.XWikiAllGroup</notifiedGroups>
+      <notifiedGroups>XWiki.XWikiAdminGroup</notifiedGroups>
     </property>
     <property>
       <userLimitWarningThreshold>5</userLimitWarningThreshold>

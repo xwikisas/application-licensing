@@ -71,7 +71,7 @@ import com.xwiki.licensing.internal.helpers.events.LicenseRemovedEvent;
 @Singleton
 public class DefaultLicenseManager implements LicenseManager, Initializable
 {
-    private class LinkLicenseToInstalledExtensionsRunnable implements Runnable
+    private final class LinkLicenseToInstalledExtensionsRunnable implements Runnable
     {
         @Override
         public void run()

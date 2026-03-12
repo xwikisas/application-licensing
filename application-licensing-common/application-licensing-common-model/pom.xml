@@ -25,7 +25,7 @@
   <parent>
     <artifactId>application-licensing-common</artifactId>
     <groupId>com.xwiki.licensing</groupId>
-    <version>1.30.2-SNAPSHOT</version>
+    <version>1.32.1-SNAPSHOT</version>
   </parent>
   <artifactId>application-licensing-common-model</artifactId>
   <name>Licensing Application - Common - Model</name>
@@ -48,14 +48,13 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.jvnet.jaxb2.maven2</groupId>
-        <artifactId>maven-jaxb2-plugin</artifactId>
+        <groupId>org.jvnet.jaxb</groupId>
+        <artifactId>jaxb-maven-plugin</artifactId>
         <configuration>
           <generatePackage>com.xwiki.licensing.model.jaxb</generatePackage>
         </configuration>
         <executions>
           <execution>
-            <id>generate</id>
             <goals>
               <goal>generate</goal>
             </goals>

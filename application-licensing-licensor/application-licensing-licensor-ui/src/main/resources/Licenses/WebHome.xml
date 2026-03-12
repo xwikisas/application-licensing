@@ -113,6 +113,7 @@
   #displayAddLicenseForm
   #feedbackForm
   #installedAsDependency
+  #displayNotificationsConfiguration
 #end
 {{/velocity}}</content>
   <object>
