@@ -36,9 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Licenses.Code.VelocityMacros" /}}
-
-{{velocity output="false"}}
+  <content>{{velocity output="false"}}
 #macro (displayLicensesLiveTable)
   {{html clean="false"}}
   &lt;fieldset class="header"&gt;
@@ -106,8 +104,10 @@
   $services.localization.render('licensor.accessDenied')
   {{/error}}
 #else
+  #includeMacros('Licenses.Code.VelocityMacros')
   #set ($discard = $xwiki.ssx.use('Licenses.WebHome'))
   #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
+  #displayNotificationsConfiguration
   #displayOwnerDetailsForm
   #displayLicensesLiveTable
   #displayAddLicenseForm

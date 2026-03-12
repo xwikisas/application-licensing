@@ -82,6 +82,11 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     private ConfigurationSource ownerConfig;
 
     @Inject
+<<<<<<< issue#104
+    @Named("LicensingNotificationConfigurationSource")
+    private ConfigurationSource notificationConfig;
+
+=======
     @Named(LicensingNotificationConfigurationSource.HINT)
     private ConfigurationSource notificationConfig;
 
@@ -92,6 +97,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
 
+>>>>>>> master
     private File localStorePath;
 
     @Override
@@ -153,6 +159,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     public String getStoreRenewURL()
     {
         return this.storeConfig.getProperty("storeRenewURL");
+    }
+
+    @Override
+    public String getUserLimitWarningThreshold()
+    {
+        return this.notificationConfig.getProperty("userLimitWarningThreshold");
     }
 
     @Override

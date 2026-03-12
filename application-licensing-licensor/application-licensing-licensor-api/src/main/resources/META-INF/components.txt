@@ -33,3 +33,6 @@ com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedEventDi
 com.xwiki.licensing.internal.upgrades.notifications.ExtensionAutoUpgradedFailedEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEventDescriptor
 com.xwiki.licensing.internal.upgrades.notifications.newVersion.NewExtensionVersionAvailableEventDisplayer
+com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitListener
+com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEventConverter
+com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEventDescriptor
