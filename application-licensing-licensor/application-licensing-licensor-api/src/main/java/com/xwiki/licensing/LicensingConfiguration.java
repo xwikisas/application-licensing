@@ -95,6 +95,7 @@ public interface LicensingConfiguration
         return "5";
     }
 
+    /**
      * @return {@link List} with the groups whose members need to be notified about the extension
      * @since 1.31
      */

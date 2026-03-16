@@ -131,7 +131,7 @@
         <size>30</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage>This value must be a positive number (123) or a percentage (20%)</validationMessage>
-        <validationRegExp>^(\d*|1?[0-9]?[0-9]%)$</validationRegExp>
+        <validationRegExp>^(\d*|\d+%)$</validationRegExp>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </userLimitWarningThreshold>
     </class>

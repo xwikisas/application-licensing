@@ -107,7 +107,6 @@
   #includeMacros('Licenses.Code.VelocityMacros')
   #set ($discard = $xwiki.ssx.use('Licenses.WebHome'))
   #set ($discard = $xwiki.jsx.use('Licenses.WebHome'))
-  #displayNotificationsConfiguration
   #displayOwnerDetailsForm
   #displayLicensesLiveTable
   #displayAddLicenseForm

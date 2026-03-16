@@ -82,11 +82,6 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     private ConfigurationSource ownerConfig;
 
     @Inject
-<<<<<<< issue#104
-    @Named("LicensingNotificationConfigurationSource")
-    private ConfigurationSource notificationConfig;
-
-=======
     @Named(LicensingNotificationConfigurationSource.HINT)
     private ConfigurationSource notificationConfig;
 
@@ -97,7 +92,6 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
 
->>>>>>> master
     private File localStorePath;
 
     @Override
