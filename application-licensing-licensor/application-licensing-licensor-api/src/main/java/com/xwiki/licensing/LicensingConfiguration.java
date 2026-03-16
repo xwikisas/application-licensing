@@ -86,6 +86,16 @@ public interface LicensingConfiguration
     String getLicensingOwnerEmail();
 
     /**
+     * @return the threshold of active users on the instance after which warning notifications are sent.
+     * @since 1.33
+     */
+    @Unstable
+    default String getUserLimitWarningThreshold()
+    {
+        return "5";
+    }
+
+    /**
      * @return {@link List} with the groups whose members need to be notified about the extension
      * @since 1.31
      */

@@ -47,7 +47,6 @@
 #set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
 #includeMacros("XWiki.AdminFieldsDisplaySheet")
 #includeMacros('Licenses.Code.PublicMacros')
-
 #macro (getInstanceIdFormField)
   &lt;dt&gt;
     &lt;label for="instanceId"&gt;$services.localization.render('licensor.ownerDetails.instanceId.label')&lt;/label&gt;
@@ -137,7 +136,7 @@
   &lt;div class="hidden"&gt;
     &lt;input type="hidden" name="form_token" value="$!{services.csrf.getToken()}" /&gt;
     &lt;input type="hidden" name="xcontinue" value="$xwiki.getURL($currentDoc, 'admin',
-      "editor=${escapetool.url(${editor})}&amp;section=${escapetool.url(${section})}&amp;" + 
+      "editor=${escapetool.url(${editor})}&amp;section=${escapetool.url(${section})}&amp;" +
       "space=${escapetool.url(${currentSpace})}")" /&gt;
     &lt;input type="hidden" name="xredirect" value="$xwiki.getURL($currentDoc, 'admin',
       "editor=${escapetool.url(${editor})}&amp;section=${escapetool.url(${section})}&amp;" +
