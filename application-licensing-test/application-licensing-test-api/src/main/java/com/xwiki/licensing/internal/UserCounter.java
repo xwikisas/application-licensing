@@ -63,7 +63,6 @@ import com.xpn.xwiki.objects.BaseObject;
 public class UserCounter
 {
     protected static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
-        + "where doc.space = 'XWiki' "
         + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
         + "and prop.id.name = 'active' and prop.value = '1'";
 

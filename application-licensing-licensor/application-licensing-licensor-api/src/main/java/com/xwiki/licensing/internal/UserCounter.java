@@ -21,10 +21,8 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -60,8 +58,7 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class UserCounter
 {
-    protected static final String BASE_USER_QUERY =
-        ", BaseObject as obj, IntegerProperty as prop " + "where doc.space = 'XWiki' "
+    protected static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
             + "and doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
             + "and prop.id.name = 'active' and prop.value = '1'";
 
@@ -86,9 +83,6 @@ public class UserCounter
 
     // A set of all users on the instance, from all subwikis, sorted by creation date.
     private SortedSet<XWikiDocument> cachedSortedUsers;
-
-    // Helper to find users in constant time.
-    private Map<DocumentReference, XWikiDocument> cachedSortedUsersLookupTable;
 
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
@@ -155,7 +149,6 @@ public class UserCounter
     {
         this.cachedUserCount = null;
         this.cachedSortedUsers = null;
-        this.cachedSortedUsersLookupTable = null;
     }
 
     /**
@@ -172,8 +165,6 @@ public class UserCounter
             for (String wikiId : wikiDescriptorManager.getAllIds()) {
                 cachedSortedUsers.addAll(getUsersOnWiki(wikiId));
             }
-            cachedSortedUsersLookupTable =
-                cachedSortedUsers.stream().collect(Collectors.toMap(XWikiDocument::getDocumentReference, e -> e));
             cachedUserCount = (long) cachedSortedUsers.size();
         }
         return cachedSortedUsers;
@@ -222,8 +213,9 @@ public class UserCounter
             return true;
         }
         SortedSet<XWikiDocument> sortedUsers = getSortedUsers();
-        // Lookup table is initialized in getSortedUsers().
-        XWikiDocument userDocument = cachedSortedUsersLookupTable.get(user);
+        XWikiDocument userDocument =
+            sortedUsers.stream().filter(userDoc -> userDoc.getDocumentReference().equals(user)).findFirst()
+                .orElse(null);
         if (userDocument == null) {
             return false;
         } else {
