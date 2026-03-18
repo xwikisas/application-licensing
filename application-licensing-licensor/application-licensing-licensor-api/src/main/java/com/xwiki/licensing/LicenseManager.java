@@ -34,10 +34,20 @@ public interface LicenseManager
 {
     /**
      * Retrieve the currently applicable license for the given installed extension.
+     *
      * @param extensionId identifier of an installed extension
      * @return a license.
      */
     License get(ExtensionId extensionId);
+
+    /**
+     * Retrieve the currently applicable license for the given installed extension.
+     *
+     * @param extensionId identifier of an installed extension
+     * @return a license.
+     * @since 1.33
+     */
+    License get(String extensionId);
 
     /**
      * Add a new license to the current set of active license. The added license is checked to be applicable to the
@@ -55,6 +65,7 @@ public interface LicenseManager
     /**
      * Try to delete the given license from the persistence store. The license is not removed from the active set until
      * the next restart.
+     *
      * @param licenseId the id of the license to be removed.
      */
     void delete(LicenseId licenseId);
