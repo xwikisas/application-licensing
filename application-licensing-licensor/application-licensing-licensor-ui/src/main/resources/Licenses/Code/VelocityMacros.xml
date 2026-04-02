@@ -46,7 +46,37 @@
 #set ($userCount = $services.licensing.licensor.userCount)
 #set ($notificationClass = 'Licenses.Code.LicensingNotificationClass')
 #includeMacros("XWiki.AdminFieldsDisplaySheet")
-#includeMacros('Licenses.Code.PublicMacros')
+
+#macro (getPaidExtensions)
+  #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectiontool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+#end
+
+#macro (getLicensesAdminSectionURL)
+  ## We target the main wiki explicitly because licenses are managed globally.
+  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+      'admin', 'editor=globaladmin&amp;section=Licenses')##
+  #else
+    ## Fall-back in case the Administration Application is not installed.
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
+  #end
+#end
+
+#macro (getVisiblePaidExtensions)
+  #getPaidExtensions
+  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
+  #set ($visiblePaidExtensions = $collectiontool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    #if ($mandatoryExtensions.contains($paidExtension.getId()))
+      #set ($discard = $visiblePaidExtensions.add($paidExtension))
+    #end
+  #end
+#end
 
 #macro (getInstanceIdFormField)
   &lt;dt&gt;

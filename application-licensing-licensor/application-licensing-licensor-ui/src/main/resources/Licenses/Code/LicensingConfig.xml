@@ -122,7 +122,7 @@
       </notifiedGroups>
     </class>
     <property>
-      <notifiedGroups>XWiki.XWikiAdminGroup</notifiedGroups>
+      <notifiedGroups/>
     </property>
   </object>
   <object>

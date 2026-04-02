@@ -26,8 +26,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.configuration.internal.AbstractDocumentConfigurationSource;
-import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.configuration.internal.AbstractWikisConfigurationSource;
 import org.xwiki.model.reference.LocalDocumentReference;
 
 /**
@@ -39,7 +38,7 @@ import org.xwiki.model.reference.LocalDocumentReference;
 @Component
 @Named(LicensingNotificationConfigurationSource.HINT)
 @Singleton
-public class LicensingNotificationConfigurationSource extends AbstractDocumentConfigurationSource
+public class LicensingNotificationConfigurationSource extends AbstractWikisConfigurationSource
 {
     /**
      * Component hint.
@@ -55,9 +54,9 @@ public class LicensingNotificationConfigurationSource extends AbstractDocumentCo
         new LocalDocumentReference(CODE_SPACE, "LicensingNotificationClass");
 
     @Override
-    protected DocumentReference getDocumentReference()
+    protected LocalDocumentReference getLocalDocumentReference()
     {
-        return new DocumentReference(LICENSING_CONFIG_DOC, this.getCurrentWikiReference());
+        return LICENSING_CONFIG_DOC;
     }
 
     @Override
