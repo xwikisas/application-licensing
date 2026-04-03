@@ -38,8 +38,8 @@
   <hidden>true</hidden>
   <content>{{velocity output='false'}}
 ## We duplicate the macros to avoid the admin rights check done in the "Licenses" space. This way, any user who is
-## member of the notified groups will be able to see the notifications, but only administrators will see the "Manage
-## Licenses" button.
+## member of the notified groups will be able to see the notifications, while only admins will be able to actually
+## access the administration section.
 #macro (getPaidExtensions)
   #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
   #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
