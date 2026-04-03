@@ -32,13 +32,14 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.user.group.GroupManager;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.helpers.LicensingNotificationConfigurationSource;
@@ -86,11 +87,17 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     private ConfigurationSource notificationConfig;
 
     @Inject
-    @Named("current")
-    private DocumentReferenceResolver<String> referenceResolver;
+    @Named("group")
+    private DocumentReferenceResolver<String> groupReferenceResolver;
 
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
+
+    @Inject
+    private GroupManager groupManager;
+
+    @Inject
+    private Logger logger;
 
     private File localStorePath;
 
@@ -164,7 +171,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Override
     public Set<String> getNotifiedGroupsSet()
     {
-        return getNotifiedGroups().stream().map(referenceResolver::resolve).map(DocumentReference::toString)
+        return getNotifiedGroups().stream().map(groupReferenceResolver::resolve).map(DocumentReference::toString)
             .collect(Collectors.toSet());
     }
 
@@ -173,8 +180,21 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     {
         List<String> notifiedGroups = getNotifiedGroups();
         XWikiContext wikiContext = wikiContextProvider.get();
-        XWiki wiki = wikiContext.getWiki();
-        return notifiedGroups.stream().anyMatch(group -> wiki.getUser(wikiContext).isUserInGroup(group));
+        for (String groupName : notifiedGroups) {
+            DocumentReference groupReference = groupReferenceResolver.resolve(groupName);
+            try {
+                if (groupManager.getMembers(groupReference, true).stream()
+                    .anyMatch(member -> member.equals(wikiContext.getUserReference())))
+                {
+                    return true;
+                }
+            } catch (Exception e) {
+                logger.error("Failed to check if user [{}] is member of group [{}]", wikiContext.getUserReference(),
+                    groupReference, e);
+                return false;
+            }
+        }
+        return false;
     }
 
     @SuppressWarnings("unchecked")
