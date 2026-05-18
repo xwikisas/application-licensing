@@ -113,6 +113,7 @@
   #displayAddLicenseForm
   #feedbackForm
   #installedAsDependency
+  #displayNotificationsConfiguration
 #end
 {{/velocity}}</content>
   <object>
@@ -706,7 +707,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
     // If this extension was installed as dependency, ask for a confirmation before continuing this action, since it
     // would be better for the user to get a license for the top level licensed extension.
     const requiredByInfo = $($($(this).parents('td.actions')[0]).siblings('td.name')[0]).find('.required-by-info');
-    if (requiredByInfo.size() &gt; 0) {
+    if (requiredByInfo.length &gt; 0) {
       const parentExtensionNode = $('#installed-as-dependency').find('.parent-extensions');
       parentExtensionNode.empty();
       requiredByInfo.data('parent-extensions').split(',').forEach((extension) =&gt; {

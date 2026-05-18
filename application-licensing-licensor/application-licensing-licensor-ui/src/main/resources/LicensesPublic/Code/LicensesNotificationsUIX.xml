@@ -20,14 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="Licenses.Code.LicensesNotificationsUIX" locale="">
-  <web>Licenses.Code</web>
+<xwikidoc version="1.5" reference="LicensesPublic.Code.LicensesNotificationsUIX" locale="">
+  <web>LicensesPublic.Code</web>
   <name>LicensesNotificationsUIX</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>XWiki.WatchListMacro</parent>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -36,9 +36,38 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Licenses.Code.VelocityMacros" /}}
-
-{{velocity output="false"}}
+  <content>{{velocity output='false'}}
+## We duplicate the macros to avoid the admin rights check done in the "Licenses" space. This way, any user who is
+## member of the notified groups will be able to see the notifications, while only admins will be able to actually
+## access the administration section.
+#macro (getPaidExtensions)
+  #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectiontool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+#end
+#macro (getLicensesAdminSectionURL)
+  ## We target the main wiki explicitly because licenses are managed globally.
+  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+      'admin', 'editor=globaladmin&amp;section=Licenses')##
+  #else
+    ## Fall-back in case the Administration Application is not installed.
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
+  #end
+#end
+#macro (getVisiblePaidExtensions)
+  #getPaidExtensions
+  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
+  #set ($visiblePaidExtensions = $collectiontool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    #if ($mandatoryExtensions.contains($paidExtension.getId()))
+      #set ($discard = $visiblePaidExtensions.add($paidExtension))
+    #end
+  #end
+#end
 #macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
   &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
     &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
@@ -49,14 +78,16 @@
       #end
     &lt;/ul&gt;
     &lt;/br&gt;
-    &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
-      $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
+    #if ($hasAdmin &amp;&amp; $hasProgramming)
+      &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
+        $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
+    #else
+      &lt;p&gt;$escapetool.xml($services.localization.render('licensor.notification.notifyAdmin'))&lt;/p&gt;
+    #end
   &lt;/$licensesNotificationWrapperTagName&gt;
 #end
-{{/velocity}}
-
-{{velocity}}
-#if ($hasAdmin &amp;&amp; $hasProgramming)
+{{/velocity}}{{velocity}}
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
   #set ($invalidExtensionNames = $collectiontool.sortedSet)
@@ -87,7 +118,7 @@
     #end
   #end
   #if ($foundInvalid || $foundExpiring)
-    #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
+    #set ($discard = $xwiki.ssx.use('LicensesPublic.Code.LicensesNotificationsUIX'))
     #if (!$licensesNotificationWrapperTagName)
       #set ($licensesNotificationWrapperTagName = 'div')
     #end
@@ -107,7 +138,7 @@
 #end
 {{/velocity}}</content>
   <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <name>LicensesPublic.Code.LicensesNotificationsUIX</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>6091f669-661e-410c-8179-eeb2dac63c2f</guid>
@@ -219,7 +250,7 @@
     </property>
   </object>
   <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <name>LicensesPublic.Code.LicensesNotificationsUIX</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>a6de7f88-b814-49b5-a5ce-1383163949f4</guid>
@@ -367,7 +398,7 @@
     </property>
   </object>
   <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <name>LicensesPublic.Code.LicensesNotificationsUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>7401ca82-ce83-4eba-a34f-7ce028c43006</guid>
@@ -406,7 +437,7 @@
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -483,20 +514,20 @@
       </scope>
     </class>
     <property>
-      <async_cached/>
+      <async_cached>0</async_cached>
     </property>
     <property>
       <async_context/>
     </property>
     <property>
-      <async_enabled/>
+      <async_enabled>0</async_enabled>
     </property>
     <property>
       <content>{{velocity}}
-#if ($services.security.authorization.hasAccess('view', 'Licenses.Code.LicensesNotificationsUIX'))
-  #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
+#if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
+  #set ($discard = $xwiki.jsx.use('LicensesPublic.Code.LicensesNotificationsUIX'))
   #set ($licensesNotificationWrapperTagName = 'li')
-  {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
+  {{include reference="LicensesPublic.Code.LicensesNotificationsUIX" /}}
 #end
 {{/velocity}}
 

@@ -117,7 +117,7 @@ public class DefaultLicensedExtensionManager implements LicensedExtensionManager
             // This can happen if the licensor API extension is currently being installed (some components are loaded
             // before the extension is marked as installed).
             this.logger.warn("The Licensor API extension ({}) is not installed on the root namespace as it should."
-                + " Licensed extensions won't be detected correctly as a conseuence.", LICENSOR_EXTENSION_ID);
+                + " Licensed extensions won't be detected correctly as a consequence.", LICENSOR_EXTENSION_ID);
         }
 
         return Collections.emptyMap();

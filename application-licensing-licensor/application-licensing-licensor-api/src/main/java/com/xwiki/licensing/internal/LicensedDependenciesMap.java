@@ -39,7 +39,7 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 /**
  * Get a dependency map for licensed applications. The scope is to know for licensed extensions that where installed as
  * dependencies, on which licensed application (and so on which license) they depend on, considering transitive
- * dependencies. Optional dependencies will not be included, since that means it's license is not covered by the
+ * dependencies. Optional dependencies will not be included, since that means its license is not covered by the
  * parent's license.
  *
  * @version $Id$

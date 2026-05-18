@@ -27,7 +27,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.xwiki.licensing.LicensedExtensionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
@@ -51,6 +50,8 @@ import org.xwiki.stability.Unstable;
 
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
+import com.xwiki.licensing.LicensedExtensionManager;
+import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.Licensor;
 import com.xwiki.licensing.internal.UserCounter;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
@@ -99,12 +100,27 @@ public class LicensorScriptService implements ScriptService, Initializable
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
 
+    @Inject
+    private LicensingConfiguration licensingConfig;
+
     @Override
     public void initialize() throws InitializationException
     {
         if (!LicensingUtils.isPristineImpl(licensor)) {
             throw new InitializationException("Integrity check failed while loading the licensor.");
         }
+    }
+
+    /**
+     * Check if the current user is a member of the groups targeted by licensor notifications.
+     *
+     * @return {@code true} if the user is member of the target groups, or {@code false} otherwise
+     * @since 1.31
+     */
+    @Unstable
+    public boolean isMemberOfNotifiedGroups()
+    {
+        return this.licensingConfig.isMemberOfNotifiedGroups();
     }
 
     /**
@@ -198,7 +214,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * @return the licence manager (programming rights is required).
+     * @return the license manager (programming rights is required).
      */
     public LicenseManager getLicenseManager()
     {
@@ -209,7 +225,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * @return the {@link LicensedExtensionManager} (programming rights is required).
+     * @return the {@link LicensedExtensionManager} (programming rights are required).
      * @since 1.29
      */
     public LicensedExtensionManager getLicensedExtensionManager()
@@ -223,9 +239,9 @@ public class LicensorScriptService implements ScriptService, Initializable
     /**
      * Add a new signed license to the current set of active license. The added license is checked to be applicable to
      * the current wiki instance, else it will not be added. The license is also checked to be more useful than the
-     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
+     * currently installed licenses. If the license does not provide any improvement of the licensing state of this
      * wiki, it will not be added. These evaluations are done for each licensed extension independently, whether the
-     * extension are currently installed or not.
+     * extension is currently installed or not.
      *
      * @param license a base 64 representation of the license to add.
      * @return true if the license has been successfully added, false if it was useless.
@@ -242,9 +258,9 @@ public class LicensorScriptService implements ScriptService, Initializable
     /**
      * Add a new signed license to the current set of active license. The added license is checked to be applicable to
      * the current wiki instance, else it will not be added. The license is also checked to be more useful than the
-     * currently installed licenses. If the license does not provides any improvement of the licensing state of this
+     * currently installed licenses. If the license does not provide any improvement of the licensing state of this
      * wiki, it will not be added. These evaluations are done for each licensed extension independently, whether the
-     * extension are currently installed or not.
+     * extension is currently installed or not.
      *
      * @param license a base 64 representation of the license to add.
      * @return true if the license has been successfully added, false if it was useless.

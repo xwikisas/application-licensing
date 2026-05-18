@@ -6,7 +6,7 @@ Manage and enforce application licenses for paid extensions
 * [Documentation & Download](http://store.xwiki.com/xwiki/bin/view/Extension/Licensing+Application)
 * [JIRA Issue Tracker](https://github.com/xwikisas/application-licensing/issues)
 * [Development Practices](http://dev.xwiki.org/xwiki/bin/view/Community/DevelopmentPractices)
-* Minimal XWiki version supported: XWiki 14.10
+* Minimal XWiki version supported: XWiki 15.10
 * License: LGPL 2.1
 * Translations: N/A 
 * Sonar Dashboard: N/A 

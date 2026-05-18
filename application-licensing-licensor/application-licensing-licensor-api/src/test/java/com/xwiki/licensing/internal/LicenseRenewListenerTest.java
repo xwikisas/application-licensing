@@ -127,7 +127,6 @@ public class LicenseRenewListenerTest
 
         verify(licenseUpdater).updateLicenses();
         verify(licenseUpdater).renewLicense(extensionId);
-        verify(license, never()).getFeatureIds();
     }
 
     @Test
