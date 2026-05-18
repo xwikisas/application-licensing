@@ -70,4 +70,11 @@ class AllIT
     class NestedLicensingIT extends LicensingIT
     {
     }
+
+    // This test takes ~40 min to set up. It should only run when UserCounter class is updated.
+//    @Nested
+//    @DisplayName("User stress test")
+//    class NestedUserStressTestLicensingIT extends UserStressTestLicensingIT
+//    {
+//    }
 }
