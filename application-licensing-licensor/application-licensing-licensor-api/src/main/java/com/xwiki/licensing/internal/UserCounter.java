@@ -143,7 +143,7 @@ public class UserCounter
     /**
      * Flush the cache of the user counter.
      *
-     * @since 1.33
+     * @since 1.33.0
      */
     public void flushCache()
     {
@@ -155,7 +155,7 @@ public class UserCounter
      * Get all users on the instance, from all subwikis, sorted by creation date.
      *
      * @return the users, sorted by creation date.
-     * @since 1.33
+     * @since 1.33.0
      */
     public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
@@ -200,7 +200,7 @@ public class UserCounter
      * @param user the user to check
      * @param userLimit the license max user limit
      * @return whether the given user is under the specified license user limit
-     * @since 1.33
+     * @since 1.33.0
      */
     public boolean isUserUnderLimit(DocumentReference user, long userLimit) throws Exception
     {

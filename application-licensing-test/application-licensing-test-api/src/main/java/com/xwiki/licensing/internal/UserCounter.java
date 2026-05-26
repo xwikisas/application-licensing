@@ -56,7 +56,7 @@ import com.xpn.xwiki.objects.BaseObject;
  * Added to the test module since some external apps depend on the UserCounter class.
  * 
  * @version $Id$
- * @since 1.33
+ * @since 1.33.0
  */
 @Component(roles = UserCounter.class)
 @Singleton

@@ -45,7 +45,7 @@ public interface Licensor
      * @param extensionId name of an installed extension. This method automatically resolves the version of the
      *     extension which is installed
      * @return a license, or null if the given installed extension is not subject to licensing.
-     * @since 1.33
+     * @since 1.33.0
      */
     License getLicense(String extensionId);
 
@@ -90,7 +90,7 @@ public interface Licensor
      *
      * @param extensionId the name of the extension for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
-     * @since 1.33
+     * @since 1.33.0
      */
     boolean hasLicensure(String extensionId);
 

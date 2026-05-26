@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Functional tests for the Licensing application.
  *
  * @version $Id$
+ * @since 1.33.0
  */
 @UITest
 class UserStressTestLicensingIT
