@@ -23,9 +23,9 @@
 <xwikidoc version="1.4" reference="License.Code.Translations" locale="">
   <web>License.Code</web>
   <name>Translations</name>
-  <language/>
+  <language>fr</language>
   <defaultLanguage>en</defaultLanguage>
-  <translation>0</translation>
+  <translation>1</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <parent>License.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
