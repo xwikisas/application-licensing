@@ -19,18 +19,15 @@
  */
 package com.xwiki.licensing.test.ui;
 
-import java.util.Map;
 import java.util.stream.IntStream;
 
-import javax.print.Doc;
-
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.editor.WikiEditPage;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -55,6 +52,8 @@ class UserStressTestLicensingIT
 
     private static final DocumentReference testPage = new DocumentReference("xwiki", "Test", "Test");
 
+    private static final String TEST_STRING = "Hello!";
+
     @BeforeAll
     void setup(TestUtils setup)
     {
@@ -70,13 +69,17 @@ class UserStressTestLicensingIT
         // limit.
         setup.createPage(testPage, TEST_PAGE_SCRIPT);
         setup.gotoPage(testPage, "view");
-        setup.gotoPage(testPage, "view");
+        // To test that we didn't crash, edit a random page and save it.
+        setup.gotoPage(testPage, "edit");
+        WikiEditPage wikiEditPage = new WikiEditPage();
+        wikiEditPage.setContent(TEST_STRING);
+        wikiEditPage.clickSaveAndView();
         assertTrue(setup.isInViewMode());
-        // We didn't crash (probably).
     }
 
     private void createUsers(TestUtils setup)
     {
+        // First user is XWiki.Admin, so start counting from 2.
         IntStream.range(2, USER_COUNT).parallel().forEach(i -> {
             DocumentReference documentReference = new DocumentReference("xwiki", "XWiki", "User_" + i);
             setup.addObject(documentReference, "XWiki.XWikiUsers", "password", PASSWORD);
@@ -85,6 +88,7 @@ class UserStressTestLicensingIT
 
     private void deleteUsers(TestUtils setup)
     {
+        // First user is XWiki.Admin, so start counting from 2.
         IntStream.range(2, USER_COUNT).parallel().forEach(i -> {
             DocumentReference documentReference = new DocumentReference("xwiki", "XWiki", "User_" + i);
             setup.deletePage(documentReference);
