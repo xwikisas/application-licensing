@@ -45,29 +45,15 @@ class UserStressTestLicensingIT
 {
     private static final String PASSWORD = "password";
 
-    private static final int USERS_COUNT = 10_000;
+    private static final int USER_COUNT = 10_000;
 
     // The tested user limit MUST be lower than the amount of users on the instance, otherwise the method returns
     // TRUE without actually populating the user list.
-    private static final String TEST_PAGE_SCRIPT =
-        "{{velocity}}\n" + "$services.licensing.licensor.isCurrentUserUnderLimit($xwiki.getUser().getUser()"
-            + ".getUserReference(), " + (USERS_COUNT - 100) + ")\n" + "{{/velocity}}";
+    private static final String TEST_PAGE_SCRIPT = String.format("{{velocity}}\n"
+        + "$services.licensing.licensor.isUserUnderLimit($xwiki.getUser().getUser().getUserReference(), %s)\n"
+        + "{{/velocity}}", USER_COUNT - 100);
 
     private static final DocumentReference testPage = new DocumentReference("xwiki", "Test", "Test");
-
-    private void createUsers(TestUtils setup) {
-        IntStream.range(2, USERS_COUNT).parallel().forEach(i -> {
-            DocumentReference documentReference = new DocumentReference("xwiki", "XWiki", "User_" + i);
-            setup.addObject(documentReference, "XWiki.XWikiUsers", "password", PASSWORD);
-        });
-    }
-
-    private void deleteUsers(TestUtils setup) {
-        IntStream.range(2, USERS_COUNT).parallel().forEach(i -> {
-            DocumentReference documentReference = new DocumentReference("xwiki", "XWiki", "User_" + i);
-            setup.deletePage(documentReference);
-        });
-    }
 
     @BeforeAll
     void setup(TestUtils setup)
@@ -87,5 +73,21 @@ class UserStressTestLicensingIT
         setup.gotoPage(testPage, "view");
         assertTrue(setup.isInViewMode());
         // We didn't crash (probably).
+    }
+
+    private void createUsers(TestUtils setup)
+    {
+        IntStream.range(2, USER_COUNT).parallel().forEach(i -> {
+            DocumentReference documentReference = new DocumentReference("xwiki", "XWiki", "User_" + i);
+            setup.addObject(documentReference, "XWiki.XWikiUsers", "password", PASSWORD);
+        });
+    }
+
+    private void deleteUsers(TestUtils setup)
+    {
+        IntStream.range(2, USER_COUNT).parallel().forEach(i -> {
+            DocumentReference documentReference = new DocumentReference("xwiki", "XWiki", "User_" + i);
+            setup.deletePage(documentReference);
+        });
     }
 }
