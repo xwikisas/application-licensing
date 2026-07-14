@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -45,6 +46,7 @@ import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
@@ -67,6 +69,9 @@ public class UserCounter
 
     @Inject
     private WikiDescriptorManager wikiDescriptorManager;
+
+    @Inject
+    private Provider<XWikiContext> xWikiContextProvider;
 
     @Inject
     private QueryManager queryManager;
@@ -207,9 +212,8 @@ public class UserCounter
         if (null == user) {
             return false;
         }
-        if (userLimit < 0 || getUserCount() <= userLimit) {
-            // Unlimited licenses should always return true.
-            // Also, skip the checks for instances with fewer users than the limit.
+        if (userLimit < 0) {
+            // Unlimited licenses should always return true if the user exists.
             return true;
         }
         SortedSet<XWikiDocument> sortedUsers = getSortedUsers();
@@ -234,6 +238,7 @@ public class UserCounter
     private List<XWikiDocument> getUsersOnWiki(String wikiId) throws QueryException
     {
         return this.queryManager.createQuery("select doc from XWikiDocument doc" + BASE_USER_QUERY, Query.HQL)
+            .addFilter(this.uniqueFilter)
             .setWiki(wikiId).execute();
     }
 }

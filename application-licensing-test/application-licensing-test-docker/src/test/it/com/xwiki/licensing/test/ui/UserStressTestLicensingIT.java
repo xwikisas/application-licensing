@@ -32,7 +32,9 @@ import org.xwiki.test.ui.po.editor.WikiEditPage;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Functional tests for the Licensing application.
+ * Stress test for creating many users on an instance.
+ * This test takes a very long time to set up (~40 min for 10k users), so it should be run sparingly, whenever there are
+ * changes that you think might crash instances with 10k users.
  *
  * @version $Id$
  * @since 1.33.0
