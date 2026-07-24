@@ -302,6 +302,7 @@ public class LicensorScriptService implements ScriptService, Initializable
     /**
      * List the users on the entire instance, ordered by creation date. If the passed user is at an index below the
      * limit, return true.
+     *
      * @param user the user to test
      * @param limit the limit to check
      * @return true if the passed user is below the specified limit, false otherwise
@@ -313,7 +314,7 @@ public class LicensorScriptService implements ScriptService, Initializable
         try {
             return this.userCounter.isUserUnderLimit(user, limit);
         } catch (Exception e) {
-            this.logger.warn("Failed to determine if the user is under the license user limit. Root cause is: [{}].",
+            this.logger.warn("Failed to determine if user is under the license user limit. Root cause is: [{}].",
                 ExceptionUtils.getRootCauseMessage(e));
             return false;
         }
