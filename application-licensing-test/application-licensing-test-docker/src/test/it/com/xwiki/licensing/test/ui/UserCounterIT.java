@@ -29,15 +29,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.openqa.selenium.By;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.docker.junit5.WikisSource;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.ViewPage;
 
 /**
- * Test the UserCounter.isUserUnderLimit() method.
+ * Verify that users over the user limit are marked and counted correctly.
  *
  * @version $Id$
  * @since 1.33.0
@@ -66,7 +66,7 @@ class UserCounterIT
     int getUserCountOnInstance(TestUtils setup) throws Exception
     {
         setup.gotoPage(testPage, "view");
-        String pageSource = setup.getDriver().findElement(By.id("xwikicontent")).getText();
+        String pageSource = new ViewPage().getContent();
         return Integer.parseInt(pageSource.split("\n")[1]);
     }
 
@@ -107,11 +107,11 @@ class UserCounterIT
     }
 
     /**
-     * Test for checking unlimited user limits.
+     * Test for checking infinite user limits.
      */
     @ParameterizedTest
     @WikisSource(mainWiki = false)
-    void unlimitedLimitTest(WikiReference wikiReference, TestUtils setup) throws Exception
+    void infiniteLimitTest(WikiReference wikiReference, TestUtils setup) throws Exception
     {
         String subwikiName = wikiReference.getName();
         createUsers(setup, "xwiki", 1, 2, true);
@@ -130,8 +130,7 @@ class UserCounterIT
     }
 
     /**
-     * Test that the isUserUnderLimit function returns true for any user, as long as the number of users on the instance
-     * is lower than the requested limit.
+     * Check that no unexpected behavior happens if the number of users is lower than the requested limit.
      */
     @Test
     void lowerThanRequestedMainWiki(TestUtils setup) throws Exception
@@ -147,8 +146,7 @@ class UserCounterIT
     }
 
     /**
-     * Test that the isUserUnderLimit function returns true for existing users, as long as the number of users on the
-     * instance is lower than the requested limit.
+     * Check that no unexpected behavior happens if the number of users is higher than the requested limit.
      */
     @Test
     void moreThanRequestedMainWiki(TestUtils setup) throws Exception
@@ -169,12 +167,12 @@ class UserCounterIT
      * Test that inactive users are disregarded when computing the user limit.
      */
     @Test
-    void deactivatedUsersMainWiki(TestUtils setup) throws Exception
+    void inactiveUsersMainWiki(TestUtils setup) throws Exception
     {
         createUsers(setup, "xwiki", 1, 2, false);
         createUsers(setup, "xwiki", 2, 4, true);
 
-        // Inactive users don't count.
+        // Inactive users don't count towards the limit.
         Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 1));
         // The rest of the users.
         Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 1));
@@ -186,8 +184,7 @@ class UserCounterIT
     }
 
     /**
-     * Test that the isUserUnderLimit function returns true for any user, as long as the number of users on the instance
-     * is lower than the requested limit.
+     * Check that no unexpected behavior happens if the number of users on all wikis is lower than the requested limit.
      */
     @ParameterizedTest
     @WikisSource(mainWiki = false)
@@ -213,7 +210,7 @@ class UserCounterIT
     }
 
     /**
-     * Test that the isUserUnderLimit function keeps the main wiki users under the same limit logic as subwiki users.
+     * Test that users from all subwikis are counted towards the user limit.
      */
     @ParameterizedTest
     @WikisSource(mainWiki = false)
@@ -248,7 +245,7 @@ class UserCounterIT
         setup.setCurrentWiki(testPage.getWikiReference().getName());
 
         setup.gotoPage(testPage, "view", Map.of("user", user, "limit", limit));
-        String pageSource = setup.getDriver().findElement(By.id("xwikicontent")).getText();
+        String pageSource = new ViewPage().getContent();
 
         setup.setCurrentWiki(currentWiki);
         return pageSource.startsWith("true");

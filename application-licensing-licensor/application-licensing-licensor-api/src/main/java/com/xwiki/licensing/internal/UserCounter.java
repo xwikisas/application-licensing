@@ -223,7 +223,12 @@ public class UserCounter
         if (userDocument == null) {
             return false;
         } else {
-            return sortedUsers.headSet(userDocument).size() < userLimit;
+            // Only build the headSet if the number of users on the instance is over the limit.
+            if (sortedUsers.size() <= userLimit) {
+                return true;
+            } else {
+                return sortedUsers.headSet(userDocument).size() < userLimit;
+            }
         }
     }
 
