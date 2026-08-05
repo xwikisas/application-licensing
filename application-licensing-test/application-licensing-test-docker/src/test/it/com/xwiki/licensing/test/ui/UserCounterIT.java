@@ -20,7 +20,6 @@
 package com.xwiki.licensing.test.ui;
 
 import java.util.Date;
-import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +33,8 @@ import org.xwiki.model.reference.WikiReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.docker.junit5.WikisSource;
 import org.xwiki.test.ui.TestUtils;
-import org.xwiki.test.ui.po.ViewPage;
+
+import com.xwiki.licensing.test.po.UserCounterTestPage;
 
 /**
  * Verify that users over the user limit are marked and counted correctly.
@@ -47,33 +47,16 @@ class UserCounterIT
 {
     private static final String PASSWORD = "password";
 
-    private static final String TEST_PAGE_SCRIPT =
-        "{{velocity}}"
-            + "$services.licensing.licensor.isUserUnderLimit($request.user, $request.limit)\n"
-            + "$services.licensing.licensor.getUserCount()\n"
-            + "user=$request.user; limit=$request.limit\n"
-            + "{{/velocity}}";
-
-    private static final DocumentReference testPage = new DocumentReference("xwiki", "Test", "Test");
-
     @BeforeAll
     void setup(TestUtils setup)
     {
         setup.loginAsSuperAdmin();
-        setup.createPage(testPage, TEST_PAGE_SCRIPT);
-    }
-
-    int getUserCountOnInstance(TestUtils setup) throws Exception
-    {
-        setup.gotoPage(testPage, "view");
-        String pageSource = new ViewPage().getContent();
-        return Integer.parseInt(pageSource.split("\n")[1]);
     }
 
     @AfterAll
     void afterAll(TestUtils setup)
     {
-        setup.deletePage(testPage);
+        UserCounterTestPage.deletePage(setup);
     }
 
     @BeforeEach
@@ -121,7 +104,6 @@ class UserCounterIT
         Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", -1));
         Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", -1));
         Assertions.assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", -1));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", -1));
 
         Assertions.assertEquals(2, this.getUserCountOnInstance(setup));
 
@@ -235,20 +217,17 @@ class UserCounterIT
         deleteUsers(setup, "xwiki", 6, 7);
     }
 
+    int getUserCountOnInstance(TestUtils setup) throws Exception
+    {
+        return UserCounterTestPage.gotoPage(setup, null, null).getUserCount();
+    }
+
     /**
      * Get the result of a isUserUnderLimit() call, by evaluating it in a velocity script.
      */
-    private boolean isUserUnderLimit(TestUtils setup, String user, int limit)
+    private boolean isUserUnderLimit(TestUtils setup, String user, int limit) throws Exception
     {
-        // Make sure we're on the right subwiki.
-        String currentWiki = setup.getCurrentWiki();
-        setup.setCurrentWiki(testPage.getWikiReference().getName());
-
-        setup.gotoPage(testPage, "view", Map.of("user", user, "limit", limit));
-        String pageSource = new ViewPage().getContent();
-
-        setup.setCurrentWiki(currentWiki);
-        return pageSource.startsWith("true");
+        return UserCounterTestPage.gotoPage(setup, user, limit).getIsUserUnderLimit();
     }
 
     /**

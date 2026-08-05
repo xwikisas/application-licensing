@@ -1,0 +1,15 @@
+{{velocity}}
+{{html}}
+isUserUnderLimit:
+<span id="isUserUnderLimit">$services.licensing.licensor.isUserUnderLimit($request.user, $request.limit)</span>
+<br/>
+userCount:
+<span id="userCount">$services.licensing.licensor.getUserCount()</span>
+<br/>
+params_user:
+<span id="params_user">$request.user</span>
+<br/>
+params_limit:
+<span id="params_limit">$request.limit</span>
+{{/html}}
+{{/velocity}}
