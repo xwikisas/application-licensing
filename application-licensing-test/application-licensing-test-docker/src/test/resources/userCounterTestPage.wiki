@@ -1,6 +1,6 @@
 {{velocity}}
 {{html}}
-isUserUnderLimit:
+Is user under limit:
 <span id="isUserUnderLimit">$services.licensing.licensor.isUserUnderLimit($request.user, $request.limit)</span>
 <br/>
 userCount:

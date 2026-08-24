@@ -217,7 +217,7 @@ class UserCounterIT
         deleteUsers(setup, "xwiki", 6, 7);
     }
 
-    int getUserCountOnInstance(TestUtils setup) throws Exception
+    private int getUserCountOnInstance(TestUtils setup) throws Exception
     {
         return UserCounterTestPage.gotoPage(setup, null, null).getUserCount();
     }

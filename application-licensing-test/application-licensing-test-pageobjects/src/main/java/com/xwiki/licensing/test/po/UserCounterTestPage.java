@@ -31,7 +31,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
-public class UserCounterTestPage extends ViewPage
+public class UserCounterPage extends ViewPage
 {
     public static final DocumentReference testPage = new DocumentReference("xwiki", "Test", "UserCounterTestPage");
 
@@ -54,7 +54,7 @@ public class UserCounterTestPage extends ViewPage
         setup.setCurrentWiki(UserCounterTestPage.testPage.getWikiReference().getName());
 
         // Create the page if it doesn't exist.
-        try (InputStream content = UserCounterTestPage.class.getResourceAsStream("/userCounterTestPage.wiki")) {
+        try (InputStream content = UserCounterTestPage.class.getResourceAsStream("/UserCounterTestPage.wiki")) {
             setup.rest().savePage(testPage, IOUtils.toString(content, StandardCharsets.UTF_8), "");
         }
 
@@ -80,7 +80,7 @@ public class UserCounterTestPage extends ViewPage
         return Integer.parseInt(userCount.getText());
     }
 
-    public boolean getIsUserUnderLimit()
+    public boolean isUserUnderLimit()
     {
         return Boolean.parseBoolean(isUserUnderLimit.getText());
     }
