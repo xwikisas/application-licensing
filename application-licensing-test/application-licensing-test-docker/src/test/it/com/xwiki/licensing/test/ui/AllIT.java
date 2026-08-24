@@ -65,11 +65,11 @@ import org.xwiki.test.docker.junit5.UITest;
 )
 class AllIT
 {
-//    @Nested
-//    @DisplayName("Overall Licensing UI")
-//    class NestedLicensingIT extends LicensingIT
-//    {
-//    }
+    @Nested
+    @DisplayName("Overall Licensing UI")
+    class NestedLicensingIT extends LicensingIT
+    {
+    }
 
     @Nested
     @DisplayName("UserCounter test")

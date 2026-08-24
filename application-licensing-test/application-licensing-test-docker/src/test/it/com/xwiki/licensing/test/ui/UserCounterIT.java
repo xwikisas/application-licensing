@@ -19,8 +19,13 @@
  */
 package com.xwiki.licensing.test.ui;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -29,12 +34,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.docker.junit5.WikisSource;
 import org.xwiki.test.ui.TestUtils;
 
-import com.xwiki.licensing.test.po.UserCounterTestPage;
+import com.xwiki.licensing.test.po.UserCounterPage;
 
 /**
  * Verify that users over the user limit are marked and counted correctly.
@@ -45,6 +51,8 @@ import com.xwiki.licensing.test.po.UserCounterTestPage;
 @UITest
 class UserCounterIT
 {
+    public static final LocalDocumentReference testPage = new LocalDocumentReference("Test", "UserCounterTestPage");
+
     private static final String PASSWORD = "password";
 
     @BeforeAll
@@ -56,7 +64,7 @@ class UserCounterIT
     @AfterAll
     void afterAll(TestUtils setup)
     {
-        UserCounterTestPage.deletePage(setup);
+        deleteUserCounterTestPage(setup);
     }
 
     @BeforeEach
@@ -219,7 +227,7 @@ class UserCounterIT
 
     private int getUserCountOnInstance(TestUtils setup) throws Exception
     {
-        return UserCounterTestPage.gotoPage(setup, null, null).getUserCount();
+        return gotoUserCounterTestPage(setup, null, null).getUserCount();
     }
 
     /**
@@ -227,7 +235,7 @@ class UserCounterIT
      */
     private boolean isUserUnderLimit(TestUtils setup, String user, int limit) throws Exception
     {
-        return UserCounterTestPage.gotoPage(setup, user, limit).getIsUserUnderLimit();
+        return gotoUserCounterTestPage(setup, user, limit).isUserUnderLimit();
     }
 
     /**
@@ -280,5 +288,28 @@ class UserCounterIT
         }
 
         setup.setCurrentWiki(currentWiki);
+    }
+
+    private UserCounterPage gotoUserCounterTestPage(TestUtils setup, String user, Integer limit) throws Exception
+    {
+        // Create the page if it doesn't exist.
+        try (InputStream content = UserCounterPage.class.getResourceAsStream("/UserCounterTestPage.wiki")) {
+            setup.rest().savePage(testPage, IOUtils.toString(content, StandardCharsets.UTF_8), "");
+        }
+
+        Map<String, Object> queryParams = new HashMap<>();
+        if (user != null) {
+            queryParams.put("user", user);
+        }
+        if (limit != null) {
+            queryParams.put("limit", limit);
+        }
+        setup.gotoPage(testPage, "view", queryParams);
+        return new UserCounterPage();
+    }
+
+    private void deleteUserCounterTestPage(TestUtils setup)
+    {
+        setup.deletePage(testPage);
     }
 }
