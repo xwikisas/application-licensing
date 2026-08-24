@@ -755,7 +755,7 @@ require(['jquery', 'licensor', 'xwiki-meta', 'xwiki-l10n!auto-update-button', 'x
     e.preventDefault();
     var autoUpgradeButton = $(this);
     var autoUpgradeForm = autoUpgradeButton.closest('form').serializeArray();
-    licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).success(function(data) {
+    licensor.modifyAutoUpgradesAllowList(autoUpgradeForm).done(function(data) {
       autoUpgradeButton.find('.action-icon').toggleClass('isAutoUpgrade', data.isAutoUpgrade);
       if(data.isAutoUpgrade) {
         autoUpgradeButton.prop('title', l10n.get('prevent'));
