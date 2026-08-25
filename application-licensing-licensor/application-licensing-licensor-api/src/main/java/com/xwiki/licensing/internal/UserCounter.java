@@ -162,7 +162,7 @@ public class UserCounter
      * @return the users, sorted by creation date.
      * @since 1.33.0
      */
-    public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
+    protected SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
         if (cachedSortedUsers == null) {
             cachedSortedUsers = new TreeSet<>(
