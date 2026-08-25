@@ -92,6 +92,17 @@ public class DefaultLicensor implements Licensor, Initializable
     }
 
     @Override
+    public License getLicense(String extensionId)
+    {
+        try {
+            return licenseManager.get(extensionId);
+        } catch (Throwable e) {
+            // Ignored
+        }
+        return null;
+    }
+
+    @Override
     public License getLicense(ExtensionId extensionId)
     {
         try {
@@ -118,6 +129,13 @@ public class DefaultLicensor implements Licensor, Initializable
 
     @Override
     public boolean hasLicensure(ExtensionId extensionId)
+    {
+        License license = getLicense(extensionId);
+        return license == null || licenseValidator.isValid(license);
+    }
+
+    @Override
+    public boolean hasLicensure(String extensionId)
     {
         License license = getLicense(extensionId);
         return license == null || licenseValidator.isValid(license);

@@ -19,19 +19,25 @@
  */
 package com.xwiki.licensing.test.script;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.Licensor;
+import com.xwiki.licensing.internal.UserCounter;
 
 /**
  * Script service for the licensor, to be used when running functional tests of the licensed applications.
@@ -47,6 +53,9 @@ public class LicensorScriptService implements ScriptService
 {
     @Inject
     private Licensor licensor;
+
+    @Inject
+    private UserCounter userCounter;
 
     /**
      * Retrieve the currently applicable license for the current context document if any. Equivalent to
@@ -69,6 +78,42 @@ public class LicensorScriptService implements ScriptService
     public License getLicenseForExtension(ExtensionId extensionId)
     {
         return licensor.getLicense(extensionId);
+    }
+
+    /**
+     * List the users on the entire instance, ordered by creation date. If the passed user is at an index below the
+     * limit, return true.
+     *
+     * @param user the user to test
+     * @param limit the limit to check
+     * @return true if the passed user is below the specified limit, false otherwise
+     */
+    @Unstable
+    public boolean isUserUnderLimit(DocumentReference user, long limit)
+    {
+        try {
+            return this.userCounter.isUserUnderLimit(user, limit);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * List the users on the entire instance, ordered by creation date. If the passed user is at an index below the
+     * limit, return true.
+     * <br>
+     * This function should only be present in the docker tests, not on prod.
+     *
+     * @return true if the passed user is below the specified limit, false otherwise
+     */
+    @Unstable
+    public Set<XWikiDocument> getSortedUsers()
+    {
+        try {
+            return this.userCounter.getSortedUsers();
+        } catch (Exception e) {
+            return new HashSet<>();
+        }
     }
 
     /**

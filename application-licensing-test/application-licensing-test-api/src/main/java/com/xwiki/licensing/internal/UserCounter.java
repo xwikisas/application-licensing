@@ -52,17 +52,19 @@ import com.xpn.xwiki.objects.BaseObject;
 
 /**
  * Component used to count the existing active users.
- *
+ * <br>
+ * Added to the test module since some external apps depend on the UserCounter class.
+ * 
  * @version $Id$
- * @since 1.6
+ * @since 1.33.0
  */
 @Component(roles = UserCounter.class)
 @Singleton
 public class UserCounter
 {
     protected static final String BASE_USER_QUERY = ", BaseObject as obj, IntegerProperty as prop "
-            + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
-            + "and prop.id.name = 'active' and prop.value = '1'";
+        + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and prop.id.id = obj.id "
+        + "and prop.id.name = 'active' and prop.value = '1'";
 
     @Inject
     private Logger logger;
@@ -92,9 +94,6 @@ public class UserCounter
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
      * value is changed.
-     * 
-     * @version $Id$
-     * @since 1.6
      */
     @Component
     @Singleton
@@ -147,8 +146,6 @@ public class UserCounter
 
     /**
      * Flush the cache of the user counter.
-     *
-     * @since 1.33.0
      */
     public void flushCache()
     {
@@ -160,9 +157,8 @@ public class UserCounter
      * Get all users on the instance, from all subwikis, sorted by creation date.
      *
      * @return the users, sorted by creation date.
-     * @since 1.33.0
      */
-    protected SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
+    public SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
         if (cachedSortedUsers == null) {
             cachedSortedUsers = new TreeSet<>(
@@ -177,7 +173,7 @@ public class UserCounter
 
     /**
      * Counts the existing active users.
-     * 
+     *
      * @return the user count
      * @throws Exception if we fail to count the users
      */
@@ -205,7 +201,6 @@ public class UserCounter
      * @param user the user to check
      * @param userLimit the license max user limit
      * @return whether the given user is under the specified license user limit
-     * @since 1.33.0
      */
     public boolean isUserUnderLimit(DocumentReference user, long userLimit) throws Exception
     {
@@ -223,12 +218,7 @@ public class UserCounter
         if (userDocument == null) {
             return false;
         } else {
-            // Only build the headSet if the number of users on the instance is over the limit.
-            if (sortedUsers.size() <= userLimit) {
-                return true;
-            } else {
-                return sortedUsers.headSet(userDocument).size() < userLimit;
-            }
+            return sortedUsers.headSet(userDocument).size() < userLimit;
         }
     }
 
