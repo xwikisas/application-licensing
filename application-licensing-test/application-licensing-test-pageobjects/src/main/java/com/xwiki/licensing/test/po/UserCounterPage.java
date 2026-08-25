@@ -23,6 +23,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
+/**
+ * View page to get the results of licensing User Counter API calls.
+ *
+ * @version $Id$
+ * @since 1.33.0
+ */
 public class UserCounterPage extends ViewPage
 {
     @FindBy(id = "userCount")

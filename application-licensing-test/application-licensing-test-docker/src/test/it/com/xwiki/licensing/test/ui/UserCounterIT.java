@@ -28,7 +28,6 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +40,10 @@ import org.xwiki.test.docker.junit5.WikisSource;
 import org.xwiki.test.ui.TestUtils;
 
 import com.xwiki.licensing.test.po.UserCounterPage;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verify that users over the user limit are marked and counted correctly.
@@ -70,13 +73,13 @@ class UserCounterIT
     @BeforeEach
     void beforeEach(TestUtils setup) throws Exception
     {
-        Assertions.assertEquals(0, this.getUserCountOnInstance(setup));
+        assertEquals(0, this.getUserCountOnInstance(setup));
     }
 
     @AfterEach
     void afterEach(TestUtils setup) throws Exception
     {
-        Assertions.assertEquals(0, this.getUserCountOnInstance(setup));
+        assertEquals(0, this.getUserCountOnInstance(setup));
     }
 
     /**
@@ -86,15 +89,15 @@ class UserCounterIT
     void otherUserTest(TestUtils setup) throws Exception
     {
         // 0 users on the instance for these tests.
-        Assertions.assertEquals(0, this.getUserCountOnInstance(setup));
+        assertEquals(0, this.getUserCountOnInstance(setup));
 
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", 1));
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", 1));
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", 1));
-        // Unlimited limit.
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", -1));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", -1));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", -1));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", 1));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", 1));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", 1));
+        // A -1 limit means the license has no limit.
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", -1));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", -1));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", -1));
     }
 
     /**
@@ -109,11 +112,11 @@ class UserCounterIT
         createUsers(setup, "xwiki", 2, 3, false);
         createUsers(setup, subwikiName, 3, 4, true);
 
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", -1));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", -1));
-        Assertions.assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", -1));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", -1));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", -1));
+        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", -1));
 
-        Assertions.assertEquals(2, this.getUserCountOnInstance(setup));
+        assertEquals(2, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 3);
         deleteUsers(setup, subwikiName, 3, 4);
@@ -127,10 +130,10 @@ class UserCounterIT
     {
         createUsers(setup, "xwiki", 1, 3, true);
 
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
 
-        Assertions.assertEquals(2, this.getUserCountOnInstance(setup));
+        assertEquals(2, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 3);
     }
@@ -143,12 +146,12 @@ class UserCounterIT
     {
         createUsers(setup, "xwiki", 1, 5, true);
 
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 2));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 2));
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_3", 2));
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_4", 2));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 2));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 2));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_3", 2));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_4", 2));
 
-        Assertions.assertEquals(4, this.getUserCountOnInstance(setup));
+        assertEquals(4, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 5);
     }
@@ -163,12 +166,12 @@ class UserCounterIT
         createUsers(setup, "xwiki", 2, 4, true);
 
         // Inactive users don't count towards the limit.
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 1));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 1));
         // The rest of the users.
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 1));
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_3", 1));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 1));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_3", 1));
 
-        Assertions.assertEquals(2, this.getUserCountOnInstance(setup));
+        assertEquals(2, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 4);
     }
@@ -185,15 +188,15 @@ class UserCounterIT
         createUsers(setup, subwikiName, 3, 5, true);
 
         // Test user on main wiki
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
         // Test user on main wiki who would be under limit if not for the subwiki users.
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
         // Test user on subwiki
-        Assertions.assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", 5));
+        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", 5));
         // Test user on main wiki who would be under limit if not for the main wiki users.
-        Assertions.assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_4", 5));
+        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_4", 5));
 
-        Assertions.assertEquals(4, this.getUserCountOnInstance(setup));
+        assertEquals(4, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 3);
         deleteUsers(setup, subwikiName, 3, 5);
@@ -211,14 +214,14 @@ class UserCounterIT
         createUsers(setup, subwikiName, 3, 6, true);
         createUsers(setup, "xwiki", 6, 7, true);
 
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 4));
-        Assertions.assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 4));
-        Assertions.assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", 4));
-        Assertions.assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_4", 4));
-        Assertions.assertFalse(isUserUnderLimit(setup, subwikiName + ":XWiki.User_5", 4));
-        Assertions.assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_6", 4));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 4));
+        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 4));
+        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", 4));
+        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_4", 4));
+        assertFalse(isUserUnderLimit(setup, subwikiName + ":XWiki.User_5", 4));
+        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_6", 4));
 
-        Assertions.assertEquals(6, this.getUserCountOnInstance(setup));
+        assertEquals(6, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 3);
         deleteUsers(setup, subwikiName, 3, 6);
@@ -244,7 +247,7 @@ class UserCounterIT
     private void createUsers(TestUtils setup, String subwiki, int startInclusive, int endExclusive, boolean active)
         throws Exception
     {
-        Assertions.assertTrue(startInclusive <= endExclusive);
+        assertTrue(startInclusive <= endExclusive);
         // Make sure we're on the right subwiki.
         String currentWiki = setup.getCurrentWiki();
         setup.setCurrentWiki(subwiki);
@@ -253,7 +256,7 @@ class UserCounterIT
 
         for (int i = startInclusive; i < endExclusive; i++) {
             DocumentReference documentReference = new DocumentReference(subwiki, "XWiki", "User_" + i);
-            Assertions.assertFalse(setup.rest().exists(documentReference));
+            assertFalse(setup.rest().exists(documentReference));
             setup.addObject(documentReference, "XWiki.XWikiUsers", "password", PASSWORD, "active", active);
 
             try {
@@ -273,7 +276,7 @@ class UserCounterIT
      */
     private void deleteUsers(TestUtils setup, String subwiki, int startInclusive, int endExclusive) throws Exception
     {
-        Assertions.assertTrue(startInclusive < endExclusive);
+        assertTrue(startInclusive < endExclusive);
         // Make sure we're on the right subwiki.
         String currentWiki = setup.getCurrentWiki();
         setup.setCurrentWiki(subwiki);
@@ -282,7 +285,7 @@ class UserCounterIT
 
         for (int i = startInclusive; i < endExclusive; i++) {
             DocumentReference documentReference = new DocumentReference(subwiki, "XWiki", "User_" + i);
-            Assertions.assertTrue(setup.rest().exists(documentReference));
+            assertTrue(setup.rest().exists(documentReference));
             setup.deletePage(documentReference);
             System.out.println("Deleting " + documentReference + " at " + new Date());
         }
