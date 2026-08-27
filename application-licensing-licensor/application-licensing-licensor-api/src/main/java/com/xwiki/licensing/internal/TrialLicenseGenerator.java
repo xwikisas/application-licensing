@@ -35,6 +35,7 @@ import org.xwiki.instance.InstanceIdManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
@@ -78,6 +79,9 @@ public class TrialLicenseGenerator
     @Inject
     private LicenseUpdater licenseUpdater;
 
+    @Inject
+    private LicenseManager licenseManager;
+
     /**
      * Generate trial license for the given extension.
      *
@@ -117,6 +121,12 @@ public class TrialLicenseGenerator
      */
     public Boolean canGenerateTrialLicense(ExtensionId extensionId)
     {
+        // If there are persisted licenses but NONE are actually used, it's likely a broken licensing state (licenses
+        // not linked, even if they exist) and no new licenses should be generated.
+        if (!licenseManager.getPersistedLicenses().isEmpty() && licenseManager.getUsedLicenses().isEmpty()) {
+            return false;
+        }
+
         return License.UNLICENSED.equals(licensorProvider.get().getLicense(extensionId)) && isOwnerDataComplete()
             && isMandatoryLicensedExtension(extensionId);
     }

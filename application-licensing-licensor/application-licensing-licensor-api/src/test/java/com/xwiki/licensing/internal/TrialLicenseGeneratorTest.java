@@ -39,6 +39,8 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.License;
+import com.xwiki.licensing.LicenseId;
+import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseUpdater;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensingConfiguration;
@@ -107,6 +109,9 @@ public class TrialLicenseGeneratorTest
 
     @MockComponent
     private LicenseUpdater licenseUpdater;
+
+    @MockComponent
+    private LicenseManager licenseManager;
 
     @BeforeEach
     public void configure() throws Exception
@@ -209,5 +214,39 @@ public class TrialLicenseGeneratorTest
         when(this.licensor.getLicense(this.extension1)).thenReturn(license);
 
         assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithBrokenLicensingState() throws Exception
+    {
+        // Persisted licenses exist but none are used (broken state)
+        LicenseId licenseId = mock(LicenseId.class);
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
+        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.emptyList());
+
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithNormalLicensingState() throws Exception
+    {
+        // Persisted licenses exist and some are used (normal state)
+        LicenseId licenseId = mock(LicenseId.class);
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
+        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.singletonList(license));
+
+        when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
+
+        assertTrue(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithNoPersistedLicenses() throws Exception
+    {
+        // No persisted licenses at all (fresh instance)
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.emptyList());
+        when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
+
+        assertTrue(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
     }
 }
