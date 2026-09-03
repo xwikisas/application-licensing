@@ -80,7 +80,7 @@ public class TrialLicenseGenerator
     private LicenseUpdater licenseUpdater;
 
     @Inject
-    private LicenseManager licenseManager;
+    private Provider<LicenseManager> licenseManagerProvider;
 
     /**
      * Generate trial license for the given extension.
@@ -123,6 +123,7 @@ public class TrialLicenseGenerator
     {
         // If there are persisted licenses but NONE are actually used, it's likely a broken licensing state (licenses
         // not linked, even if they exist) and no new licenses should be generated.
+        LicenseManager licenseManager = licenseManagerProvider.get();
         if (!licenseManager.getPersistedLicenses().isEmpty() && licenseManager.getUsedLicenses().isEmpty()) {
             return false;
         }

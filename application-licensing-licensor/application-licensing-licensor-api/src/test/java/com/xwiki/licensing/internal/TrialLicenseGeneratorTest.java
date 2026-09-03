@@ -111,7 +111,13 @@ public class TrialLicenseGeneratorTest
     private LicenseUpdater licenseUpdater;
 
     @MockComponent
+    private Provider<LicenseManager> licenseManagerProvider;
+
+    @Mock
     private LicenseManager licenseManager;
+
+    @Mock
+    private LicenseId licenseId;
 
     @BeforeEach
     public void configure() throws Exception
@@ -133,6 +139,8 @@ public class TrialLicenseGeneratorTest
 
         when(contextProvider.get()).thenReturn(this.xcontext);
         when(this.xcontext.getWiki()).thenReturn(this.xwiki);
+
+        when(this.licenseManagerProvider.get()).thenReturn(this.licenseManager);
     }
 
     @Test
@@ -185,53 +193,6 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicense() throws Exception
     {
-        when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
-
-        assertTrue(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
-    }
-
-    @Test
-    public void canGenerateTrialLicenseWithoutCompleteData() throws Exception
-    {
-        when(this.licensor.getLicense(this.extension1)).thenReturn(null);
-
-        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn(null);
-
-        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(extension1));
-    }
-
-    @Test
-    public void canGenerateTrialLicenseWithoutLicensedExtension() throws Exception
-    {
-        when(this.licensor.getLicense(this.extension2)).thenReturn(null);
-
-        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(extension2));
-    }
-
-    @Test
-    public void canGenerateTrialLicenseWithExistingLicense() throws Exception
-    {
-        when(this.licensor.getLicense(this.extension1)).thenReturn(license);
-
-        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
-    }
-
-    @Test
-    public void canGenerateTrialLicenseWithBrokenLicensingState() throws Exception
-    {
-        // Persisted licenses exist but none are used (broken state)
-        LicenseId licenseId = mock(LicenseId.class);
-        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
-        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.emptyList());
-
-        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
-    }
-
-    @Test
-    public void canGenerateTrialLicenseWithNormalLicensingState() throws Exception
-    {
-        // Persisted licenses exist and some are used (normal state)
-        LicenseId licenseId = mock(LicenseId.class);
         when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
         when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.singletonList(license));
 
@@ -243,10 +204,55 @@ public class TrialLicenseGeneratorTest
     @Test
     public void canGenerateTrialLicenseWithNoPersistedLicenses() throws Exception
     {
-        // No persisted licenses at all (fresh instance)
+        // No persisted licenses at all (fresh instance).
         when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.emptyList());
         when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
 
         assertTrue(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithoutCompleteData() throws Exception
+    {
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
+        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.singletonList(license));
+
+        when(this.licensor.getLicense(this.extension1)).thenReturn(null);
+
+        when(this.licensingConfig.getLicensingOwnerEmail()).thenReturn(null);
+
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithoutLicensedExtension() throws Exception
+    {
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
+        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.singletonList(license));
+
+        when(this.licensor.getLicense(this.extension2)).thenReturn(null);
+
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(extension2));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithExistingLicense() throws Exception
+    {
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
+        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.singletonList(license));
+
+        when(this.licensor.getLicense(this.extension1)).thenReturn(license);
+
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithBrokenLicensingState() throws Exception
+    {
+        // Persisted licenses exist but none are used (broken state).
+        when(this.licenseManager.getPersistedLicenses()).thenReturn(Collections.singletonList(licenseId));
+        when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.emptyList());
+
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
     }
 }
