@@ -70,4 +70,19 @@ class AllIT
     class NestedLicensingIT extends LicensingIT
     {
     }
+
+    @Nested
+    @DisplayName("UserCounter test")
+    class NestedUserCounterIT extends UserCounterIT
+    {
+    }
+
+    // This test takes ~40 min to set up, since it's creating 10k user pages.
+    // The code below should be uncommented only when we want to check that the UserCounter cache is not taking too
+    // much memory on the instance.
+//    @Nested
+//    @DisplayName("User stress test")
+//    class NestedUserStressTestLicensingIT extends UserStressTestLicensingIT
+//    {
+//    }
 }

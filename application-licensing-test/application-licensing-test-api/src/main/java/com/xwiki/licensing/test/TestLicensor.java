@@ -71,6 +71,12 @@ public class TestLicensor implements Licensor
     }
 
     @Override
+    public boolean hasLicensure(String extensionId)
+    {
+        return true;
+    }
+
+    @Override
     public boolean hasLicensure()
     {
         return true;
@@ -94,6 +100,13 @@ public class TestLicensor implements Licensor
     {
         License custom = CUSTOM_LICENSES.get(this.serializer.serialize(reference));
         return custom != null ? custom : freeLicense;
+    }
+    
+    @Override
+    public License getLicense(String extensionId)
+    {
+        return CUSTOM_LICENSES.get(
+            CUSTOM_LICENSES.keySet().stream().filter(key -> key.startsWith(extensionId)).findFirst().orElse(""));
     }
 
     public static void clearCustomLicenses()
