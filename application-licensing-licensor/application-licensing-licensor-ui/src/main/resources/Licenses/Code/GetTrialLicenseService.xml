@@ -42,11 +42,18 @@
   #set ($queryString = {'locale': $xwiki.localePreference})
   #set ($discard = $queryString.putAll($request.parameterMap))
   #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-  #set ($content = $xwiki.getURLContent("${licensingConfigDoc.storeTrialURL}?${escapetool.url($queryString)}"))
-  #if ($content.contains('error'))
-    #set ($discard = $response.setStatus(400))
+  #if ($licensingConfigDoc.getValue('onlineChecksEnabled') == 0)
+    $jsontool.serialize({
+      'status': 'info',
+      'data': $services.localization.render('licensor.addLicense.trialOnlineChecksDisabled')
+    })
+  #else
+    #set ($content = $xwiki.getURLContent("${licensingConfigDoc.storeTrialURL}?${escapetool.url($queryString)}"))
+    #if ($content.contains('error'))
+      #set ($discard = $response.setStatus(400))
+    #end
+    $content
   #end
-  $content
 #end
 {{/velocity}}</content>
 </xwikidoc>

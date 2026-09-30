@@ -52,6 +52,21 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <onlineChecksEnabled>
+      <customDisplay/>
+      <defaultValue>1</defaultValue>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>onlineChecksEnabled</name>
+      <number>7</number>
+      <prettyName>Online Checks Enabled</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </onlineChecksEnabled>
     <storeAccessURL>
       <customDisplay/>
       <disabled>0</disabled>

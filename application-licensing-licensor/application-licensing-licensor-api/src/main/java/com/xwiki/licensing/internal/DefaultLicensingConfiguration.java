@@ -163,6 +163,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     }
 
     @Override
+    public boolean isOnlineChecksEnabled()
+    {
+        return this.storeConfig.getProperty("onlineChecksEnabled", 1) != 0;
+    }
+
+    @Override
     public List<String> getNotifiedGroups()
     {
         return convertObjectToStringList(notificationConfig.getProperty("notifiedGroups", new ArrayList<>()));
