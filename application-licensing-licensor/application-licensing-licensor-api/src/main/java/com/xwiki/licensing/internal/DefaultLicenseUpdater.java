@@ -80,6 +80,9 @@ public class DefaultLicenseUpdater implements LicenseUpdater
 
     private static final String INSTANCE_ID = "instanceId";
 
+    private static final String ONLINE_CHECKS_DISABLED =
+        "Online license checks are disabled, skipping the attempt to {} [{}].";
+
     @Inject
     private Logger logger;
 
@@ -117,6 +120,11 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     @Override
     public void renewLicense(ExtensionId extensionId)
     {
+        if (!licensingConfig.isOnlineChecksEnabled()) {
+            logger.debug(ONLINE_CHECKS_DISABLED, "renew the license of", extensionId.getId());
+            return;
+        }
+
         String errorMsg = String.format(ERROR, extensionId);
 
         try {
@@ -155,6 +163,11 @@ public class DefaultLicenseUpdater implements LicenseUpdater
     @SuppressWarnings("unchecked")
     public void updateLicenses()
     {
+        if (!licensingConfig.isOnlineChecksEnabled()) {
+            logger.debug(ONLINE_CHECKS_DISABLED, "update the licenses of", "this instance");
+            return;
+        }
+
         try {
             URL licensesUpdateURL = getLicensesUpdatesURL();
             if (licensesUpdateURL == null) {
