@@ -19,8 +19,11 @@
  */
 package com.xwiki.licensing.test.po;
 
+import java.util.Arrays;
+
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -36,6 +39,17 @@ public class LicenseDetailsViewPage extends ViewPage
 
     @FindBy(css = "pre.code")
     private WebElement licenseContainer;
+
+    /**
+     * @param licenseId the id of the license, which is also the name of the page holding its details
+     * @return the page that displays the details of the given license
+     * @since 1.32.5
+     */
+    public static LicenseDetailsViewPage gotoPage(String licenseId)
+    {
+        getUtil().gotoPage(new LocalDocumentReference(Arrays.asList("License", "Data"), licenseId));
+        return new LicenseDetailsViewPage();
+    }
 
     public String generateLicense()
     {
