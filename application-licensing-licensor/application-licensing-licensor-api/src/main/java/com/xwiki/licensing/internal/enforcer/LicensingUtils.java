@@ -59,8 +59,8 @@ public final class LicensingUtils
      */
     public static boolean isPristineImpl(Object instance)
     {
-        return (LicensingUtils.class.getProtectionDomain().getCodeSource()
-            .equals(instance.getClass().getProtectionDomain().getCodeSource()));
+        return LicensingUtils.class.getClassLoader() == instance.getClass().getClassLoader()
+            && LicensingUtils.class.getPackage().getName().equals(instance.getClass().getPackage().getName());
     }
 
     /**
