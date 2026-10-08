@@ -56,6 +56,7 @@ import com.xwiki.licensing.internal.helpers.HttpClientUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -127,6 +128,7 @@ public class DefaultLicenseUpdaterTest
         when(instanceIdManagerProvider.get()).thenReturn(instanceIdManager);
         when(instanceIdManager.getInstanceId()).thenReturn(new InstanceId("7237b65d-e5d6-4249-aa4f-7c732cba27e2"));
         when(licensorProvider.get()).thenReturn(licensor);
+        when(licensingConfig.isOnlineChecksEnabled()).thenReturn(true);
     }
 
     @Test
@@ -184,6 +186,28 @@ public class DefaultLicenseUpdaterTest
 
         assertEquals(String.format("Failed to update license for [%s]. Please contact your administrator for eventual "
             + "problems. Cause: [error cause]", extensionId), logCaptureWarn.getMessage(0));
+    }
+
+    @Test
+    void renewLicenseWithOnlineChecksDisabled() throws Exception
+    {
+        when(licensingConfig.isOnlineChecksEnabled()).thenReturn(false);
+
+        licenseUpdater.renewLicense(new ExtensionId("application-test", "1.0"));
+
+        verify(httpUtils, never()).httpPost(any(), any());
+        verify(licenseManager, never()).add(any());
+    }
+
+    @Test
+    void updateLicensesWithOnlineChecksDisabled() throws Exception
+    {
+        when(licensingConfig.isOnlineChecksEnabled()).thenReturn(false);
+
+        licenseUpdater.updateLicenses();
+
+        verify(xwiki, never()).getURLContent(any(), any());
+        verify(licenseManager, never()).add(any());
     }
 
     @Test

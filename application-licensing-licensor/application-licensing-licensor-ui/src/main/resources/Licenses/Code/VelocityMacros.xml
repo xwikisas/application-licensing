@@ -138,32 +138,59 @@
   #end
 #end
 
-#macro (displayNotificationsConfiguration)
+## Displays the form holding the settings of the Licenses administration section. All its fieldsets are saved by the
+## same button.
+#macro (displayLicensingSettings)
   #set ($section = $request.section)
   #if ($section == 'Licenses')
-    #set($formId = "${section.toLowerCase()}_${notificationClass}")
     {{html clean=false}}
     &lt;br&gt;
-    &lt;form id="$escapetool.xml($formId)" method="post"
+    &lt;form id="licenses_settings" method="post"
         action="$escapetool.xml($xwiki.getURL($licensingConfigDoc, 'saveandcontinue'))"
         class="xform"&gt;
-      &lt;fieldset class="licensingnotification"&gt;
-        &lt;legend&gt;
-          $escapetool.xml($services.localization.render('licensor.notificationSettings.heading'))
-        &lt;/legend&gt;
-        &lt;p&gt;$escapetool.xml($services.localization.render('licensor.notificationSettings.hint'))&lt;/p&gt;
-        &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
-        &lt;dl&gt;
-          #getLicensingNotificationClassFields()
-        &lt;/dl&gt;
-      &lt;/fieldset&gt;
-      #notificationSubmitButton()
+      #displayStoreConnectionFieldset()
+      #displayNotificationsFieldset()
+      #licensingSettingsSubmitButton()
     &lt;/form&gt;
     {{/html}}
   #end
 #end
 
-#macro (notificationSubmitButton)
+#macro (displayNotificationsFieldset)
+  &lt;fieldset class="licensingnotification"&gt;
+    &lt;legend&gt;
+      $escapetool.xml($services.localization.render('licensor.notificationSettings.heading'))
+    &lt;/legend&gt;
+    &lt;p&gt;$escapetool.xml($services.localization.render('licensor.notificationSettings.hint'))&lt;/p&gt;
+    &lt;dl&gt;
+      #getLicensingNotificationClassFields()
+    &lt;/dl&gt;
+  &lt;/fieldset&gt;
+#end
+
+## Displays the store connection fieldset of the form displayed by displayLicensingSettings.
+#macro (displayStoreConnectionFieldset)
+  #set ($storeClass = 'Licenses.Code.LicensingStoreClass')
+  #set ($hasExtensionRepositories = !$services.extension.repositories.isEmpty())
+  &lt;fieldset class="licensingstoreconnection"&gt;
+    &lt;legend&gt;
+      $escapetool.xml($services.localization.render('licensor.storeConnection.heading'))
+    &lt;/legend&gt;
+    &lt;p&gt;$escapetool.xml($services.localization.render('licensor.storeConnection.hint'))&lt;/p&gt;
+    #if ($hasExtensionRepositories)
+      #set ($obj = $licensingConfigDoc.getObject($storeClass))
+      &lt;dl&gt;
+        #__displayXProperty($obj.xWikiClass.get('onlineChecksEnabled'))
+      &lt;/dl&gt;
+    #else
+      &lt;div class="box infomessage"&gt;
+        $escapetool.xml($services.localization.render('licensor.storeConnection.noExtensionRepositories'))
+      &lt;/div&gt;
+    #end
+  &lt;/fieldset&gt;
+#end
+
+#macro (licensingSettingsSubmitButton)
   &lt;div class="hidden"&gt;
     &lt;input type="hidden" name="form_token" value="$!{services.csrf.getToken()}" /&gt;
     &lt;input type="hidden" name="xcontinue" value="$xwiki.getURL($currentDoc, 'admin',

@@ -115,4 +115,16 @@ public interface LicensingConfiguration
     {
         return false;
     }
+
+    /**
+     * Check if this instance is allowed to contact the XWiki Store.
+     *
+     * @return {@code true} if the instance may contact the store, or {@code false} otherwise
+     * @since 1.32.6
+     */
+    @Unstable
+    default boolean isOnlineChecksEnabled()
+    {
+        return true;
+    }
 }
