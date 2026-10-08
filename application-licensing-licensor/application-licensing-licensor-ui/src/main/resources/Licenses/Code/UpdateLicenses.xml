@@ -67,11 +67,15 @@
 ## Retrieve license updates from the XWiki Store.
 ##
 #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-#set ($onlineChecksEnabled = $licensingConfigDoc.getValue('onlineChecksEnabled') != 0)
-#if (!$onlineChecksEnabled)
+#if (!$services.licensing.licensor.isOnlineChecksEnabled())
+  #if (!$services.extension.repositories.isEmpty())
+    #set ($messageKey = 'licensor.updateLicenses.onlineChecksDisabled')
+  #else
+    #set ($messageKey = 'licensor.updateLicenses.noExtensionRepositories')
+  #end
   #set ($jsonResponse = {
     'status': 'info',
-    'notification': $services.localization.render('licensor.updateLicenses.onlineChecksDisabled')
+    'notification': $services.localization.render($messageKey)
   })
   #if ($xcontext.action == 'get')
     #set ($discard = $response.setContentType('application/json'))

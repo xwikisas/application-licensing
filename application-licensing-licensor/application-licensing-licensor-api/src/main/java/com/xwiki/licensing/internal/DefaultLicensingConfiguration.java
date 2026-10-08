@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
+import org.xwiki.extension.repository.ExtensionRepositoryManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.user.group.GroupManager;
@@ -95,6 +96,9 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
 
     @Inject
     private GroupManager groupManager;
+
+    @Inject
+    private Provider<ExtensionRepositoryManager> extensionRepositoryManagerProvider;
 
     @Inject
     private Logger logger;
@@ -165,7 +169,7 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     @Override
     public boolean isOnlineChecksEnabled()
     {
-        return this.storeConfig.getProperty("onlineChecksEnabled", 1) != 0;
+        return hasExtensionRepositories() && this.storeConfig.getProperty("onlineChecksEnabled", 1) != 0;
     }
 
     @Override
@@ -201,6 +205,11 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
             }
         }
         return false;
+    }
+
+    private boolean hasExtensionRepositories()
+    {
+        return !this.extensionRepositoryManagerProvider.get().getRepositories().isEmpty();
     }
 
     @SuppressWarnings("unchecked")

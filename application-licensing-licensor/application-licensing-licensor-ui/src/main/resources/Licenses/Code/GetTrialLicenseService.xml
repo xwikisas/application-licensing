@@ -42,10 +42,15 @@
   #set ($queryString = {'locale': $xwiki.localePreference})
   #set ($discard = $queryString.putAll($request.parameterMap))
   #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
-  #if ($licensingConfigDoc.getValue('onlineChecksEnabled') == 0)
+  #if (!$services.licensing.licensor.isOnlineChecksEnabled())
+    #if (!$services.extension.repositories.isEmpty())
+      #set ($messageKey = 'licensor.addLicense.trialOnlineChecksDisabled')
+    #else
+      #set ($messageKey = 'licensor.addLicense.trialNoExtensionRepositories')
+    #end
     $jsontool.serialize({
       'status': 'info',
-      'data': $services.localization.render('licensor.addLicense.trialOnlineChecksDisabled')
+      'data': $services.localization.render($messageKey)
     })
   #else
     #set ($content = $xwiki.getURLContent("${licensingConfigDoc.storeTrialURL}?${escapetool.url($queryString)}"))
