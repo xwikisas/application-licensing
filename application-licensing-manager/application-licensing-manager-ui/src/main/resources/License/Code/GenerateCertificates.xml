@@ -138,8 +138,8 @@
   #if ($xcontext.action == 'get')
     #set ($discard = $response.setContentType('application/json'))
   #end
-  #set ($base64Encoder = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Base64'))
-  #set ($hexEncoder = $services.component.componentManager.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Hex'))
+  #set ($base64Encoder = $services.component.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Base64'))
+  #set ($hexEncoder = $services.component.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Hex'))
   #set ($generated = $freeKeyPair || $trialKeyPair || $paidKeyPair)
   $jsontool.serialize({
     "generated": $generated,

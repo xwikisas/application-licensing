@@ -42,6 +42,8 @@ import org.xwiki.test.ui.po.editor.WikiEditPage;
 import org.xwiki.text.StringUtils;
 
 import com.xwiki.licensing.LicenseType;
+import com.xwiki.licensing.test.po.CertificatePage;
+import com.xwiki.licensing.test.po.GenerateIntermediateCertificatesPage;
 import com.xwiki.licensing.test.po.LicenseDetailsEditPage;
 import com.xwiki.licensing.test.po.LicenseDetailsViewPage;
 import com.xwiki.licensing.test.po.LicenseNotificationPane;
@@ -49,6 +51,8 @@ import com.xwiki.licensing.test.po.LicensesAdminPage;
 import com.xwiki.licensing.test.po.LicensesHomePage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Functional tests for the Licensing application.
@@ -59,6 +63,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class LicensingIT
 {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+
+    private static final String PAID_INTERMEDIATE_CA = "Paid Intermediate CA";
+
+    private static final String ROOT_PASSWORD = "rootPassword";
+
+    // The intermediate certificates used by the tests are valid for 365000 days (see GenerateCertificatesAndKeys.wiki)
+    // and a new certificate must expire later than the one it replaces.
+    private static final int INTERMEDIATE_VALIDITY = 400000;
 
     private String instanceId;
 
@@ -191,7 +203,7 @@ class LicensingIT
         assertEquals(Collections.singletonList("Licensed Application Example"), notification.getExtensions());
 
         // Generate and import a license for unlimited users
-        addLicense(LicenseType.PAID, null, "silver", "-1", setup);
+        String paidLicenseId = addLicense(LicenseType.PAID, null, "silver", "-1", setup);
 
         // Check the license live table.
         assertEquals(1, liveTable.getRowCount());
@@ -212,21 +224,67 @@ class LicensingIT
         // Try also with a simple user.
         setup.loginAndGotoPage("alice", "test", setup.getURL("Example", "WebHome"));
         assertEquals("Hello", viewPage.getContent());
+
+        setup.loginAsSuperAdmin();
+        renewIntermediateCertificate(paidLicenseId, setup);
     }
 
-    private void addLicense(LicenseType type, String expirationDate, String support, String userLimit, TestUtils setup)
+    /**
+     * Generates a new Paid intermediate CA certificate (with the same key pair) and regenerates the paid license that
+     * was signed before, so that it embeds the new certificate.
+     */
+    private void renewIntermediateCertificate(String paidLicenseId, TestUtils setup)
+    {
+        GenerateIntermediateCertificatesPage generatePage = GenerateIntermediateCertificatesPage.gotoPage();
+        String keyIdentifier = generatePage.getKeyIdentifier(PAID_INTERMEDIATE_CA);
+        String serial = generatePage.getSerial(PAID_INTERMEDIATE_CA);
+
+        // Nothing is changed when the root CA password is wrong.
+        generatePage = generatePage.generate("wrongPassword", INTERMEDIATE_VALIDITY, "paid");
+        assertEquals(Collections.singletonList("Cannot retrieve the private key of the root CA from the"
+            + " [license-keystore] key store. Check the root CA password."), generatePage.getErrors());
+        generatePage = GenerateIntermediateCertificatesPage.gotoPage();
+        assertEquals(serial, generatePage.getSerial(PAID_INTERMEDIATE_CA));
+
+        // Generate the new certificate: it keeps the key identifier (trusted by the licensing code) but it is a new
+        // certificate, with a new serial number.
+        generatePage = generatePage.generate(ROOT_PASSWORD, INTERMEDIATE_VALIDITY, "paid");
+        assertTrue(generatePage.getSuccessMessage().startsWith("The intermediate certificates were generated."));
+        assertEquals(Collections.singletonList(PAID_INTERMEDIATE_CA), generatePage.getGeneratedCertificates());
+        assertEquals(keyIdentifier, generatePage.getGeneratedKeyIdentifier(PAID_INTERMEDIATE_CA));
+        assertEquals(serial, generatePage.getOldSerial(PAID_INTERMEDIATE_CA));
+        assertNotEquals(serial, generatePage.getNewSerial(PAID_INTERMEDIATE_CA));
+        assertTrue(generatePage.isStored(PAID_INTERMEDIATE_CA));
+
+        // The paid license still embeds the previous certificate, so it has to be regenerated.
+        CertificatePage certificatePage = CertificatePage.gotoPage(keyIdentifier);
+        assertEquals(Collections.singletonList(paidLicenseId), certificatePage.getLicenseIds());
+        certificatePage = certificatePage.regenerateLicenses();
+        assertEquals(Collections.singletonList(paidLicenseId), certificatePage.getRegeneratedLicenseIds());
+        String regeneratedLicenseId = certificatePage.getNewLicenseId(paidLicenseId);
+        assertEquals(Collections.emptyList(), CertificatePage.gotoPage(keyIdentifier).getLicenseIds());
+
+        // The regenerated license, signed with the new certificate, is trusted by the licensor.
+        String regeneratedLicense = LicenseDetailsViewPage.gotoPage(regeneratedLicenseId).getLicense();
+        assertEquals("License successfully added!", LicensesAdminPage.gotoPage().addLicense(regeneratedLicense));
+        assertEquals("Hello", setup.gotoPage("Example", "WebHome").getContent());
+    }
+
+    private String addLicense(LicenseType type, String expirationDate, String support, String userLimit,
+        TestUtils setup)
     {
         LicenseDetailsEditPage licenseDetails = LicensesHomePage.gotoPage().clickAddLicenseDetails();
         licenseDetails.setLicenseeFirstName("John").setLicenseeLastName("Doe").setLicenseeEmail("john@acme.com")
             .setInstanceId(this.instanceId).setExtensionId("com.xwiki.licensing:application-licensing-test-example")
             .setSupportLevel(support).setUserLimit(userLimit).setLicenseType(type.name().toLowerCase());
         LicenseDetailsViewPage licenseDetailsView = licenseDetails.clickSaveAndView();
+        String licenseId = licenseDetailsView.getHTMLMetaDataValue("page");
         if (!StringUtils.isEmpty(expirationDate)) {
-            String licenseId = licenseDetailsView.getHTMLMetaDataValue("page");
             setup.updateObject(Arrays.asList("License", "Data"), licenseId, "License.Code.LicenseDetailsClass", 0,
                 "expirationDate", expirationDate);
         }
         String license = licenseDetailsView.generateLicense();
         assertEquals("License successfully added!", LicensesAdminPage.gotoPage().addLicense(license));
+        return licenseId;
     }
 }
