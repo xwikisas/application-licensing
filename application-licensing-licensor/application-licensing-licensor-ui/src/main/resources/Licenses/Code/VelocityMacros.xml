@@ -145,7 +145,7 @@
   #if ($section == 'Licenses')
     {{html clean=false}}
     &lt;br&gt;
-    &lt;form id="licenses_settings" method="post"
+    &lt;form id="licenses-settings" method="post"
         action="$escapetool.xml($xwiki.getURL($licensingConfigDoc, 'saveandcontinue'))"
         class="xform"&gt;
       #displayStoreConnectionFieldset()
@@ -172,7 +172,7 @@
 #macro (displayStoreConnectionFieldset)
   #set ($storeClass = 'Licenses.Code.LicensingStoreClass')
   #set ($hasExtensionRepositories = !$services.extension.repositories.isEmpty())
-  &lt;fieldset class="licensingstoreconnection"&gt;
+  &lt;fieldset class="licensing-store-connection"&gt;
     &lt;legend&gt;
       $escapetool.xml($services.localization.render('licensor.storeConnection.heading'))
     &lt;/legend&gt;

@@ -61,7 +61,7 @@
       <hint/>
       <name>onlineChecksEnabled</name>
       <number>7</number>
-      <prettyName>Online Checks Enabled</prettyName>
+      <prettyName>Licensing Online Checks Enabled</prettyName>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
