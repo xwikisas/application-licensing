@@ -22,6 +22,7 @@ package com.xwiki.licensing.test.ui;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.TestReference;
@@ -64,6 +65,7 @@ class UserStressTestLicensingIT
     }
 
     @Test
+    @Order(1)
     void stressTest(TestReference testReference, TestUtils setup)
     {
         setup.loginAsSuperAdmin();

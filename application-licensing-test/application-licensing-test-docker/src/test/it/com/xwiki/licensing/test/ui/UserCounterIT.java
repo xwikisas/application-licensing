@@ -29,6 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.xwiki.model.reference.DocumentReference;
@@ -90,6 +91,7 @@ class UserCounterIT
      * Test that inactive users are disregarded when computing the user limit.
      */
     @Test
+    @Order(1)
     void inactiveUsersMainWiki(TestUtils setup) throws Exception
     {
         createUsers(setup, "xwiki", 1, 2, false);
@@ -111,6 +113,7 @@ class UserCounterIT
      */
     @ParameterizedTest
     @WikisSource(mainWiki = false)
+    @Order(2)
     void subwikiLimitUsesAllWikis(WikiReference wikiReference, TestUtils setup) throws Exception
     {
         String subwikiName = wikiReference.getName();
