@@ -155,6 +155,56 @@ public class UserCounterTest
         verify(fooQuery, times(0)).execute();
     }
 
+    @Test
+    public void getUserIndexesKeepsUsersWithTheSameCreationDate() throws Exception
+    {
+        Query fooQuery = mockUsers("foo");
+        when(fooQuery.execute()).thenReturn(List.of(user("UserB", 1000), user("UserC", 1000), user("UserA", 1000)));
+
+        assertEquals(Map.of(reference("foo", "UserA"), 0, reference("foo", "UserB"), 1, reference("foo", "UserC"), 2),
+            this.mocker.getComponentUnderTest().getUserIndexes());
+        assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
+    }
+
+    @Test
+    public void isUserUnderLimit() throws Exception
+    {
+        Query fooQuery = mockUsers("foo");
+        when(fooQuery.execute()).thenReturn(List.of(user("User1", 1000), user("User2", 2000), user("User3", 3000)));
+        UserCounter userCounter = this.mocker.getComponentUnderTest();
+
+        // Limit lower than the user count.
+        assertTrue(userCounter.isUserUnderLimit(reference("foo", "User1"), 2));
+        assertTrue(userCounter.isUserUnderLimit(reference("foo", "User2"), 2));
+        assertFalse(userCounter.isUserUnderLimit(reference("foo", "User3"), 2));
+        // Limit higher than the user count.
+        assertTrue(userCounter.isUserUnderLimit(reference("foo", "User3"), 5));
+        // No user is under a limit of 0.
+        assertFalse(userCounter.isUserUnderLimit(reference("foo", "User1"), 0));
+        // Users that are not active users of the instance, like the guest user or superadmin.
+        assertFalse(userCounter.isUserUnderLimit(reference("foo", "XWikiGuest"), 5));
+        assertFalse(userCounter.isUserUnderLimit(reference("foo", "superadmin"), 5));
+        assertFalse(userCounter.isUserUnderLimit(null, 5));
+        // A negative limit means unlimited.
+        assertTrue(userCounter.isUserUnderLimit(reference("foo", "User3"), -1));
+        assertTrue(userCounter.isUserUnderLimit(reference("foo", "NonExistentUser"), -1));
+        assertFalse(userCounter.isUserUnderLimit(null, -1));
+    }
+
+    @Test
+    public void isUserUnderLimitThrowsQueryException() throws Exception
+    {
+        Query fooQuery = mockUsers("foo");
+        when(fooQuery.execute()).thenThrow(new QueryException("message", fooQuery, null));
+
+        try {
+            this.mocker.getComponentUnderTest().isUserUnderLimit(reference("foo", "User1"), 1);
+            fail();
+        } catch (QueryException expected) {
+            assertEquals("message. Query statement = [null]", expected.getMessage());
+        }
+    }
+
     /**
      * @return the query returning the active users, one execution per given wiki
      */

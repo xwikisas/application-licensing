@@ -46,7 +46,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Verify that users over the user limit are marked and counted correctly.
+ * Verify that users over the user limit are marked and counted correctly. The variations of the limit check are
+ * covered by the unit tests of {@code UserCounter}; this test covers what needs a real instance: the user query,
+ * the cache invalidation when users are created or deleted, and the ordering of the users of several wikis.
  *
  * @version $Id$
  * @since 1.33.0
@@ -83,80 +85,6 @@ class UserCounterIT
     }
 
     /**
-     * This test documents the behavior of isUserUnderLimit() for special users.
-     */
-    @Test
-    void otherUserTest(TestUtils setup) throws Exception
-    {
-        // 0 users on the instance for these tests.
-        assertEquals(0, this.getUserCountOnInstance(setup));
-
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", 1));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", 1));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", 1));
-        // A -1 limit means the license has no limit.
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", -1));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", -1));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", -1));
-    }
-
-    /**
-     * Test for checking infinite user limits.
-     */
-    @ParameterizedTest
-    @WikisSource(mainWiki = false)
-    void infiniteLimitTest(WikiReference wikiReference, TestUtils setup) throws Exception
-    {
-        String subwikiName = wikiReference.getName();
-        createUsers(setup, "xwiki", 1, 2, true);
-        createUsers(setup, "xwiki", 2, 3, false);
-        createUsers(setup, subwikiName, 3, 4, true);
-
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", -1));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", -1));
-        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", -1));
-
-        assertEquals(2, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 3);
-        deleteUsers(setup, subwikiName, 3, 4);
-    }
-
-    /**
-     * Check that no unexpected behavior happens if the number of users is lower than the requested limit.
-     */
-    @Test
-    void lowerThanRequestedMainWiki(TestUtils setup) throws Exception
-    {
-        createUsers(setup, "xwiki", 1, 3, true);
-
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
-
-        assertEquals(2, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 3);
-    }
-
-    /**
-     * Check that no unexpected behavior happens if the number of users is higher than the requested limit.
-     */
-    @Test
-    void moreThanRequestedMainWiki(TestUtils setup) throws Exception
-    {
-        createUsers(setup, "xwiki", 1, 5, true);
-
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 2));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 2));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_3", 2));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_4", 2));
-
-        assertEquals(4, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 5);
-    }
-
-    /**
      * Test that inactive users are disregarded when computing the user limit.
      */
     @Test
@@ -174,32 +102,6 @@ class UserCounterIT
         assertEquals(2, this.getUserCountOnInstance(setup));
 
         deleteUsers(setup, "xwiki", 1, 4);
-    }
-
-    /**
-     * Check that no unexpected behavior happens if the number of users on all wikis is lower than the requested limit.
-     */
-    @ParameterizedTest
-    @WikisSource(mainWiki = false)
-    void lowerThanRequestedSubwiki(WikiReference wikiReference, TestUtils setup) throws Exception
-    {
-        String subwikiName = wikiReference.getName();
-        createUsers(setup, "xwiki", 1, 3, true);
-        createUsers(setup, subwikiName, 3, 5, true);
-
-        // Test user on main wiki
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
-        // Test user on main wiki who would be under limit if not for the subwiki users.
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
-        // Test user on subwiki
-        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", 5));
-        // Test user on main wiki who would be under limit if not for the main wiki users.
-        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_4", 5));
-
-        assertEquals(4, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 3);
-        deleteUsers(setup, subwikiName, 3, 5);
     }
 
     /**
