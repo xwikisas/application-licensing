@@ -39,6 +39,8 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseValidator;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -120,6 +122,34 @@ class DefaultLicensorTest
     {
         when(licenseManager.get(extensionId)).thenReturn(invalidLicense);
         assertFalse(defaultLicensor.hasLicensure(extensionId));
+    }
+
+    @Test
+    void getLicenseWithStringId()
+    {
+        when(licenseManager.get("com.xwiki.test:application-test")).thenReturn(license);
+        assertSame(license, defaultLicensor.getLicense("com.xwiki.test:application-test"));
+    }
+
+    @Test
+    void getLicenseWithStringIdWhenLicenseManagerFails()
+    {
+        when(licenseManager.get("com.xwiki.test:application-test")).thenThrow(new RuntimeException());
+        assertNull(defaultLicensor.getLicense("com.xwiki.test:application-test"));
+    }
+
+    @Test
+    void hasLicensureWithStringId()
+    {
+        when(licenseManager.get("com.xwiki.test:application-test")).thenReturn(license);
+        assertTrue(defaultLicensor.hasLicensure("com.xwiki.test:application-test"));
+
+        when(licenseManager.get("com.xwiki.test:application-test")).thenReturn(invalidLicense);
+        assertFalse(defaultLicensor.hasLicensure("com.xwiki.test:application-test"));
+
+        // Not subject to licensing.
+        when(licenseManager.get("com.xwiki.test:application-test")).thenReturn(null);
+        assertTrue(defaultLicensor.hasLicensure("com.xwiki.test:application-test"));
     }
 
     @Test
