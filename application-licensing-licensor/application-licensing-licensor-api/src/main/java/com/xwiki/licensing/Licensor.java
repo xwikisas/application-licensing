@@ -47,7 +47,10 @@ public interface Licensor
      * @return a license, or null if the given installed extension is not subject to licensing.
      * @since 1.33.0
      */
-    License getLicense(String extensionId);
+    default License getLicense(String extensionId)
+    {
+        return null;
+    }
 
     /**
      * Retrieve the currently applicable license for the given installed extension.
@@ -92,7 +95,10 @@ public interface Licensor
      * @return true if the given extension has a valid license or is not subject to licensing.
      * @since 1.33.0
      */
-    boolean hasLicensure(String extensionId);
+    default boolean hasLicensure(String extensionId)
+    {
+        return true;
+    }
 
     /**
      * Check if the given extension is expiring in less than 10 days.

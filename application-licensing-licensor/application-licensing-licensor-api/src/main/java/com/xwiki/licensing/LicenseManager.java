@@ -47,7 +47,10 @@ public interface LicenseManager
      * @return a license.
      * @since 1.33.0
      */
-    License get(String extensionId);
+    default License get(String extensionId)
+    {
+        return null;
+    }
 
     /**
      * Add a new license to the current set of active license. The added license is checked to be applicable to the
