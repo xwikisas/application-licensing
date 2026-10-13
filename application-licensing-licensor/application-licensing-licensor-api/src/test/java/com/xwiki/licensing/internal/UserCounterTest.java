@@ -23,12 +23,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.SortedSet;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.observation.EventListener;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
@@ -42,11 +44,11 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.internal.UserCounter.UserListener;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
@@ -135,42 +137,47 @@ public class UserCounterTest
     }
 
     @Test
-    public void sortedUsersOperations() throws Exception
+    public void getUserIndexesOrdersByCreationDateAcrossWikis() throws Exception
     {
-        when(this.wikiDescriptorManager.getAllIds()).thenReturn(List.of("foo"));
-        Query fooQuery = createMockQuery("foo");
-        List<Object> userList = List.of(dummyUserDocument("User1", 100000), dummyUserDocument("User2", 50000),
-            dummyUserDocument("User3", 150000));
-        when(this.queryManager.createQuery(any(), any())).thenReturn(fooQuery);
-        when(fooQuery.execute()).thenReturn(userList);
+        Query fooQuery = mockUsers("foo", "bar");
+        when(fooQuery.execute()).thenReturn(List.of(user("User1", 100000), user("User2", 50000)),
+            Collections.singletonList(user("User3", 75000)));
 
-        this.mocker.getComponentUnderTest().flushCache();
-        SortedSet<XWikiDocument> result = this.mocker.getComponentUnderTest().getSortedUsers();
+        Map<DocumentReference, Integer> result = this.mocker.getComponentUnderTest().getUserIndexes();
 
-        // Check that the query was executed.
-        verify(fooQuery).execute();
-        // Check that the users are returned in their creation order.
-        assertArrayEquals(List.of(userList.get(1), userList.get(0), userList.get(2)).toArray(), result.toArray());
+        assertEquals(Map.of(reference("foo", "User2"), 0, reference("bar", "User3"), 1, reference("foo", "User1"), 2),
+            result);
+        assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
+
+        // Further calls use the cache.
         clearInvocations(fooQuery);
-
-        // Check that further calls use the cache.
-        result = this.mocker.getComponentUnderTest().getSortedUsers();
-        assertArrayEquals(List.of(userList.get(1), userList.get(0), userList.get(2)).toArray(), result.toArray());
-        assertFalse(this.mocker.getComponentUnderTest()
-            .isUserUnderLimit(((XWikiDocument) userList.get(0)).getDocumentReference(), 1));
-        assertTrue(this.mocker.getComponentUnderTest()
-            .isUserUnderLimit(((XWikiDocument) userList.get(1)).getDocumentReference(), 1));
-        assertFalse(this.mocker.getComponentUnderTest().isUserUnderLimit(null, 1));
+        assertEquals(result, this.mocker.getComponentUnderTest().getUserIndexes());
         verify(fooQuery, times(0)).execute();
     }
 
-    private XWikiDocument dummyUserDocument(String username, long creationDateMillis)
+    /**
+     * @return the query returning the active users, one execution per given wiki
+     */
+    private Query mockUsers(String... wikis) throws Exception
     {
-        XWikiDocument userDoc = new XWikiDocument(new DocumentReference("xwiki", "XWiki", username));
-        Date date = new Date();
-        date.setTime(creationDateMillis);
-        userDoc.setCreationDate(date);
-        return userDoc;
+        when(this.wikiDescriptorManager.getAllIds()).thenReturn(List.of(wikis));
+        Query query = createMockQuery("users");
+        when(this.queryManager.createQuery(any(), any())).thenReturn(query);
+        DocumentReferenceResolver<String> resolver = this.mocker.getInstance(DocumentReferenceResolver.TYPE_STRING);
+        when(resolver.resolve(anyString(), any(WikiReference.class))).thenAnswer(
+            invocation -> new DocumentReference(((WikiReference) invocation.getArgument(1)).getName(), "XWiki",
+                invocation.<String>getArgument(0).substring("XWiki.".length())));
+        return query;
+    }
+
+    private Object[] user(String username, long creationDateMillis)
+    {
+        return new Object[] { "XWiki." + username, new Date(creationDateMillis) };
+    }
+
+    private DocumentReference reference(String wiki, String username)
+    {
+        return new DocumentReference(wiki, "XWiki", username);
     }
 
     @Test
