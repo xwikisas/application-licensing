@@ -21,7 +21,6 @@ package com.xwiki.licensing.test.ui;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,9 +60,12 @@ class UserCounterIT
     private static final String PASSWORD = "password";
 
     @BeforeAll
-    void setup(TestUtils setup)
+    void setup(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
+        try (InputStream content = UserCounterPage.class.getResourceAsStream("/UserCounterTestPage.wiki")) {
+            setup.rest().savePage(testPage, IOUtils.toString(content, StandardCharsets.UTF_8), "");
+        }
     }
 
     @AfterAll
@@ -144,7 +146,8 @@ class UserCounterIT
     }
 
     /**
-     * Create user pages like XWiki.User_{startInclusive}, ... XWiki.User_{endExclusive-1}.
+     * Create user pages like XWiki.User_{startInclusive}, ... XWiki.User_{endExclusive-1}. The users created by one
+     * call are newer than the users created by the previous calls.
      */
     private void createUsers(TestUtils setup, String subwiki, int startInclusive, int endExclusive, boolean active)
         throws Exception
@@ -156,18 +159,14 @@ class UserCounterIT
 
         setup.loginAsSuperAdmin();
 
+        // Creation dates are stored with a precision of one second. Users created in the same second are ordered by
+        // their reference, which matches the creation order only for the users of the same wiki (User_1, User_2...).
+        Thread.sleep(1000);
+
         for (int i = startInclusive; i < endExclusive; i++) {
             DocumentReference documentReference = new DocumentReference(subwiki, "XWiki", "User_" + i);
             assertFalse(setup.rest().exists(documentReference));
             setup.addObject(documentReference, "XWiki.XWikiUsers", "password", PASSWORD, "active", active);
-
-            try {
-                setup.getDriver().waitUntilCondition(driver -> false, 1);
-            } catch (Exception e) {
-                // Ignored. We want this to fail after 1 second, to ensure that the users are created in the expected
-                // order (i.e. no equal creation dates for 2 users in the tests, since users are ordered by date).
-            }
-            System.out.println("Creating " + documentReference + " at " + new Date());
         }
 
         setup.setCurrentWiki(currentWiki);
@@ -189,19 +188,13 @@ class UserCounterIT
             DocumentReference documentReference = new DocumentReference(subwiki, "XWiki", "User_" + i);
             assertTrue(setup.rest().exists(documentReference));
             setup.deletePage(documentReference);
-            System.out.println("Deleting " + documentReference + " at " + new Date());
         }
 
         setup.setCurrentWiki(currentWiki);
     }
 
-    private UserCounterPage gotoUserCounterTestPage(TestUtils setup, String user, Integer limit) throws Exception
+    private UserCounterPage gotoUserCounterTestPage(TestUtils setup, String user, Integer limit)
     {
-        // Create the page if it doesn't exist.
-        try (InputStream content = UserCounterPage.class.getResourceAsStream("/UserCounterTestPage.wiki")) {
-            setup.rest().savePage(testPage, IOUtils.toString(content, StandardCharsets.UTF_8), "");
-        }
-
         Map<String, Object> queryParams = new HashMap<>();
         if (user != null) {
             queryParams.put("user", user);
