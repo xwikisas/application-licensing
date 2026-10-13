@@ -220,11 +220,17 @@ public class UserCounter
     }
 
     /**
-     * Return whether the given user is under the specified license user limit.
+     * Check whether the given user is among the first {@code userLimit} active users of the instance, all wikis
+     * included, ordered by creation date (see {@link #getUserIndexes()}). For example, with a limit of {@code 10}, the
+     * 10 oldest active users are under the limit and every newer one is over it.
      *
-     * @param user the user to check
-     * @param userLimit the license max user limit
-     * @return whether the given user is under the specified license user limit
+     * @param user the user to check, e.g. {@code xwiki:XWiki.JohnDoe}
+     * @param userLimit the maximum number of users allowed by the license; a negative value (e.g. {@code -1}) means
+     *     unlimited
+     * @return {@code true} if the limit is negative, whatever the user; otherwise {@code true} only if the user is an
+     *     active user of the instance within the first {@code userLimit} ones, and {@code false} for a {@code null},
+     *     inactive or nonexistent user (this includes the guest user and superadmin, which have no user profile)
+     * @throws Exception if the users of the instance cannot be retrieved
      * @since 1.33.0
      */
     public boolean isUserUnderLimit(DocumentReference user, long userLimit) throws Exception

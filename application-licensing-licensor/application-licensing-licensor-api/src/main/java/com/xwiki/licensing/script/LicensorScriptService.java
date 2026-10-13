@@ -300,13 +300,17 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
-     * List the users on the entire instance, ordered by creation date. If the passed user is at an index below the
-     * limit, return true.
+     * Check whether the given user is among the first {@code limit} active users of the instance, all wikis included,
+     * ordered by creation date. For example, with a limit of {@code 10}, the 10 oldest active users are under the limit
+     * and every newer one is over it. Users created in the same second are ordered by their serialized reference.
      *
-     * @param user the user to test
-     * @param limit the limit to check
-     * @return true if the passed user is below the specified limit, false otherwise
-     * @throws Exception if the users of the instance cannot be retrieved
+     * @param user the user to check, e.g. {@code xwiki:XWiki.JohnDoe}
+     * @param limit the maximum number of users allowed by the license; a negative value (e.g. {@code -1}) means
+     *     unlimited
+     * @return {@code true} if the limit is negative, whatever the user; otherwise {@code true} only if the user is an
+     *     active user of the instance within the first {@code limit} ones, and {@code false} for a {@code null},
+     *     inactive or nonexistent user (this includes the guest user and superadmin, which have no user profile)
+     * @throws Exception if the users of the instance cannot be retrieved; use {@code #try()} to handle it
      * @since 1.33.0
      */
     @Unstable

@@ -41,10 +41,13 @@ public interface LicenseManager
     License get(ExtensionId extensionId);
 
     /**
-     * Retrieve the currently applicable license for the given installed extension.
+     * Retrieve the currently applicable license for the given installed extension, identified only by its id. The
+     * version is the one of the extension installed on the root namespace, i.e. installed for the whole farm.
      *
-     * @param extensionId identifier of an installed extension
-     * @return a license.
+     * @param extensionId the id of an extension installed on the root namespace, without version, e.g.
+     *     {@code com.xwiki.activedirectory:application-activedirectory-api}
+     * @return the license of the installed extension, or {@code null} if no extension with this id is installed on the
+     *     root namespace or if no license applies to it
      * @since 1.33.0
      */
     default License get(String extensionId)
