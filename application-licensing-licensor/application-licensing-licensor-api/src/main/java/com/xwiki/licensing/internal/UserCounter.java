@@ -165,8 +165,12 @@ public class UserCounter
     protected SortedSet<XWikiDocument> getSortedUsers() throws WikiManagerException, QueryException
     {
         if (cachedSortedUsers == null) {
+            // Creation dates are stored with a precision of one second, so users created in the same second are
+            // ordered by their reference, otherwise the set would keep only one of them.
             cachedSortedUsers = new TreeSet<>(
-                (e1, e2) -> new CompareToBuilder().append(e1.getCreationDate(), e2.getCreationDate()).build());
+                (e1, e2) -> new CompareToBuilder().append(e1.getCreationDate(), e2.getCreationDate())
+                    .append(e1.getDocumentReference().toString(), e2.getDocumentReference().toString())
+                    .build());
             for (String wikiId : wikiDescriptorManager.getAllIds()) {
                 cachedSortedUsers.addAll(getUsersOnWiki(wikiId));
             }
