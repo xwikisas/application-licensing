@@ -336,7 +336,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     {
         InstalledExtension installedExtension =
             this.installedExtensionRepositoryProvider.get().getInstalledExtension(extensionId, null);
-        return this.get(installedExtension.getId());
+        return installedExtension != null ? get(installedExtension.getId()) : null;
     }
 
     @Override
