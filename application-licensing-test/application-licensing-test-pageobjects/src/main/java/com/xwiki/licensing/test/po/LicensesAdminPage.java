@@ -37,6 +37,11 @@ public class LicensesAdminPage extends AdministrationSectionPage
 {
     public static final String ADMINISTRATION_SECTION_ID = "Licenses";
 
+    private static final String STORE_CONNECTION_FIELDSET = "#licenses-settings .licensing-store-connection";
+
+    private static final By ONLINE_CHECKS_CHECKBOX =
+        By.cssSelector(STORE_CONNECTION_FIELDSET + " input[type='checkbox']");
+
     @FindBy(id = "firstName")
     private WebElement firstNameInput;
 
@@ -49,7 +54,7 @@ public class LicensesAdminPage extends AdministrationSectionPage
     @FindBy(id = "instanceId")
     private WebElement instanceIdInput;
 
-    @FindBy(xpath = "//button[contains(@class, 'licenseButton') and . = 'Get Trial']")
+    @FindBy(css = "#licenseManager .licenseButton-trial")
     private WebElement getTrialButton;
 
     @FindBy(css = "textarea#license")
@@ -57,6 +62,12 @@ public class LicensesAdminPage extends AdministrationSectionPage
 
     @FindBy(css = "form#addLicense input[type='submit']")
     private WebElement addLicenseButton;
+
+    @FindBy(id = "updateLicenses")
+    private WebElement updateLicensesButton;
+
+    @FindBy(css = "#licenses-settings input[name='formactionsac']")
+    private WebElement saveSettingsButton;
 
     public static LicensesAdminPage gotoPage()
     {
@@ -97,6 +108,73 @@ public class LicensesAdminPage extends AdministrationSectionPage
         return this;
     }
 
+    /**
+     * Clicks the "Get Trial" button and waits for the request to be handled.
+     *
+     * @return the message of the notification displayed when the request is handled, with the {@code info} level
+     */
+    public String getTrialLicense()
+    {
+        clickGetTrialButton();
+        return waitForInfoNotification();
+    }
+
+    /**
+     * Clicks the "Check for License Updates" button and waits for the request to be handled.
+     *
+     * @return the message of the notification displayed when the request is handled, with the {@code info} level
+     */
+    public String checkForLicenseUpdates()
+    {
+        this.updateLicensesButton.click();
+        return waitForInfoNotification();
+    }
+
+    /**
+     * @return {@code true} if the "Enable online license checks" checkbox is displayed, {@code false} when it is
+     *     replaced by a message explaining why online license checks are disabled
+     */
+    public boolean hasOnlineChecksOption()
+    {
+        return getDriver().hasElementWithoutWaiting(ONLINE_CHECKS_CHECKBOX);
+    }
+
+    public boolean isOnlineChecksEnabled()
+    {
+        return getDriver().findElementWithoutWaiting(ONLINE_CHECKS_CHECKBOX).isSelected();
+    }
+
+    public LicensesAdminPage setOnlineChecksEnabled(boolean enabled)
+    {
+        WebElement checkbox = getDriver().findElementWithoutWaiting(ONLINE_CHECKS_CHECKBOX);
+        if (checkbox.isSelected() != enabled) {
+            checkbox.click();
+        }
+        return this;
+    }
+
+    /**
+     * @return the message displayed instead of the "Enable online license checks" checkbox
+     */
+    public String getOnlineChecksMessage()
+    {
+        return getDriver().findElementWithoutWaiting(By.cssSelector(STORE_CONNECTION_FIELDSET + " .infomessage"))
+            .getText();
+    }
+
+    /**
+     * Saves the settings form of the Licenses section (online license checks and notification settings).
+     *
+     * @return the Licenses section, reloaded after the save
+     */
+    public LicensesAdminPage saveSettings()
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        this.saveSettingsButton.click();
+        getDriver().waitUntilPageIsReloaded();
+        return new LicensesAdminPage();
+    }
+
     public String addLicense(String license)
     {
         // The license is pretty long and it kills the browser if we generate keyboard events for each character.
@@ -110,7 +188,28 @@ public class LicensesAdminPage extends AdministrationSectionPage
         WebElement notificationElement = getDriver().findElementWithoutWaiting(By.cssSelector(".xnotification"));
         boolean successful = notificationElement.getAttribute("class").contains("xnotification-success");
         String notificationMessage = notificationElement.getText();
+        hideNotification(notificationElement);
 
+        if (successful) {
+            // Wait for the live table to be reloaded.
+            getLiveTable();
+        }
+
+        return notificationMessage;
+    }
+
+    private String waitForInfoNotification()
+    {
+        By infoNotification = By.cssSelector(".xnotification-info");
+        getDriver().waitUntilElementIsVisible(infoNotification);
+        WebElement notificationElement = getDriver().findElementWithoutWaiting(infoNotification);
+        String notificationMessage = notificationElement.getText();
+        hideNotification(notificationElement);
+        return notificationMessage;
+    }
+
+    private void hideNotification(WebElement notificationElement)
+    {
         // In order to improve test speed, clicking on the notification will make it disappear. This also ensures that
         // this method always waits for the last notification message of the specified level.
         try {
@@ -119,12 +218,5 @@ public class LicensesAdminPage extends AdministrationSectionPage
         } catch (WebDriverException e) {
             // Ignore.
         }
-
-        if (successful) {
-            // Wait for the live table to be reloaded.
-            getLiveTable();
-        }
-
-        return notificationMessage;
     }
 }

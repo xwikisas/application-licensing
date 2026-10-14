@@ -1,0 +1,12 @@
+{{velocity}}
+#set ($repositoryManager = $services.component.getInstance(
+  'org.xwiki.extension.repository.ExtensionRepositoryManager'))
+#if ($request.repositories == 'remove')
+  #foreach ($repository in $repositoryManager.repositories)
+    #set ($discard = $repositoryManager.removeRepository($repository.descriptor.id))
+  #end
+#elseif ($request.repositories == 'restore')
+  #set ($discard = $repositoryManager.initialize())
+#end
+$repositoryManager.repositories.size()
+{{/velocity}}
