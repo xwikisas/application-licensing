@@ -39,6 +39,7 @@ import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.internal.UserCounter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -154,6 +155,13 @@ class DefaultLicensorTest
         // Not subject to licensing.
         when(licenseManager.get("com.xwiki.test:application-test")).thenReturn(null);
         assertTrue(defaultLicensor.hasLicensure("com.xwiki.test:application-test"));
+    }
+
+    @Test
+    void getUserCount() throws Exception
+    {
+        when(userCounter.getUserCount()).thenReturn(7L);
+        assertEquals(7L, defaultLicensor.getUserCount());
     }
 
     @Test

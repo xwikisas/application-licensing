@@ -59,6 +59,15 @@ public interface Licensor
     boolean hasLicensure(String extensionId);
 
     /**
+     * Count the active users of the instance, all wikis included.
+     *
+     * @return the number of active users
+     * @throws Exception if the users of the instance cannot be counted
+     * @since 1.33.0
+     */
+    long getUserCount() throws Exception;
+
+    /**
      * Check whether the given user is among the first {@code limit} active users of the instance, all wikis included,
      * ordered by creation date.
      *

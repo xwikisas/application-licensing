@@ -147,6 +147,12 @@ public class DefaultLicensor implements Licensor, Initializable
     }
 
     @Override
+    public long getUserCount() throws Exception
+    {
+        return this.userCounter.getUserCount();
+    }
+
+    @Override
     public boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception
     {
         return this.userCounter.isUserUnderLimit(user, limit);

@@ -78,6 +78,12 @@ public class TestLicensor implements Licensor
     }
 
     @Override
+    public long getUserCount()
+    {
+        return 0;
+    }
+
+    @Override
     public boolean isUserUnderLimit(DocumentReference user, long limit)
     {
         return true;

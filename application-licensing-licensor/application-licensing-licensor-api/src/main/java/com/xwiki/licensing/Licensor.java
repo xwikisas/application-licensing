@@ -102,6 +102,20 @@ public interface Licensor
     }
 
     /**
+     * Count the active users of the instance, all wikis included. This is the count checked against the user limit of
+     * the licenses.
+     *
+     * @return the number of active users
+     * @throws Exception if the users of the instance cannot be counted
+     * @since 1.33.0
+     */
+    @Unstable
+    default long getUserCount() throws Exception
+    {
+        return 0;
+    }
+
+    /**
      * Check whether the given user is among the first {@code limit} active users of the instance, all wikis included,
      * ordered by creation date. For example, with a limit of {@code 10}, the 10 oldest active users are under the limit
      * and every newer one is over it. Users created in the same second are ordered by their serialized reference.
