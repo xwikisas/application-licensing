@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
@@ -72,6 +73,12 @@ public class TestLicensor implements Licensor
 
     @Override
     public boolean hasLicensure(String extensionId)
+    {
+        return true;
+    }
+
+    @Override
+    public boolean isUserUnderLimit(DocumentReference user, long limit)
     {
         return true;
     }

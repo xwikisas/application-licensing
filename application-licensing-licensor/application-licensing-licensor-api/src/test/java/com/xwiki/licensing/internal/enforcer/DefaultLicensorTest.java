@@ -37,6 +37,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseValidator;
+import com.xwiki.licensing.internal.UserCounter;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -67,6 +68,9 @@ class DefaultLicensorTest
 
     @MockComponent
     Provider<XWikiContext> contextProvider;
+
+    @MockComponent
+    UserCounter userCounter;
 
     @Mock
     XWikiContext wikiContext;
@@ -150,6 +154,14 @@ class DefaultLicensorTest
         // Not subject to licensing.
         when(licenseManager.get("com.xwiki.test:application-test")).thenReturn(null);
         assertTrue(defaultLicensor.hasLicensure("com.xwiki.test:application-test"));
+    }
+
+    @Test
+    void isUserUnderLimit() throws Exception
+    {
+        when(userCounter.isUserUnderLimit(docRef, 5)).thenReturn(true);
+        assertTrue(defaultLicensor.isUserUnderLimit(docRef, 5));
+        assertFalse(defaultLicensor.isUserUnderLimit(docRef, 4));
     }
 
     @Test

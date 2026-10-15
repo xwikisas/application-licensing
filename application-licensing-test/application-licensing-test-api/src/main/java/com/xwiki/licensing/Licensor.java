@@ -21,6 +21,7 @@ package com.xwiki.licensing;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 /**
@@ -56,6 +57,18 @@ public interface Licensor
      * @since 1.33.0
      */
     boolean hasLicensure(String extensionId);
+
+    /**
+     * Check whether the given user is among the first {@code limit} active users of the instance, all wikis included,
+     * ordered by creation date.
+     *
+     * @param user the user to check, e.g. {@code xwiki:XWiki.JohnDoe}
+     * @param limit the maximum number of users allowed by the license; a negative value means unlimited
+     * @return true if the user is under the limit
+     * @throws Exception if the users of the instance cannot be retrieved
+     * @since 1.33.0
+     */
+    boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception;
 
     /**
      * @return true if the current document has a valid license or is not subject to licensing.

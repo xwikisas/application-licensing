@@ -32,6 +32,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 
 import com.xpn.xwiki.XWikiContext;
@@ -39,6 +40,7 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.Licensor;
+import com.xwiki.licensing.internal.UserCounter;
 
 /**
  * Default implementation for {@link Licensor}.
@@ -62,6 +64,9 @@ public class DefaultLicensor implements Licensor, Initializable
 
     @Inject
     private Provider<XWikiContext> context;
+
+    @Inject
+    private UserCounter userCounter;
 
     @Override
     public void initialize() throws InitializationException
@@ -139,6 +144,12 @@ public class DefaultLicensor implements Licensor, Initializable
     {
         License license = getLicense(extensionId);
         return license == null || licenseValidator.isValid(license);
+    }
+
+    @Override
+    public boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception
+    {
+        return this.userCounter.isUserUnderLimit(user, limit);
     }
 
     @Override
