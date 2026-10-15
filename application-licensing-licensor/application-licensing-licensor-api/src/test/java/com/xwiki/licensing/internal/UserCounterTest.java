@@ -167,6 +167,18 @@ public class UserCounterTest
     }
 
     @Test
+    public void getUserIndexesKeepsTheOldestTranslationOfAUser() throws Exception
+    {
+        Query fooQuery = mockUsers("foo");
+        // UserA has a translation, created after UserB.
+        when(fooQuery.execute()).thenReturn(
+            List.of(user("UserA", 1000), user("UserB", 2000), user("UserA", 3000), user("UserC", 4000)));
+
+        assertEquals(Map.of(reference("foo", "UserA"), 0, reference("foo", "UserB"), 1, reference("foo", "UserC"), 2),
+            this.mocker.getComponentUnderTest().getUserIndexes());
+    }
+
+    @Test
     public void isUserUnderLimit() throws Exception
     {
         Query fooQuery = mockUsers("foo");

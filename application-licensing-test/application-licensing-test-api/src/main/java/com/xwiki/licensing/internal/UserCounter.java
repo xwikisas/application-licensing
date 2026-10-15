@@ -186,7 +186,8 @@ public class UserCounter
                 .thenComparing(user -> user.getRight().toString()));
             Map<DocumentReference, Integer> indexes = new LinkedHashMap<>();
             for (Pair<Date, DocumentReference> user : users) {
-                indexes.put(user.getRight(), indexes.size());
+                // A translated user profile is returned once per translation: keep the oldest (first) one.
+                indexes.putIfAbsent(user.getRight(), indexes.size());
             }
             userIndexes = Collections.unmodifiableMap(indexes);
             this.cachedUserIndexes = userIndexes;
