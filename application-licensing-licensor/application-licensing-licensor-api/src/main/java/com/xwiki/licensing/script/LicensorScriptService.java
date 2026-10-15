@@ -124,6 +124,17 @@ public class LicensorScriptService implements ScriptService, Initializable
     }
 
     /**
+     * @return {@code true} if this instance is allowed to contact the XWiki Store, or {@code false} otherwise
+     * @see LicensingConfiguration#isOnlineChecksEnabled()
+     * @since 1.32.6
+     */
+    @Unstable
+    public boolean isOnlineChecksEnabled()
+    {
+        return this.licensingConfig.isOnlineChecksEnabled();
+    }
+
+    /**
      * Retrieve the currently applicable license for the current context document if any. Equivalent to
      * licensor.getLicense() call.
      *

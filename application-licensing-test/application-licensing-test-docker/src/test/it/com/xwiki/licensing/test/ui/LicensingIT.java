@@ -28,7 +28,10 @@ import java.util.Collections;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.LocalDocumentReference;
@@ -51,6 +54,7 @@ import com.xwiki.licensing.test.po.LicensesAdminPage;
 import com.xwiki.licensing.test.po.LicensesHomePage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -60,6 +64,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @version $Id$
  */
 @UITest
+// The online license checks tests need the "Get Trial" button, which is displayed only as long as the licensed example
+// extension has no license, so they have to run before the test that adds licenses for it.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class LicensingIT
 {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
@@ -72,6 +79,8 @@ class LicensingIT
     // and a new certificate must expire later than the one it replaces.
     private static final int INTERMEDIATE_VALIDITY = 400000;
 
+    private static final String NO_LICENSE_AVAILABLE = "No license available";
+
     private String instanceId;
 
     @BeforeEach
@@ -83,12 +92,7 @@ class LicensingIT
 
         LocalDocumentReference generateCertificatesAndKeys =
             new LocalDocumentReference(Arrays.asList("License", "Code"), "GenerateCertificatesAndKeys");
-        if (!setup.rest().exists(generateCertificatesAndKeys)) {
-            try (InputStream content = getClass().getResourceAsStream("/GenerateCertificatesAndKeys.wiki")) {
-                setup.rest().savePage(generateCertificatesAndKeys,
-                    IOUtils.toString(content, StandardCharsets.UTF_8), "");
-            }
-
+        if (createPageFromResource(generateCertificatesAndKeys, setup)) {
             setup.gotoPage(generateCertificatesAndKeys, "view", "proceed=1");
         }
 
@@ -96,26 +100,75 @@ class LicensingIT
 
         LocalDocumentReference useCertificates =
             new LocalDocumentReference(Arrays.asList("License", "Code"), "UseCertificates");
-        if (!setup.rest().exists(useCertificates)) {
-            try (InputStream content = getClass().getResourceAsStream("/UseCertificates.wiki")) {
-                setup.rest().savePage(useCertificates, IOUtils.toString(content, StandardCharsets.UTF_8), "");
-            }
-        }
-
+        createPageFromResource(useCertificates, setup);
         setup.gotoPage(useCertificates, "view", "proceed=1");
         assertEquals("OK", new ViewPage().getContent());
 
         // Configure the store URLs (buy and trial) to point to the current wiki.
 
         setup.updateObject(Arrays.asList("Licenses", "Code"), "LicensingConfig",
-            "Licenses.Code.LicensingStoreClass", 0, "storeTrialURL",
-            "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense", "storeBuyURL",
-            "http://localhost:8080/xwiki/bin/view/Store/BuyLicense", "storeUpdateURL",
-            "http://localhost:8080/xwiki/bin/view/Store/GetLicenses", "storeAccessURL",
-            "http://localhost:8080/xwiki/bin/view/Store/Access");
+            "Licenses.Code.LicensingStoreClass", 0,
+            "onlineChecksEnabled", "1",
+            "storeTrialURL", "http://localhost:8080/xwiki/bin/get/Store/GetTrialLicense",
+            "storeBuyURL", "http://localhost:8080/xwiki/bin/view/Store/BuyLicense",
+            "storeUpdateURL", "http://localhost:8080/xwiki/bin/view/Store/GetLicenses",
+            "storeAccessURL", "http://localhost:8080/xwiki/bin/view/Store/Access"
+        );
     }
 
     @Test
+    @Order(1)
+    void disableOnlineChecks()
+    {
+        LicensesAdminPage licensesAdminSection = LicensesAdminPage.gotoPage();
+        assertTrue(licensesAdminSection.hasOnlineChecksOption());
+        assertTrue(licensesAdminSection.isOnlineChecksEnabled());
+
+        licensesAdminSection = licensesAdminSection.setOnlineChecksEnabled(false).saveSettings();
+        assertFalse(licensesAdminSection.isOnlineChecksEnabled());
+
+        // The store is not contacted anymore.
+        assertEquals("Online license checks are disabled. Enable them from the Licenses administration section, or add"
+            + " your license manually.", licensesAdminSection.checkForLicenseUpdates());
+        licensesAdminSection.setLicenseOwnershipDetails("John", "Doe", "john@acme.com");
+        assertEquals("Trial licenses can't be requested because online license checks are disabled. Enable them from"
+            + " the Licenses administration section to get a trial license.", licensesAdminSection.getTrialLicense());
+        LiveTableElement liveTable = licensesAdminSection.getLiveTable();
+        assertEquals(NO_LICENSE_AVAILABLE, liveTable.getCell(liveTable.getRow(1), 3).getText());
+
+        // Enable the online license checks back.
+        licensesAdminSection = licensesAdminSection.setOnlineChecksEnabled(true).saveSettings();
+        assertTrue(licensesAdminSection.isOnlineChecksEnabled());
+    }
+
+    @Test
+    @Order(2)
+    void onlineChecksWithoutExtensionRepositories(TestUtils setup) throws Exception
+    {
+        // The online license checks are enabled, but the instance has no extension repository, which takes precedence.
+        assertEquals("0", updateExtensionRepositories("remove", setup));
+        try {
+            LicensesAdminPage licensesAdminSection = LicensesAdminPage.gotoPage();
+            assertFalse(licensesAdminSection.hasOnlineChecksOption());
+            assertEquals("Online license checks are disabled because this instance has no extension.repositories"
+                + " configured.", licensesAdminSection.getOnlineChecksMessage());
+
+            assertEquals("License updates can't be retrieved because this instance has no extension repositories"
+                + " configured. Add your license manually.", licensesAdminSection.checkForLicenseUpdates());
+            licensesAdminSection.setLicenseOwnershipDetails("John", "Doe", "john@acme.com");
+            assertEquals("Trial licenses can't be requested because this instance has no extension repositories"
+                + " configured.", licensesAdminSection.getTrialLicense());
+            LiveTableElement liveTable = licensesAdminSection.getLiveTable();
+            assertEquals(NO_LICENSE_AVAILABLE, liveTable.getCell(liveTable.getRow(1), 3).getText());
+        } finally {
+            assertNotEquals("0", updateExtensionRepositories("restore", setup));
+        }
+
+        assertTrue(LicensesAdminPage.gotoPage().hasOnlineChecksOption());
+    }
+
+    @Test
+    @Order(3)
     void generateLicense(TestReference testReference, TestUtils setup) throws Exception
     {
         // Verify that there's no license for Example.WebHome
@@ -154,7 +207,7 @@ class LicensingIT
         LiveTableElement liveTable = licensesAdminSection.getLiveTable();
         assertEquals(1, liveTable.getRowCount());
         WebElement firstRow = liveTable.getRow(1);
-        assertEquals("No license available", liveTable.getCell(firstRow, 3).getText());
+        assertEquals(NO_LICENSE_AVAILABLE, liveTable.getCell(firstRow, 3).getText());
         assertEquals("-", liveTable.getCell(firstRow, 4).getText(), "Support level should not be specified.");
         assertEquals("-", liveTable.getCell(firstRow, 5).getText(), "User limit should not be specified.");
 
@@ -268,6 +321,39 @@ class LicensingIT
         String regeneratedLicense = LicenseDetailsViewPage.gotoPage(regeneratedLicenseId).getLicense();
         assertEquals("License successfully added!", LicensesAdminPage.gotoPage().addLicense(regeneratedLicense));
         assertEquals("Hello", setup.gotoPage("Example", "WebHome").getContent());
+    }
+
+    /**
+     * Removes or restores the extension repositories of the instance, without a restart.
+     *
+     * @param action {@code remove} or {@code restore}
+     * @return the number of extension repositories after the update
+     */
+    private String updateExtensionRepositories(String action, TestUtils setup) throws Exception
+    {
+        LocalDocumentReference extensionRepositories =
+            new LocalDocumentReference(Arrays.asList("License", "Code"), "ExtensionRepositories");
+        createPageFromResource(extensionRepositories, setup);
+        setup.gotoPage(extensionRepositories, "view", "repositories=" + action);
+        return new ViewPage().getContent();
+    }
+
+    /**
+     * Creates the specified page with the content of the test resource having the same name, if it doesn't exist.
+     *
+     * @param reference the page to create
+     * @return {@code true} if the page was created, {@code false} if it already existed
+     */
+    private boolean createPageFromResource(LocalDocumentReference reference, TestUtils setup) throws Exception
+    {
+        if (setup.rest().exists(reference)) {
+            return false;
+        }
+
+        try (InputStream content = getClass().getResourceAsStream("/" + reference.getName() + ".wiki")) {
+            setup.rest().savePage(reference, IOUtils.toString(content, StandardCharsets.UTF_8), "");
+        }
+        return true;
     }
 
     private String addLicense(LicenseType type, String expirationDate, String support, String userLimit,

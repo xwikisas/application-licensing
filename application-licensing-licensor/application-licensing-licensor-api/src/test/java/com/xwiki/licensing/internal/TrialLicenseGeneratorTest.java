@@ -49,7 +49,9 @@ import com.xwiki.licensing.Licensor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,6 +143,8 @@ public class TrialLicenseGeneratorTest
         when(this.xcontext.getWiki()).thenReturn(this.xwiki);
 
         when(this.licenseManagerProvider.get()).thenReturn(this.licenseManager);
+
+        when(this.licensingConfig.isOnlineChecksEnabled()).thenReturn(true);
     }
 
     @Test
@@ -254,5 +258,25 @@ public class TrialLicenseGeneratorTest
         when(this.licenseManager.getUsedLicenses()).thenReturn(Collections.emptyList());
 
         assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void canGenerateTrialLicenseWithOnlineChecksDisabled() throws Exception
+    {
+        when(this.licensingConfig.isOnlineChecksEnabled()).thenReturn(false);
+        when(this.licensor.getLicense(this.extension1)).thenReturn(License.UNLICENSED);
+
+        assertFalse(trialLicenseGenerator.canGenerateTrialLicense(this.extension1));
+    }
+
+    @Test
+    public void generateTrialLicenseWithOnlineChecksDisabled() throws Exception
+    {
+        when(this.licensingConfig.isOnlineChecksEnabled()).thenReturn(false);
+
+        trialLicenseGenerator.generateTrialLicense(this.extension1);
+
+        verify(this.xwiki, never()).getURLContent(any(), any());
+        verify(this.licenseUpdater, never()).updateLicenses();
     }
 }

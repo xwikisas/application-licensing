@@ -203,6 +203,21 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
+      <onlineChecksEnabled>
+        <customDisplay/>
+        <defaultValue>1</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <hint/>
+        <name>onlineChecksEnabled</name>
+        <number>7</number>
+        <prettyName>Online Checks Enabled</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </onlineChecksEnabled>
       <storeAccessURL>
         <customDisplay/>
         <disabled>0</disabled>
@@ -279,6 +294,9 @@
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </storeUpdateURL>
     </class>
+    <property>
+      <onlineChecksEnabled>1</onlineChecksEnabled>
+    </property>
     <property>
       <storeAccessURL>https://store.xwiki.com/xwiki/bin/view/Store/Access</storeAccessURL>
     </property>
