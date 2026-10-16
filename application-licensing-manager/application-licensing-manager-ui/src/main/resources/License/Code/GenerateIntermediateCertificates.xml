@@ -1,0 +1,418 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="License.Code.GenerateIntermediateCertificates" locale="">
+  <web>License.Code</web>
+  <name>GenerateIntermediateCertificates</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>xwiki:License.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Generate Intermediate Certificates</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output="false"}}
+#set ($subjectSuffix = 'OU=Licensing,O=XWiki SAS,L=Paris,C=FR')
+#set ($intermediateTypes = [
+  {'key': 'free', 'label': 'Free', 'subject': "CN=Free License Intermediate CA,$subjectSuffix"},
+  {'key': 'trial', 'label': 'Trial', 'subject': "CN=Trial License Intermediate CA,$subjectSuffix"},
+  {'key': 'paid', 'label': 'Paid', 'subject': "CN=Paid License Intermediate CA,$subjectSuffix"}
+])
+#set ($backupReference = 'License.Code.IntermediateCertificatesBackup')
+#set ($certificatesReference = 'License.Certificates.WebHome')
+#set ($dateFormat = 'yyyy-MM-dd HH:mm:ss Z')
+#set ($dayInMillis = 86400000)
+#set ($maxValidity = 3650)
+#set ($keyStore = $services.crypto.store.getX509FileKeyStore('license-keystore'))
+#set ($certificateStore = $services.crypto.store.getX509SpaceCertificateStore(
+  $services.model.resolveSpace('License.Certificates')))
+#set ($base64Encoder = $services.component.getInstance('org.xwiki.crypto.BinaryStringEncoder', 'Base64'))
+
+#**
+ * Loads the current intermediate certificates and the root CA certificate that issued them. Sets $intermediates (a map
+ * from the intermediate type key to its certificate), $rootCertificate, $rootRemainingDays and $loadErrors.
+ *#
+#macro (loadCertificates)
+  #set ($allCertificates = $certificateStore.getAllCertificates())
+  #set ($loadErrors = [])
+  #set ($intermediates = {})
+  #foreach ($type in $intermediateTypes)
+    #set ($found = [])
+    #foreach ($certificate in $allCertificates)
+      #if ($certificate.subject.name == $type.subject)
+        #set ($discard = $found.add($certificate))
+      #end
+    #end
+    #if ($found.size() == 1)
+      #set ($discard = $intermediates.put($type.key, $found.get(0)))
+    #else
+      #set ($discard = $loadErrors.add("Expected exactly one certificate with subject [$type.subject] in the"
+        + " certificate store, but found $found.size()."))
+    #end
+  #end
+  ## All the intermediates must have been issued by the same root CA.
+  #set ($rootCertificate = $NULL)
+  #foreach ($intermediate in $intermediates.values())
+    #set ($issuer = $certificateStore.certificateProvider.getCertificate($intermediate.authorityKeyIdentifier))
+    #if (!$issuer || !$issuer.isRootCA())
+      #set ($discard = $loadErrors.add("Cannot find the root CA certificate of [$intermediate.subject.name] in the"
+        + ' certificate store.'))
+    #elseif (!$rootCertificate)
+      #set ($rootCertificate = $issuer)
+    #else
+      #set ($issuerKeyId = $base64Encoder.encode($issuer.subjectKeyIdentifier))
+      #set ($rootKeyId = $base64Encoder.encode($rootCertificate.subjectKeyIdentifier))
+      #if ($issuerKeyId != $rootKeyId)
+        #set ($discard = $loadErrors.add('The intermediate certificates are not all issued by the same root CA.'))
+      #end
+    #end
+  #end
+  #if ($rootCertificate)
+    #set ($rootRemainingDays = ($rootCertificate.notAfter.time - $datetool.date.time) / $dayInMillis)
+    #set ($defaultValidity = $mathtool.min($maxValidity, $rootRemainingDays))
+  #end
+#end
+
+#**
+ * Return the issuer certificates signed by the given intermediate certificate.
+ *#
+#macro (getIssuedCertificates $intermediate $return)
+  #set ($issued = [])
+  #set ($intermediateKeyId = $base64Encoder.encode($intermediate.subjectKeyIdentifier))
+  #foreach ($certificate in $allCertificates)
+    #if ($certificate.authorityKeyIdentifier &amp;&amp; $certificate.subjectKeyIdentifier
+        &amp;&amp; $base64Encoder.encode($certificate.authorityKeyIdentifier) == $intermediateKeyId
+        &amp;&amp; $base64Encoder.encode($certificate.subjectKeyIdentifier) != $intermediateKeyId)
+      #set ($discard = $issued.add($certificate))
+    #end
+  #end
+  #set ($return = $NULL)
+  #setVariable("$return" $issued)
+#end
+
+#macro (displayErrors $message $errorList)
+  {{error}}
+  $message
+  #foreach ($error in $errorList)
+    * $error
+  #end
+  {{/error}}
+#end
+
+#macro (displayCurrentCertificates)
+  #set ($rows = [['Root CA', $rootCertificate]])
+  #foreach ($type in $intermediateTypes)
+    #set ($discard = $rows.add(["$type.label Intermediate CA", $intermediates.get($type.key)]))
+  #end
+  (% id="currentCertificates" %)
+  |=Certificate|=Subject|=Key identifier|=Serial|=Not before|=Not after
+  #foreach ($row in $rows)
+    #set ($label = $row.get(0))
+    #set ($certificate = $row.get(1))
+    #set ($subject = $certificate.subject.name)
+    #set ($keyId = $base64Encoder.encode($certificate.subjectKeyIdentifier))
+    #set ($serial = $certificate.serialNumber)
+    #set ($notBefore = $xwiki.formatDate($certificate.notBefore, $dateFormat))
+    #set ($notAfter = $xwiki.formatDate($certificate.notAfter, $dateFormat))
+    |$label|{{{$subject}}}|{{{$keyId}}}|$serial|$notBefore|$notAfter
+  #end
+#end
+
+#macro (displayForm)
+  {{html}}
+  &lt;p&gt;
+    This will generate new intermediate CA certificates from the current ones, signed by the root CA and using the
+    &lt;strong&gt;existing key pairs&lt;/strong&gt;. The subject and the key identifier of each certificate stay the same, so the
+    existing issuer certificates remain valid and the key identifiers trusted by the licensing code do not change.
+    Only the validity period and the serial number change.
+  &lt;/p&gt;
+  &lt;p&gt;
+    The new certificates replace the current ones in the certificate store (the private keys are not modified). The
+    current certificates are first saved in
+    &lt;a href="$escapetool.xml($xwiki.getURL($backupReference))"&gt;$escapetool.xml($backupReference)&lt;/a&gt;.
+  &lt;/p&gt;
+  {{/html}}
+
+  #displayCurrentCertificates()
+
+  {{html}}
+  &lt;form id="generateIntermediateCertificatesForm" class="xform" action="" method="post"&gt;
+    &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)" /&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;&lt;label for="rootPassword"&gt;Root CA password&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;&lt;input type="password" id="rootPassword" name="rootPassword" autocomplete="off" /&gt;&lt;/dd&gt;
+      &lt;dt&gt;
+        &lt;label for="validity"&gt;Validity of the new certificates (days from now)&lt;/label&gt;
+        &lt;span class="xHint"&gt;It can't exceed the remaining validity of the root CA: $rootRemainingDays days.&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;input type="number" id="validity" name="validity" value="$defaultValidity" min="1"
+          max="$rootRemainingDays" /&gt;
+      &lt;/dd&gt;
+      &lt;dt&gt;Intermediate certificates to generate&lt;/dt&gt;
+      #foreach ($type in $intermediateTypes)
+        &lt;dd&gt;
+          &lt;label&gt;
+            &lt;input type="checkbox" id="generate_$type.key" name="generate_$type.key" value="true"
+              checked="checked" /&gt;
+            $type.label
+          &lt;/label&gt;
+        &lt;/dd&gt;
+      #end
+    &lt;/dl&gt;
+    &lt;p&gt;
+      &lt;input id="generateIntermediateCertificates" class="btn btn-primary" type="submit" name="action"
+        value="Generate" /&gt;
+    &lt;/p&gt;
+  &lt;/form&gt;
+  {{/html}}
+#end
+
+#**
+ * Validates the request and sets $selectedTypes (the intermediate types to generate) and $validity. The problems found
+ * are added to $errors.
+ *#
+#macro (readRequest)
+  #if ($request.method != 'POST' || !$services.csrf.isTokenValid($request.form_token))
+    #set ($discard = $errors.add('Invalid request, please submit the form again.'))
+  #end
+  #set ($validity = $numbertool.toNumber($request.validity))
+  #if (!$validity || $validity &lt; 1 || $validity &gt; $rootRemainingDays)
+    #set ($discard = $errors.add("The validity must be between 1 and $rootRemainingDays days."))
+  #end
+  #set ($selectedTypes = [])
+  #foreach ($type in $intermediateTypes)
+    #if ($request.getParameter("generate_$type.key") == 'true')
+      #set ($discard = $selectedTypes.add($type))
+    #end
+  #end
+  #if ($selectedTypes.isEmpty())
+    #set ($discard = $errors.add('Select at least one intermediate certificate to generate.'))
+  #end
+#end
+
+#**
+ * Checks that the new certificate can replace the old one: same subject, key and issuer, signed by the root CA, valid
+ * now and for longer than the old one, and still verifying the issuer certificates signed by the old one. The problems
+ * found are added to $errors.
+ *#
+#macro (checkNewCertificate $type $oldCertificate $newCertificate)
+  #set ($checkErrors = [])
+  #set ($oldKeyId = $base64Encoder.encode($oldCertificate.subjectKeyIdentifier))
+  #set ($newKeyId = $base64Encoder.encode($newCertificate.subjectKeyIdentifier))
+  #set ($oldAuthorityKeyId = $base64Encoder.encode($oldCertificate.authorityKeyIdentifier))
+  #set ($newAuthorityKeyId = $base64Encoder.encode($newCertificate.authorityKeyIdentifier))
+  #if ($newKeyId != $oldKeyId)
+    #set ($discard = $checkErrors.add('the key identifier changed'))
+  #end
+  #if ($newCertificate.subject.name != $oldCertificate.subject.name)
+    #set ($discard = $checkErrors.add('the subject changed'))
+  #end
+  #if ($newCertificate.issuer.name != $oldCertificate.issuer.name)
+    #set ($discard = $checkErrors.add('the issuer changed'))
+  #elseif ($newAuthorityKeyId != $oldAuthorityKeyId)
+    #set ($discard = $checkErrors.add('the authority key identifier changed'))
+  #end
+  #if (!$newCertificate.isSignedBy($rootCertificate.publicKeyParameters))
+    #set ($discard = $checkErrors.add('it is not signed by the root CA'))
+  #end
+  #if (!$newCertificate.isValidOn($datetool.date))
+    #set ($discard = $checkErrors.add('it is not valid now'))
+  #end
+  #if ($newCertificate.notAfter.time &lt;= $oldCertificate.notAfter.time)
+    #set ($discard = $checkErrors.add('it does not expire later than the current certificate'))
+  #end
+  #getIssuedCertificates($oldCertificate $issuedCertificates)
+  #foreach ($issuedCertificate in $issuedCertificates)
+    #if (!$issuedCertificate.isSignedBy($newCertificate.publicKeyParameters))
+      #set ($discard = $checkErrors.add("[$issuedCertificate.subject.name] is not signed by it"))
+    #end
+  #end
+  #foreach ($checkError in $checkErrors)
+    #set ($discard = $errors.add("$type.label Intermediate CA: $checkError."))
+  #end
+#end
+
+#define ($backupHeader)
+
+== Backup of $xwiki.formatDate($datetool.date, $dateFormat) ==
+#end
+
+#define ($backupEntry)
+
+=== $type.label Intermediate CA ===
+
+* Subject: {{{$oldCertificate.subject.name}}}
+* Key identifier: {{{$base64Encoder.encode($oldCertificate.subjectKeyIdentifier)}}}
+* Serial: $oldCertificate.serialNumber
+* Valid until: $xwiki.formatDate($oldCertificate.notAfter, $dateFormat)
+
+{{code language="none"}}
+-----BEGIN CERTIFICATE-----
+$base64Encoder.encode($oldCertificate.encoded, 64)
+-----END CERTIFICATE-----
+{{/code}}
+#end
+
+#**
+ * Appends the given old certificates to the backup page.
+ *#
+#macro (backupCertificates $generated)
+  #set ($backupDocument = $xwiki.getDocument($backupReference))
+  #set ($backupContent = "$!backupDocument.content$backupHeader")
+  #foreach ($entry in $generated)
+    #set ($type = $entry.type)
+    #set ($oldCertificate = $entry.oldCertificate)
+    #set ($backupContent = "$backupContent$backupEntry")
+  #end
+  #set ($discard = $backupDocument.setTitle('Intermediate Certificates Backup'))
+  #set ($discard = $backupDocument.setHidden(true))
+  #set ($discard = $backupDocument.setContent($backupContent))
+  #set ($discard = $backupDocument.save('Backup before generating the intermediate certificates'))
+#end
+
+#**
+ * Retrieves the root CA key pair, used to sign the new certificates. Sets $rootKeyPair, or adds an error to $errors.
+ *#
+#macro (retrieveRootKeyPair)
+  #set ($rootKeyPair = $NULL)
+  #set ($rootKeyPairError = $NULL)
+  #try ('rootKeyPairError')
+    #set ($rootKeyPair = $keyStore.retrieve($rootCertificate, $request.rootPassword))
+  #end
+  #if ($rootKeyPairError || !$rootKeyPair)
+    #set ($discard = $errors.add('Cannot retrieve the private key of the root CA from the [license-keystore] key'
+      + ' store. Check the root CA password.'))
+  #end
+#end
+
+#**
+ * Generates and stores the new intermediate certificates. Sets $generated (one entry per generated certificate) and
+ * $errors. Nothing is stored unless all the new certificates are valid.
+ *#
+#macro (generateIntermediateCertificates)
+  #set ($errors = [])
+  #set ($generated = [])
+  #set ($discard = $errors.addAll($loadErrors))
+  #readRequest()
+  #if ($errors.isEmpty())
+    #retrieveRootKeyPair()
+  #end
+  ## Generate and check all the new certificates before storing any of them.
+  #if ($errors.isEmpty())
+    #foreach ($type in $selectedTypes)
+      #set ($oldCertificate = $intermediates.get($type.key))
+      #set ($newCertificate = $services.crypto.rsa.issueIntermediateCertificate($rootKeyPair,
+        $oldCertificate.publicKeyParameters, $oldCertificate.subject.name, $validity.intValue()))
+      #checkNewCertificate($type $oldCertificate $newCertificate)
+      #set ($discard = $generated.add({
+        'type': $type,
+        'oldCertificate': $oldCertificate,
+        'newCertificate': $newCertificate
+      }))
+    #end
+    #set ($rootKeyPair = $NULL)
+  #end
+  #if ($errors.isEmpty())
+    #backupCertificates($generated)
+    ## Store new certificates.
+    #foreach ($entry in $generated)
+      #set ($newCertificate = $entry.newCertificate)
+      #set ($discard = $certificateStore.store($newCertificate))
+      #set ($storedCertificate = $certificateStore.certificateProvider.getCertificate(
+        $newCertificate.subjectKeyIdentifier))
+      #set ($entry.stored = $storedCertificate &amp;&amp; $storedCertificate.serialNumber == $newCertificate.serialNumber)
+    #end
+  #end
+#end
+
+#macro (displayGeneratedCertificates)
+  (% id="generatedCertificates" %)
+  |=Certificate|=Key identifier|=Old serial|=Old expiry|=New serial|=New expiry|=Stored
+  #foreach ($entry in $generated)
+    #set ($label = "$entry.type.label Intermediate CA")
+    #set ($keyId = $base64Encoder.encode($entry.newCertificate.subjectKeyIdentifier))
+    #set ($oldSerial = $entry.oldCertificate.serialNumber)
+    #set ($newSerial = $entry.newCertificate.serialNumber)
+    #set ($oldExpiry = $xwiki.formatDate($entry.oldCertificate.notAfter, $dateFormat))
+    #set ($newExpiry = $xwiki.formatDate($entry.newCertificate.notAfter, $dateFormat))
+    #set ($stored = 'yes')
+    #if (!$entry.stored)
+      #set ($stored = '**no**')
+    #end
+    |$label|{{{$keyId}}}|$oldSerial|$oldExpiry|$newSerial|$newExpiry|$stored
+  #end
+#end
+
+#macro (displayResult)
+  #if (!$errors.isEmpty())
+    #displayErrors('Nothing was changed:' $errors)
+
+    [[Back&gt;&gt;$doc.fullName]]
+  #else
+    #set ($allStored = true)
+    #foreach ($entry in $generated)
+      #if (!$entry.stored)
+        #set ($allStored = false)
+      #end
+    #end
+    #set ($backupMessage = "The previous certificates were saved in [[$backupReference]].")
+    #if ($allStored)
+      {{success}}The intermediate certificates were generated. $backupMessage{{/success}}
+    #else
+      {{error}}Some certificates were not stored correctly, check the table below. $backupMessage{{/error}}
+    #end
+
+    #displayGeneratedCertificates()
+
+    #set ($nextStepMessage = 'Licenses signed from now on embed the new intermediate certificates. Licenses that'
+      + ' were already signed still embed the previous ones, so they have to be regenerated from'
+      + " [[$certificatesReference]].")
+    $nextStepMessage
+  #end
+#end
+{{/velocity}}
+
+{{velocity}}
+#if (!$services.security.authorization.hasAccess('programming'))
+  {{error}}You need programming rights to generate the intermediate certificates.{{/error}}
+  #stop
+#end
+#loadCertificates()
+#if ("$!request.action" != 'Generate')
+  #if (!$loadErrors.isEmpty())
+    #displayErrors('The intermediate certificates cannot be generated:' $loadErrors)
+  #else
+    #displayForm()
+  #end
+#else
+  #generateIntermediateCertificates()
+  #displayResult()
+#end
+{{/velocity}}</content>
+</xwikidoc>

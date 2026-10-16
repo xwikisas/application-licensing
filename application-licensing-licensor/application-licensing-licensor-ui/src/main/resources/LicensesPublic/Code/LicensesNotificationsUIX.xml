@@ -20,14 +20,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="Licenses.Code.LicensesNotificationsUIX" locale="">
-  <web>Licenses.Code</web>
+<xwikidoc version="1.5" reference="LicensesPublic.Code.LicensesNotificationsUIX" locale="">
+  <web>LicensesPublic.Code</web>
   <name>LicensesNotificationsUIX</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>XWiki.WatchListMacro</parent>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -36,9 +36,57 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Licenses.Code.PublicMacros" /}}
-
-{{velocity}}
+  <content>{{velocity output='false'}}
+## We duplicate the macros to avoid the admin rights check done in the "Licenses" space. This way, any user who is
+## member of the notified groups will be able to see the notifications, while only admins will be able to actually
+## access the administration section.
+#macro (getPaidExtensions)
+  #set ($licensorId = 'com.xwiki.licensing:application-licensing-licensor-api')
+  #set ($paidExtensionsByNamespace = $services.extension.installed.getBackwardDependencies($licensorId))
+  #set ($paidExtensions = $collectiontool.set)
+  #foreach ($paidExtensionsOnNamespace in $paidExtensionsByNamespace.values())
+    #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
+  #end
+#end
+#macro (getLicensesAdminSectionURL)
+  ## We target the main wiki explicitly because licenses are managed globally.
+  #if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+      'admin', 'editor=globaladmin&amp;section=Licenses')##
+  #else
+    ## Fall-back in case the Administration Application is not installed.
+    $xwiki.getURL($services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome'))##
+  #end
+#end
+#macro (getVisiblePaidExtensions)
+  #getPaidExtensions
+  #set ($mandatoryExtensions = $services.licensing.licensor.getLicensedExtensionManager().getMandatoryLicensedExtensions())
+  #set ($visiblePaidExtensions = $collectiontool.set)
+  #foreach ($paidExtension in $paidExtensions)
+    #if ($mandatoryExtensions.contains($paidExtension.getId()))
+      #set ($discard = $visiblePaidExtensions.add($paidExtension))
+    #end
+  #end
+#end
+#macro(renderNotification $btnClass $notificationClass $translation $extensionNames $showMore)
+  &lt;$licensesNotificationWrapperTagName class="licenses-notification $notificationClass"&gt;
+    &lt;p&gt;$escapetool.xml($services.localization.render($translation))&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;$stringtool.join($extensionNames, '&lt;/li&gt;&lt;li&gt;')&lt;/li&gt;
+      #if ($showMore)
+        &lt;li&gt;...&lt;/li&gt;
+      #end
+    &lt;/ul&gt;
+    &lt;/br&gt;
+    #if ($hasAdmin &amp;&amp; $hasProgramming)
+      &lt;button class="btn btn-$btnClass" onclick="location.href='#getLicensesAdminSectionURL'"&gt;
+        $escapetool.xml($services.localization.render("${translation}.${btnClass}"))&lt;/button&gt;
+    #else
+      &lt;p&gt;$escapetool.xml($services.localization.render('licensor.notification.notifyAdmin'))&lt;/p&gt;
+    #end
+  &lt;/$licensesNotificationWrapperTagName&gt;
+#end
+{{/velocity}}{{velocity}}
 #if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
   #getVisiblePaidExtensions
   ## The same extension could be installed on multiple namespaces (wikis) with different versions.
@@ -70,7 +118,7 @@
     #end
   #end
   #if ($foundInvalid || $foundExpiring)
-    #set ($discard = $xwiki.ssx.use('Licenses.Code.LicensesNotificationsUIX'))
+    #set ($discard = $xwiki.ssx.use('LicensesPublic.Code.LicensesNotificationsUIX'))
     #if (!$licensesNotificationWrapperTagName)
       #set ($licensesNotificationWrapperTagName = 'div')
     #end
@@ -90,7 +138,7 @@
 #end
 {{/velocity}}</content>
   <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <name>LicensesPublic.Code.LicensesNotificationsUIX</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>6091f669-661e-410c-8179-eeb2dac63c2f</guid>
@@ -202,7 +250,7 @@
     </property>
   </object>
   <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <name>LicensesPublic.Code.LicensesNotificationsUIX</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>a6de7f88-b814-49b5-a5ce-1383163949f4</guid>
@@ -350,7 +398,7 @@
     </property>
   </object>
   <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
+    <name>LicensesPublic.Code.LicensesNotificationsUIX</name>
     <number>0</number>
     <className>XWiki.UIExtensionClass</className>
     <guid>7401ca82-ce83-4eba-a34f-7ce028c43006</guid>
@@ -477,9 +525,9 @@
     <property>
       <content>{{velocity}}
 #if ($services.licensing.licensor.isMemberOfNotifiedGroups() || $hasAdmin)
-  #set ($discard = $xwiki.jsx.use('Licenses.Code.LicensesNotificationsUIX'))
+  #set ($discard = $xwiki.jsx.use('LicensesPublic.Code.LicensesNotificationsUIX'))
   #set ($licensesNotificationWrapperTagName = 'li')
-  {{include reference="Licenses.Code.LicensesNotificationsUIX" /}}
+  {{include reference="LicensesPublic.Code.LicensesNotificationsUIX" /}}
 #end
 {{/velocity}}
 
@@ -499,89 +547,6 @@ separator:true</parameters>
     </property>
     <property>
       <scope>wiki</scope>
-    </property>
-  </object>
-  <object>
-    <name>Licenses.Code.LicensesNotificationsUIX</name>
-    <number>0</number>
-    <className>XWiki.XWikiRights</className>
-    <guid>ee662140-f6d8-4bc9-b514-fc20315e4284</guid>
-    <class>
-      <name>XWiki.XWikiRights</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <allow>
-        <defaultValue>1</defaultValue>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>allow</displayType>
-        <name>allow</name>
-        <number>4</number>
-        <prettyName>Allow/Deny</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </allow>
-      <groups>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>input</displayType>
-        <multiSelect>1</multiSelect>
-        <name>groups</name>
-        <number>1</number>
-        <picker>1</picker>
-        <prettyName>Groups</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <size>5</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.GroupsClass</classType>
-      </groups>
-      <levels>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <multiSelect>1</multiSelect>
-        <name>levels</name>
-        <number>2</number>
-        <prettyName>Levels</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <size>3</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.LevelsClass</classType>
-      </levels>
-      <users>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>input</displayType>
-        <multiSelect>1</multiSelect>
-        <name>users</name>
-        <number>3</number>
-        <picker>1</picker>
-        <prettyName>Users</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <size>5</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.UsersClass</classType>
-      </users>
-    </class>
-    <property>
-      <allow>1</allow>
-    </property>
-    <property>
-      <groups>XWiki.XWikiAllGroup</groups>
-    </property>
-    <property>
-      <levels>view</levels>
-    </property>
-    <property>
-      <users/>
     </property>
   </object>
 </xwikidoc>

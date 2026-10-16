@@ -63,9 +63,15 @@
         ## Extend the trial license with the best expiration date (which should be at the start of the list). Note that
         ## the expiration date might not be set, which happens if the license page is created but the license is not yet
         ## generated. We ignore the existing trial license in this case.
+        ## If the previous trial license is already expired, the new trial will be based on the current date (now)
+        ## plus 11 days.
         #set ($bestTrialLicense = $trialLicenses.get(0))
         #if ("$!bestTrialLicense.expirationDate" != '')
-          #set ($dateTime = $xwiki.jodatime.getMutableDateTime($bestTrialLicense.expirationDate.time))
+          #set ($bestTrialLicenseExpirationDate = $bestTrialLicense.expirationDate.time)
+          #set ($currentTime = $dateTime.toDate().time)
+          #if ($bestTrialLicenseExpirationDate &gt; $currentTime)
+            #set ($dateTime = $xwiki.jodatime.getMutableDateTime($bestTrialLicenseExpirationDate))
+          #end
         #end
       #end
       #set ($discard = $dateTime.addDays(11))

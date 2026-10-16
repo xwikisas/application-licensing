@@ -55,7 +55,7 @@
     <notifiedGroups>
       <cache>0</cache>
       <customDisplay/>
-      <defaultValue>XWiki.XWikiAdminGroup</defaultValue>
+      <defaultValue/>
       <disabled>0</disabled>
       <displayType>input</displayType>
       <freeText>discouraged</freeText>

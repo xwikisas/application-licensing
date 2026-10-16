@@ -30,18 +30,27 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
+import org.xwiki.extension.repository.ExtensionRepository;
+import org.xwiki.extension.repository.ExtensionRepositoryManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.user.group.GroupManager;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.licensing.internal.helpers.LicensingNotificationConfigurationSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
@@ -66,8 +75,33 @@ class DefaultLicensingConfigurationTest
     private Provider<ConfigurationSource> configurationSourceProvider;
 
     @MockComponent
-    @Named("current")
+    @Named("group")
     private DocumentReferenceResolver<String> referenceResolver;
+
+    @MockComponent
+    private GroupManager groupManager;
+
+    @MockComponent
+    @Named("LicensingStoreConfigurationSource")
+    private ConfigurationSource storeConfig;
+
+    @MockComponent
+    private Provider<ExtensionRepositoryManager> extensionRepositoryManagerProvider;
+
+    @Mock
+    private ExtensionRepositoryManager extensionRepositoryManager;
+
+    @Mock
+    private ExtensionRepository extensionRepository;
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.ERROR);
+
+    @MockComponent
+    private Provider<XWikiContext> wikiContextProvider;
+
+    @Mock
+    private XWikiContext wikiContext;
 
     @Mock
     private ConfigurationSource configurationSource;
@@ -78,10 +112,22 @@ class DefaultLicensingConfigurationTest
     @Mock
     private DocumentReference doc2;
 
+    @Mock
+    private DocumentReference userRef1;
+
+    @Mock
+    private DocumentReference userRef2;
+
+    @Mock
+    private DocumentReference userRef3;
+
     @BeforeEach
     void configure()
     {
         when(this.configurationSourceProvider.get()).thenReturn(this.configurationSource);
+        List<Object> groupList = Arrays.asList("testGroup1", "testGroup2");
+        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(groupList);
+        when(this.extensionRepositoryManagerProvider.get()).thenReturn(this.extensionRepositoryManager);
     }
 
     @Test
@@ -121,12 +167,7 @@ class DefaultLicensingConfigurationTest
     {
         // Since getProperty method returns a list of objects, we check also that the conversion to string is done
         // correctly.
-        List<Object> allowlist = Arrays.asList("testGroup1", "testGroup2");
-
-        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(allowlist);
-
-        assertEquals(Arrays.asList("testGroup1", "testGroup2"),
-            this.licensingConfiguration.getNotifiedGroups());
+        assertEquals(Arrays.asList("testGroup1", "testGroup2"), this.licensingConfiguration.getNotifiedGroups());
     }
 
     @Test
@@ -142,15 +183,11 @@ class DefaultLicensingConfigurationTest
     {
         // Since getProperty method returns a list of objects, we check also that the conversion to string is done
         // correctly.
-        List<Object> allowlist = Arrays.asList("testGroup1", "testGroup2");
-
-        when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(allowlist);
         when(this.referenceResolver.resolve("testGroup1")).thenReturn(doc1);
         when(this.referenceResolver.resolve("testGroup2")).thenReturn(doc2);
         when(this.doc1.toString()).thenReturn("serializedRef1");
         when(this.doc2.toString()).thenReturn("serializedRef2");
-        assertEquals(Set.of("serializedRef1", "serializedRef2"),
-            this.licensingConfiguration.getNotifiedGroupsSet());
+        assertEquals(Set.of("serializedRef1", "serializedRef2"), this.licensingConfiguration.getNotifiedGroupsSet());
     }
 
     @Test
@@ -180,5 +217,64 @@ class DefaultLicensingConfigurationTest
         when(this.environment.getPermanentDirectory()).thenReturn(permanentDirectoryFile);
 
         assertEquals(storeFile, this.licensingConfiguration.getLocalStorePath());
+    }
+
+    @Test
+    void isMemberOfNotifiedGroups() throws Exception
+    {
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(this.referenceResolver.resolve("testGroup1")).thenReturn(doc1);
+        when(this.referenceResolver.resolve("testGroup2")).thenReturn(doc2);
+        when(wikiContext.getUserReference()).thenReturn(userRef1);
+        when(this.groupManager.getMembers(doc2, true)).thenReturn(List.of(userRef1, userRef2, userRef3));
+        assertTrue(this.licensingConfiguration.isMemberOfNotifiedGroups());
+    }
+
+    @Test
+    void isMemberOfNotifiedGroupsError() throws Exception
+    {
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(this.referenceResolver.resolve("testGroup1")).thenReturn(doc1);
+        when(this.referenceResolver.resolve("testGroup2")).thenReturn(doc2);
+        when(wikiContext.getUserReference()).thenReturn(userRef1);
+        when(this.groupManager.getMembers(doc2, true)).thenThrow(new RuntimeException("Failed to get members"));
+        assertFalse(this.licensingConfiguration.isMemberOfNotifiedGroups());
+        assertEquals("Failed to check if user [userRef1] is member of group [doc2]", this.logCapture.getMessage(0));
+    }
+
+    @Test
+    void isOnlineChecksEnabled()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of(this.extensionRepository));
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(1);
+
+        assertTrue(this.licensingConfiguration.isOnlineChecksEnabled());
+    }
+
+    @Test
+    void isOnlineChecksEnabledWithoutExtensionRepositories()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of());
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(1);
+
+        assertFalse(this.licensingConfiguration.isOnlineChecksEnabled());
+    }
+
+    @Test
+    void isOnlineChecksEnabledWhenDisabledByAdministrator()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of(this.extensionRepository));
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(0);
+
+        assertFalse(this.licensingConfiguration.isOnlineChecksEnabled());
+    }
+
+    @Test
+    void isOnlineChecksEnabledWithUndefinedValue()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of(this.extensionRepository));
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(-1);
+
+        assertTrue(this.licensingConfiguration.isOnlineChecksEnabled());
     }
 }

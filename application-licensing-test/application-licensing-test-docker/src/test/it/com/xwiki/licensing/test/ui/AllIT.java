@@ -35,7 +35,7 @@ import org.xwiki.test.docker.junit5.UITest;
 
         // Disable the PR checker for the Licensing tests. There are pages that require programming rights, but the
         // Licensing application will be installed all the time on root, so there shouldn't be any issues.
-        "xwikiPropertiesAdditionalProperties=test.prchecker.excludePattern=.*:Licenses?\\..*",
+        "xwikiPropertiesAdditionalProperties=test.prchecker.excludePattern=.*:Licenses?(Public)?\\..*",
 
         // Required by the License Manager application to compute the license expiration date.
         "xwikiCfgPlugins=com.xpn.xwiki.plugin.jodatime.JodaTimePlugin"
