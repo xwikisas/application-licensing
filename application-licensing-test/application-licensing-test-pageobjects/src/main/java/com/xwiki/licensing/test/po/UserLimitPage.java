@@ -24,12 +24,12 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
- * View page to get the results of licensing User Counter API calls.
+ * View page to get the results of the {@code Licensor} user limit API calls.
  *
  * @version $Id$
  * @since 1.33.0
  */
-public class UserCounterPage extends ViewPage
+public class UserLimitPage extends ViewPage
 {
     @FindBy(id = "userCount")
     private WebElement userCount;
