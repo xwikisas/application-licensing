@@ -88,10 +88,10 @@ public class UserCounter
     @Named("unique")
     private QueryFilter uniqueFilter;
 
-    private Long cachedUserCount;
+    private volatile Long cachedUserCount;
 
     // The position of each active user of the instance, from all subwikis, in the creation date order.
-    private Map<DocumentReference, Integer> cachedUserIndexes;
+    private volatile Map<DocumentReference, Integer> cachedUserIndexes;
 
     /**
      * Event listener that invalidates the cached user count when an user is added, deleted or the active property's
@@ -154,7 +154,7 @@ public class UserCounter
      *
      * @since 1.33.0
      */
-    public void flushCache()
+    public synchronized void flushCache()
     {
         this.cachedUserCount = null;
         this.cachedUserIndexes = null;
@@ -174,22 +174,35 @@ public class UserCounter
     {
         Map<DocumentReference, Integer> userIndexes = this.cachedUserIndexes;
         if (userIndexes == null) {
-            List<Pair<Date, DocumentReference>> users = new ArrayList<>();
-            for (String wikiId : this.wikiDescriptorManager.getAllIds()) {
-                users.addAll(getUsersOnWiki(wikiId));
+            // Rebuild while holding the lock of flushCache(), so that a flush happening during the rebuild waits for
+            // it and then clears the (possibly stale) result, instead of being lost. Concurrent callers wait for the
+            // rebuild instead of running the queries too.
+            synchronized (this) {
+                userIndexes = this.cachedUserIndexes;
+                if (userIndexes == null) {
+                    userIndexes = computeUserIndexes();
+                    this.cachedUserIndexes = userIndexes;
+                    this.cachedUserCount = (long) userIndexes.size();
+                }
             }
-            users.sort(Comparator.comparing((Pair<Date, DocumentReference> user) -> user.getLeft())
-                .thenComparing(user -> user.getRight().toString()));
-            Map<DocumentReference, Integer> indexes = new LinkedHashMap<>();
-            for (Pair<Date, DocumentReference> user : users) {
-                // A translated user profile is returned once per translation: keep the oldest (first) one.
-                indexes.putIfAbsent(user.getRight(), indexes.size());
-            }
-            userIndexes = Collections.unmodifiableMap(indexes);
-            this.cachedUserIndexes = userIndexes;
-            this.cachedUserCount = (long) userIndexes.size();
         }
         return userIndexes;
+    }
+
+    private Map<DocumentReference, Integer> computeUserIndexes() throws WikiManagerException, QueryException
+    {
+        List<Pair<Date, DocumentReference>> users = new ArrayList<>();
+        for (String wikiId : this.wikiDescriptorManager.getAllIds()) {
+            users.addAll(getUsersOnWiki(wikiId));
+        }
+        users.sort(Comparator.comparing((Pair<Date, DocumentReference> user) -> user.getLeft())
+            .thenComparing(user -> user.getRight().toString()));
+        Map<DocumentReference, Integer> indexes = new LinkedHashMap<>();
+        for (Pair<Date, DocumentReference> user : users) {
+            // A translated user profile is returned once per translation: keep the oldest (first) one.
+            indexes.putIfAbsent(user.getRight(), indexes.size());
+        }
+        return Collections.unmodifiableMap(indexes);
     }
 
     /**
@@ -200,20 +213,33 @@ public class UserCounter
      */
     public long getUserCount() throws Exception
     {
-        if (cachedUserCount == null) {
-            try {
-                long userCount = 0;
-                for (String wikiId : this.wikiDescriptorManager.getAllIds()) {
-                    userCount += getUserCountOnWiki(wikiId);
+        // Read the field once: a concurrent flush could set it to null between a check and a second read.
+        Long userCount = this.cachedUserCount;
+        if (userCount == null) {
+            // See getUserIndexes() for why the count is computed while holding the lock.
+            synchronized (this) {
+                userCount = this.cachedUserCount;
+                if (userCount == null) {
+                    userCount = computeUserCount();
+                    this.cachedUserCount = userCount;
                 }
-                this.logger.debug("User count is [{}].", userCount);
-                this.cachedUserCount = userCount;
-            } catch (WikiManagerException | QueryException e) {
-                throw new Exception("Failed to count the users.", e);
             }
         }
+        return userCount;
+    }
 
-        return cachedUserCount;
+    private long computeUserCount() throws Exception
+    {
+        try {
+            long userCount = 0;
+            for (String wikiId : this.wikiDescriptorManager.getAllIds()) {
+                userCount += getUserCountOnWiki(wikiId);
+            }
+            this.logger.debug("User count is [{}].", userCount);
+            return userCount;
+        } catch (WikiManagerException | QueryException e) {
+            throw new Exception("Failed to count the users.", e);
+        }
     }
 
     /**
