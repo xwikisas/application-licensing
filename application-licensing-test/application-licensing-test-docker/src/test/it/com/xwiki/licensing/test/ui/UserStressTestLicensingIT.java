@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * changes that you think might crash instances with 10k users.
  *
  * @version $Id$
- * @since 1.33.0
+ * @since 1.34.0
  */
 @UITest
 class UserStressTestLicensingIT

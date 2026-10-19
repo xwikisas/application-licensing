@@ -48,7 +48,7 @@ public interface LicenseManager
      *     {@code com.xwiki.activedirectory:application-activedirectory-api}
      * @return the license of the installed extension, or {@code null} if no extension with this id is installed on the
      *     root namespace or if no license applies to it
-     * @since 1.33.0
+     * @since 1.34.0
      */
     default License get(String extensionId)
     {

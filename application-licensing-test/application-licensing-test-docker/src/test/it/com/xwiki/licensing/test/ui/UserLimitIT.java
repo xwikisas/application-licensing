@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * deleted, and the ordering of the users of several wikis.
  *
  * @version $Id$
- * @since 1.33.0
+ * @since 1.34.0
  */
 @UITest
 class UserLimitIT

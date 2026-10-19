@@ -311,7 +311,7 @@ public class LicensorScriptService implements ScriptService, Initializable
      *     active user of the instance within the first {@code limit} ones, and {@code false} for a {@code null},
      *     inactive or nonexistent user (this includes the guest user and superadmin, which have no user profile)
      * @throws Exception if the users of the instance cannot be retrieved; use {@code #try()} to handle it
-     * @since 1.33.0
+     * @since 1.34.0
      */
     @Unstable
     public boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception

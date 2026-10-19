@@ -61,7 +61,7 @@ import static org.mockito.Mockito.withSettings;
  * {@code target/benchmark/UserCounter.csv} so that they can be compared between releases.
  *
  * @version $Id$
- * @since 1.33.0
+ * @since 1.34.0
  */
 @ComponentTest
 class UserCounterBenchmarkTest

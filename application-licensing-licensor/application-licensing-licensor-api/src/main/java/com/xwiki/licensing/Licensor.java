@@ -46,7 +46,7 @@ public interface Licensor
      * @param extensionId name of an installed extension. This method automatically resolves the version of the
      *     extension which is installed
      * @return a license, or null if the given installed extension is not subject to licensing.
-     * @since 1.33.0
+     * @since 1.34.0
      */
     default License getLicense(String extensionId)
     {
@@ -94,7 +94,7 @@ public interface Licensor
      *
      * @param extensionId the name of the extension for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
-     * @since 1.33.0
+     * @since 1.34.0
      */
     default boolean hasLicensure(String extensionId)
     {
@@ -107,7 +107,7 @@ public interface Licensor
      *
      * @return the number of active users
      * @throws Exception if the users of the instance cannot be counted
-     * @since 1.33.0
+     * @since 1.34.0
      */
     @Unstable
     default long getUserCount() throws Exception
@@ -127,7 +127,7 @@ public interface Licensor
      *     active user of the instance within the first {@code limit} ones, and {@code false} for a {@code null},
      *     inactive or nonexistent user (this includes the guest user and superadmin, which have no user profile)
      * @throws Exception if the users of the instance cannot be retrieved
-     * @since 1.33.0
+     * @since 1.34.0
      */
     @Unstable
     default boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception

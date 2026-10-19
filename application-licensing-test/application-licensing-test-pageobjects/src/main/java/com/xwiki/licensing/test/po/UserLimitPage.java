@@ -27,7 +27,7 @@ import org.xwiki.test.ui.po.ViewPage;
  * View page to get the results of the {@code Licensor} user limit API calls.
  *
  * @version $Id$
- * @since 1.33.0
+ * @since 1.34.0
  */
 public class UserLimitPage extends ViewPage
 {
