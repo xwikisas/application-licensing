@@ -118,8 +118,12 @@ public class TestLicensor implements Licensor
     @Override
     public License getLicense(String extensionId)
     {
-        return CUSTOM_LICENSES.get(
-            CUSTOM_LICENSES.keySet().stream().filter(key -> key.startsWith(extensionId)).findFirst().orElse(""));
+        // The custom licenses of extensions are stored by ExtensionId#toString(), i.e. "id/version", or "id" when the
+        // version is not specified.
+        String versionPrefix = extensionId + '/';
+        return CUSTOM_LICENSES.entrySet().stream()
+            .filter(entry -> entry.getKey().equals(extensionId) || entry.getKey().startsWith(versionPrefix))
+            .map(Map.Entry::getValue).findFirst().orElse(freeLicense);
     }
 
     public static void clearCustomLicenses()
