@@ -34,6 +34,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.environment.Environment;
+import org.xwiki.extension.repository.ExtensionRepository;
+import org.xwiki.extension.repository.ExtensionRepositoryManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.test.LogLevel;
@@ -79,6 +81,19 @@ class DefaultLicensingConfigurationTest
     @MockComponent
     private GroupManager groupManager;
 
+    @MockComponent
+    @Named("LicensingStoreConfigurationSource")
+    private ConfigurationSource storeConfig;
+
+    @MockComponent
+    private Provider<ExtensionRepositoryManager> extensionRepositoryManagerProvider;
+
+    @Mock
+    private ExtensionRepositoryManager extensionRepositoryManager;
+
+    @Mock
+    private ExtensionRepository extensionRepository;
+
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.ERROR);
 
@@ -112,6 +127,7 @@ class DefaultLicensingConfigurationTest
         when(this.configurationSourceProvider.get()).thenReturn(this.configurationSource);
         List<Object> groupList = Arrays.asList("testGroup1", "testGroup2");
         when(this.notificationConfig.getProperty("notifiedGroups", List.of())).thenReturn(groupList);
+        when(this.extensionRepositoryManagerProvider.get()).thenReturn(this.extensionRepositoryManager);
     }
 
     @Test
@@ -224,5 +240,41 @@ class DefaultLicensingConfigurationTest
         when(this.groupManager.getMembers(doc2, true)).thenThrow(new RuntimeException("Failed to get members"));
         assertFalse(this.licensingConfiguration.isMemberOfNotifiedGroups());
         assertEquals("Failed to check if user [userRef1] is member of group [doc2]", this.logCapture.getMessage(0));
+    }
+
+    @Test
+    void isOnlineChecksEnabled()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of(this.extensionRepository));
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(1);
+
+        assertTrue(this.licensingConfiguration.isOnlineChecksEnabled());
+    }
+
+    @Test
+    void isOnlineChecksEnabledWithoutExtensionRepositories()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of());
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(1);
+
+        assertFalse(this.licensingConfiguration.isOnlineChecksEnabled());
+    }
+
+    @Test
+    void isOnlineChecksEnabledWhenDisabledByAdministrator()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of(this.extensionRepository));
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(0);
+
+        assertFalse(this.licensingConfiguration.isOnlineChecksEnabled());
+    }
+
+    @Test
+    void isOnlineChecksEnabledWithUndefinedValue()
+    {
+        when(this.extensionRepositoryManager.getRepositories()).thenReturn(List.of(this.extensionRepository));
+        when(this.storeConfig.getProperty("onlineChecksEnabled", 1)).thenReturn(-1);
+
+        assertTrue(this.licensingConfiguration.isOnlineChecksEnabled());
     }
 }

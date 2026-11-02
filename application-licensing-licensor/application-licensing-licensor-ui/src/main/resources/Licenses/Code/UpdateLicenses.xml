@@ -66,8 +66,23 @@
 ##
 ## Retrieve license updates from the XWiki Store.
 ##
-#if ($data.featureId.size() &gt; 0)
-  #set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+#set ($licensingConfigDoc = $xwiki.getDocument('Licenses.Code.LicensingConfig'))
+#if (!$services.licensing.licensor.isOnlineChecksEnabled())
+  #if (!$services.extension.repositories.isEmpty())
+    #set ($messageKey = 'licensor.updateLicenses.onlineChecksDisabled')
+  #else
+    #set ($messageKey = 'licensor.updateLicenses.noExtensionRepositories')
+  #end
+  #set ($jsonResponse = {
+    'status': 'info',
+    'notification': $services.localization.render($messageKey)
+  })
+  #if ($xcontext.action == 'get')
+    #set ($discard = $response.setContentType('application/json'))
+  #end
+  $jsontool.serialize($jsonResponse)
+  #stop
+#elseif ($data.featureId.size() &gt; 0)
   #set ($storeUpdateURL = $licensingConfigDoc.getValue('storeUpdateURL'))
   #set ($licensesJSON = $xwiki.getURLContent("$storeUpdateURL?$escapetool.url($data)"))
   #set ($licenses = $jsontool.fromString($licensesJSON))

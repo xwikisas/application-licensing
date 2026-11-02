@@ -102,6 +102,7 @@ public class UserCounterTest
         Query fooQuery = createMockQuery("foo");
         Query barQuery = createMockQuery("bar");
         when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenReturn(Collections.singletonList(4L));
 
@@ -123,6 +124,7 @@ public class UserCounterTest
 
         Query fooQuery = createMockQuery("foo");
         Query barQuery = createMockQuery("bar");
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery, barQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
         when(barQuery.execute()).thenThrow(new QueryException("message", barQuery, null));
@@ -249,6 +251,7 @@ public class UserCounterTest
 
         Query fooQuery = createMockQuery("foo");
         when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery);
+        when(this.queryManager.createQuery(UserCounter.BASE_USER_QUERY, Query.HQL)).thenReturn(fooQuery);
         when(fooQuery.execute()).thenReturn(Collections.singletonList(3L));
 
         assertEquals(3L, this.mocker.getComponentUnderTest().getUserCount());
@@ -275,6 +278,7 @@ public class UserCounterTest
     private Query createMockQuery(String queryName) {
         Query query = mock(Query.class, queryName);
         when(query.addFilter(any())).thenReturn(query);
+        when(query.setWiki(any())).thenReturn(query);
         when(query.setWiki(any())).thenReturn(query);
         return query;
     }

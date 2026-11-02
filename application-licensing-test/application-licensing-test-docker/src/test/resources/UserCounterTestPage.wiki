@@ -1,0 +1,15 @@
+{{velocity}}
+{{html}}
+Is user under limit:
+<span id="isUserUnderLimit">$services.licensing.licensor.isUserUnderLimit($request.user, $request.limit)</span>
+<br/>
+User count on instance:
+<span id="userCount">$services.licensing.licensor.getUserCount()</span>
+<br/>
+User query parameter:
+<span id="params_user">$request.user</span>
+<br/>
+User limit query parameter:
+<span id="params_limit">$request.limit</span>
+{{/html}}
+{{/velocity}}
