@@ -89,6 +89,12 @@ public class TrialLicenseGenerator
      */
     public void generateTrialLicense(ExtensionId extensionId)
     {
+        if (!licensingConfig.isOnlineChecksEnabled()) {
+            logger.debug("Online license checks are disabled, skipping the trial license request for [{}].",
+                extensionId.getId());
+            return;
+        }
+
         try {
             URL trialURL = getTrialURL(extensionId);
             if (trialURL == null) {
@@ -113,14 +119,18 @@ public class TrialLicenseGenerator
     }
 
     /**
-     * Check if the given extension is a mandatory licensed extension, if there isn't already an active license for it
-     * and the licensing owner information is complete.
+     * Check if online checks are enabled, if the given extension is a mandatory licensed extension, if there isn't
+     * already an active license for it and the licensing owner information is complete.
      *
      * @param extensionId extension to be checked
      * @return true if a trial license can be generated for the given extension, false otherwise
      */
     public Boolean canGenerateTrialLicense(ExtensionId extensionId)
     {
+        if (!licensingConfig.isOnlineChecksEnabled()) {
+            return false;
+        }
+
         // If there are persisted licenses but NONE are actually used, it's likely a broken licensing state (licenses
         // not linked, even if they exist) and no new licenses should be generated.
         LicenseManager licenseManager = licenseManagerProvider.get();
