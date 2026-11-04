@@ -62,11 +62,14 @@ public class LicenseUserLimitWarningEventConverter implements RecordableEventCon
 
         Event convertedEvent = this.defaultConverter.convert(event, source, data);
 
+        // The same license can be present more than once, as different License instances (License#hashCode() is not
+        // consistent with License#equals()), so keep only the first one for each license id.
         convertedEvent.setBody(serializeParams(Map.of("userCount", event.getUserCount(), "licenses",
             event.getLicenses().stream().collect(Collectors.toMap((License license) -> license.getId().getId(),
                 (License license) -> Map.of("affectedExtensions",
                     license.getFeatureIds().stream().map(LicensedFeatureId::getId).collect(Collectors.toList()),
-                    "maxUserCount", license.getMaxUserCount()))))));
+                    "maxUserCount", license.getMaxUserCount()),
+                (first, duplicate) -> first)))));
         return convertedEvent;
     }
 
