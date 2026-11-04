@@ -77,12 +77,13 @@ public class LicenseOperationEvent implements Event
         if (!(otherEvent instanceof LicenseOperationEvent)) {
             return false;
         }
+        License otherLicense = ((LicenseOperationEvent) otherEvent).license;
         if (this.license == null && this.featureId == null) {
             return true;
         } else if (this.featureId != null) {
-            return this.getLicense().getFeatureIds().stream().anyMatch(fId -> fId.equals(featureId));
+            return otherLicense != null && otherLicense.getFeatureIds().stream().anyMatch(this.featureId::equals);
         } else {
-            return this.license.equals(((LicenseOperationEvent) otherEvent).license);
+            return this.license.equals(otherLicense);
         }
     }
 }
