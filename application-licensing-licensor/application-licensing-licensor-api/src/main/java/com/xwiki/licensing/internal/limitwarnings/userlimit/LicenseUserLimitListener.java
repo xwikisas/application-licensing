@@ -164,12 +164,11 @@ public class LicenseUserLimitListener extends AbstractEventListener
         }).collect(Collectors.toSet());
 
         if (!filteredLicenses.isEmpty()) {
-            // Unless the user watches the Licenses.WebHome page, they won't receive the notification. This may be
-            // helpful if the user wants to have an exclusive filter on the entire wiki but still receive licensing
-            // notifications.
-            // TODO: The Licenses.WebHome page is not visible for guests, so email notifications list the page as $title
-            //  Would need to pick a public marker page? Or replace the $title with something else by means of
-            //  velocity workarounds.
+            // The event is attached to Licenses.WebHome because the table of contents of notification emails labels
+            // each event with the title of its document; without a document the label would be empty. Since the event
+            // is targeted, recipients don't need to watch this page (only an explicit exclusive filter blocks it), but
+            // they need view right on it, and the Licenses space is restricted to the XWikiAdminGroup. On XWiki
+            // versions older than 15.10.12 the email label is displayed as "$title" (see XWIKI-20187).
             String mainWikiId = contextProvider.get().getMainXWiki();
             observationManager.notify(
                 new LicenseUserLimitWarningEvent(filteredLicenses, userCount, getTargetGroups(mainWikiId)),
