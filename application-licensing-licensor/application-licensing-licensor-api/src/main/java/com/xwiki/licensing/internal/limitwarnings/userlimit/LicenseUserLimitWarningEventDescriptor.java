@@ -109,8 +109,8 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
         // The builder returns the same instance until prepare() is called again, so each preference needs its own.
         return this.targetableNotificationPreferenceBuilder.prepare()
             .setCategory(NotificationPreferenceCategory.DEFAULT).setEnabled(true).setFormat(format)
-            .setProperties(properties).setProviderHint(WikiNotificationPreferenceProvider.NAME)
-            .setStartDate(new Date()).setTarget(wikiReference).build();
+            .setProperties(properties).setProviderHint(WikiNotificationPreferenceProvider.NAME).setStartDate(new Date())
+            .setTarget(wikiReference).build();
     }
 
     @Override
@@ -122,7 +122,7 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public String getApplicationName()
     {
-        return "licensor.extension.name";
+        return "admin.licenses";
     }
 
     @Override

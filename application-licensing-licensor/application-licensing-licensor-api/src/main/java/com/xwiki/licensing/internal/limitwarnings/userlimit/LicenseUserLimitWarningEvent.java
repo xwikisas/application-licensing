@@ -63,8 +63,8 @@ public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEven
      *
      * @param licenses the licenses whose user limit is almost exceeded
      * @param userCount the number of users on the instance
-     * @param notifiedGroups the groups that should be notified. An empty {@link Set} means all users will be
-     *     notified, no matter the group
+     * @param notifiedGroups the groups that should be notified. An empty {@link Set} means all users will be notified,
+     *            no matter the group
      */
     public LicenseUserLimitWarningEvent(Collection<License> licenses, long userCount, Set<String> notifiedGroups)
     {

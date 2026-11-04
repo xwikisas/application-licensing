@@ -19,6 +19,7 @@
  */
 package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,15 +64,24 @@ public class LicenseUserLimitWarningEventConverter implements RecordableEventCon
 
         Event convertedEvent = this.defaultConverter.convert(event, source, data);
 
+        convertedEvent.setBody(serializeParams(
+            Map.of("userCount", event.getUserCount(), "licenses", getLicensesInfo(event.getLicenses()))));
+        return convertedEvent;
+    }
+
+    private Map<String, Map<String, Object>> getLicensesInfo(Collection<License> licenses)
+    {
         // The same license can be present more than once, as different License instances (License#hashCode() is not
         // consistent with License#equals()), so keep only the first one for each license id.
-        convertedEvent.setBody(serializeParams(Map.of("userCount", event.getUserCount(), "licenses",
-            event.getLicenses().stream().collect(Collectors.toMap((License license) -> license.getId().getId(),
-                (License license) -> Map.of("affectedExtensions",
-                    license.getFeatureIds().stream().map(LicensedFeatureId::getId).collect(Collectors.toList()),
-                    "maxUserCount", license.getMaxUserCount()),
-                (first, duplicate) -> first)))));
-        return convertedEvent;
+        return licenses.stream().collect(
+            Collectors.toMap(license -> license.getId().getId(), this::getLicenseInfo, (first, duplicate) -> first));
+    }
+
+    private Map<String, Object> getLicenseInfo(License license)
+    {
+        List<String> affectedExtensions =
+            license.getFeatureIds().stream().map(LicensedFeatureId::getId).collect(Collectors.toList());
+        return Map.of("affectedExtensions", affectedExtensions, "maxUserCount", license.getMaxUserCount());
     }
 
     @Override

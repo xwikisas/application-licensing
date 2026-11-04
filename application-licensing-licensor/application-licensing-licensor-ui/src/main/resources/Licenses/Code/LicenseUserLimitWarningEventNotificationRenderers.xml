@@ -345,8 +345,7 @@
   ###
   #displayLicensorNotificationDetails($event)
   &lt;p style="color: #777777; font-size: 0.8em;"&gt;
-    #set ($adminLink = $escapetool.xml(
-      $services.localization.render('licensor.events.LicenseUserLimitWarningEvent.email.adminSectionHint.linkText')))
+    #set ($adminLink = $escapetool.xml($services.localization.render('admin.main.title')))
     #set ($adminLink = $escapetool.xml(
         $services.localization.render('licensor.events.LicenseUserLimitWarningEvent.email.adminSectionHint.text')
       ).replace('__adminSectionLink__', "&lt;a href='$escapetool.xml($licensesAdminSectionURL)'&gt;$adminLink&lt;/a&gt;"))

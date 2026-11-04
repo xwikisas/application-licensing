@@ -72,8 +72,8 @@ class LicenseUserLimitWarningEventConverterTest
 
         ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
         verify(convertedEvent).setBody(body.capture());
-        Map<String, Object> licenses = (Map<String, Object>) new ObjectMapper().readValue(body.getValue(), Map.class)
-            .get("licenses");
+        Map<String, Object> licenses =
+            (Map<String, Object>) new ObjectMapper().readValue(body.getValue(), Map.class).get("licenses");
         assertEquals(Map.of(LICENSE_ID, Map.of("affectedExtensions", List.of("foo"), "maxUserCount", 5)), licenses);
     }
 

@@ -75,8 +75,8 @@ class LicenseUserLimitWarningEventDescriptorTest
         // The wiki already has the email preference, e.g. disabled by an admin.
         NotificationPreference existingEmail = mock(NotificationPreference.class);
         when(existingEmail.getFormat()).thenReturn(NotificationFormat.EMAIL);
-        when(existingEmail.getProperties()).thenReturn(
-            Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE));
+        when(existingEmail.getProperties())
+            .thenReturn(Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE));
         when(this.notificationPreferenceManager.getAllPreferences(WIKI)).thenReturn(List.of(existingEmail));
     }
 

@@ -93,8 +93,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
      */
     public LicenseUserLimitListener()
     {
-        super(HINT,
-            List.of(new ActiveUserAddedEvent(), new LicenseAddedEvent()));
+        super(HINT, List.of(new ActiveUserAddedEvent(), new LicenseAddedEvent()));
     }
 
     @Override
