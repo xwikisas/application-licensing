@@ -74,12 +74,9 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
         Map<NotificationPreferenceProperty, Object> properties =
             Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE);
         // Create the preference for alerts and emails.
-        List<NotificationPreference> notificationPreferences = List.of(
-            this.targetableNotificationPreferenceBuilder.prepare().setCategory(NotificationPreferenceCategory.DEFAULT)
-                .setEnabled(true).setFormat(NotificationFormat.ALERT).setProperties(properties)
-                .setProviderHint(WikiNotificationPreferenceProvider.NAME).setStartDate(new Date())
-                .setTarget(wikiReference).build(),
-            this.targetableNotificationPreferenceBuilder.setFormat(NotificationFormat.EMAIL).build());
+        List<NotificationPreference> notificationPreferences =
+            List.of(createPreference(NotificationFormat.ALERT, properties, wikiReference),
+                createPreference(NotificationFormat.EMAIL, properties, wikiReference));
 
         // Save it.
         try {
@@ -89,6 +86,16 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
             this.logger.warn("Error while enabling LicenseUserLimitWarningEvent for the wiki {}: {}", wikiReference,
                 ExceptionUtils.getRootCauseMessage(e));
         }
+    }
+
+    private NotificationPreference createPreference(NotificationFormat format,
+        Map<NotificationPreferenceProperty, Object> properties, WikiReference wikiReference)
+    {
+        // The builder returns the same instance until prepare() is called again, so each preference needs its own.
+        return this.targetableNotificationPreferenceBuilder.prepare()
+            .setCategory(NotificationPreferenceCategory.DEFAULT).setEnabled(true).setFormat(format)
+            .setProperties(properties).setProviderHint(WikiNotificationPreferenceProvider.NAME)
+            .setStartDate(new Date()).setTarget(wikiReference).build();
     }
 
     @Override
