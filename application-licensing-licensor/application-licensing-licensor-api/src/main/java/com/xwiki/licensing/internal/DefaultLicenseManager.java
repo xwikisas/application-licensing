@@ -60,7 +60,6 @@ import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
 import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
-import com.xwiki.licensing.internal.helpers.events.LicenseRemovedEvent;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -269,7 +268,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 logger.debug("Remove license [{}] from in-use licenses", existingLicense.getId());
                 // If the replaced license is no more in use, drop it from the license set to free memory
                 licenses.remove(existingLicense.getId());
-                createNotificationEvent(new LicenseRemovedEvent(existingLicense));
             }
         }
     }
