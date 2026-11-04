@@ -31,26 +31,20 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
-import org.xwiki.bridge.event.AbstractDocumentEvent;
-import org.xwiki.bridge.event.DocumentCreatedEvent;
-import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
-import org.xwiki.observation.event.filter.EventFilter;
-import org.xwiki.observation.event.filter.RegexEventFilter;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.UserCounter;
+import com.xwiki.licensing.internal.helpers.events.ActiveUserAddedEvent;
 import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
 
 /**
@@ -68,14 +62,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
      * The event listener component hint.
      */
     public static final String HINT = "com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitListener";
-
-    private static final String XWIKI_SPACE = "XWiki";
-
-    private static final LocalDocumentReference USER_CLASS = new LocalDocumentReference(XWIKI_SPACE, "XWikiUsers");
-
-    private static final String ACTIVE = "active";
-
-    private static final EventFilter XWIKI_SPACE_FILTER = new RegexEventFilter("(.*:)?XWiki\\..*");
 
     private static final long USER_LIMIT_THRESHOLD_DEFAULT = 5;
 
@@ -108,17 +94,16 @@ public class LicenseUserLimitListener extends AbstractEventListener
     public LicenseUserLimitListener()
     {
         super(HINT,
-            List.of(new DocumentUpdatedEvent(XWIKI_SPACE_FILTER), new DocumentCreatedEvent(XWIKI_SPACE_FILTER),
-                new LicenseAddedEvent()));
+            List.of(new ActiveUserAddedEvent(), new LicenseAddedEvent()));
     }
 
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
         Collection<License> potentiallyInvalidatedLicenses = List.of();
-        if (event instanceof AbstractDocumentEvent && shouldTriggerOnDocumentEvent(source)) {
-            // If the event was triggered because of a user page update, we need to search for all licenses that
-            // might be nearing their user limit.
+        if (event instanceof ActiveUserAddedEvent) {
+            // A new active user was added, so we need to search for all licenses that might be nearing their user
+            // limit.
             potentiallyInvalidatedLicenses = getUsedLicensesWithUserLimits();
         } else if (event instanceof LicenseAddedEvent) {
             // We know exactly which license was added, so check if it almost exceeds the user limit.
@@ -142,30 +127,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
                 ExceptionUtils.getRootCauseMessage(e));
         } finally {
             xcontext.setWikiId(currentWikiId);
-        }
-    }
-
-    private boolean shouldTriggerOnDocumentEvent(Object source)
-    {
-        XWikiDocument newDocument = (XWikiDocument) source;
-        XWikiDocument oldDocument = newDocument.getOriginalDocument();
-
-        BaseObject newObject = newDocument.getXObject(USER_CLASS);
-        BaseObject oldObject = oldDocument.getXObject(USER_CLASS);
-
-        boolean newDocumentIsUser = newObject != null;
-        boolean oldDocumentIsUser = oldObject != null;
-
-        // Set defaults to -1 to avoid nulls.
-        int newActive = newDocumentIsUser ? newObject.getIntValue(ACTIVE) : -1;
-        int oldActive = oldDocumentIsUser ? oldObject.getIntValue(ACTIVE) : -1;
-
-        if (newDocumentIsUser != oldDocumentIsUser) {
-            // User page was just created.
-            return true;
-        } else {
-            // User was enabled.
-            return newDocumentIsUser && newActive == 1 && oldActive == 0;
         }
     }
 
@@ -193,7 +154,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
     private Set<String> getTargetGroups(String mainWikiId)
     {
         Set<String> notifiedGroups = licensingConfiguration.getNotifiedGroupsSet();
-        notifiedGroups.add(serializer.serialize(new DocumentReference(mainWikiId, XWIKI_SPACE, "XWikiAdminGroup")));
+        notifiedGroups.add(serializer.serialize(new DocumentReference(mainWikiId, "XWiki", "XWikiAdminGroup")));
         return notifiedGroups;
     }
 

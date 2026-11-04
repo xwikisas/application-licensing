@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.observation.EventListener;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -37,6 +38,7 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.internal.UserCounter.UserListener;
+import com.xwiki.licensing.internal.helpers.events.ActiveUserAddedEvent;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -155,6 +157,27 @@ public class UserCounterTest
 
         verify(this.wikiDescriptorManager, times(2)).getAllIds();
         verify(fooQuery, times(2)).execute();
+    }
+
+    @Test
+    public void notifyActiveUserAdded() throws Exception
+    {
+        ObservationManager observationManager = this.mocker.registerMockComponent(ObservationManager.class);
+        EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.HINT);
+
+        BaseObject userObject = mock(BaseObject.class);
+        when(userObject.getIntValue(UserListener.ACTIVE)).thenReturn(1);
+        XWikiDocument userProfile = mock(XWikiDocument.class, "userProfile");
+        when(userProfile.getOriginalDocument()).thenReturn(mock(XWikiDocument.class));
+        when(userProfile.getXObject(UserListener.USER_CLASS)).thenReturn(userObject);
+        userListener.onEvent(null, userProfile, null);
+
+        XWikiDocument blankPage = mock(XWikiDocument.class, "blankPage");
+        when(blankPage.getOriginalDocument()).thenReturn(blankPage);
+        userListener.onEvent(null, blankPage, null);
+
+        verify(observationManager).notify(any(ActiveUserAddedEvent.class), same(userProfile), isNull());
+        verifyNoMoreInteractions(observationManager);
     }
 
     private Query createMockQuery(String queryName) {
