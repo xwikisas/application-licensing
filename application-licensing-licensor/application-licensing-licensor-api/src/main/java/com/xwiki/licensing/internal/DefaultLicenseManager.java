@@ -45,7 +45,6 @@ import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
 import org.xwiki.observation.ObservationManager;
-import org.xwiki.observation.event.Event;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
 import com.xwiki.licensing.License;
@@ -252,7 +251,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             // Initialize the first usage of this new license
             licenses.put(newLicense.getId(), newLicense);
             licensesUsage.put(newLicense.getId(), 1);
-            createNotificationEvent(new LicenseAddedEvent(newLicense));
         } else {
             logger.debug("Increment usage of license [{}] to [{}]", newLicense.getId(), usage + 1);
             // Increment the usage of this new license
@@ -270,11 +268,6 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
                 licenses.remove(existingLicense.getId());
             }
         }
-    }
-
-    private void createNotificationEvent(Event event)
-    {
-        observationManagerProvider.get().notify(event, null, null);
     }
 
     void installExtensionLicense(String namespace, InstalledExtension extension)
@@ -352,6 +345,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
 
             linkLicenseToInstalledExtensions(licIds, license);
+            // Notify from here rather than when the license is registered, so that the licenses loaded from the
+            // store at startup don't trigger the event on every restart.
+            this.observationManagerProvider.get().notify(new LicenseAddedEvent(license), null, null);
             return true;
         }
         return false;
