@@ -21,10 +21,12 @@ package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -34,6 +36,7 @@ import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationManager;
@@ -41,6 +44,7 @@ import org.xwiki.observation.event.Event;
 import org.xwiki.observation.event.filter.EventFilter;
 import org.xwiki.observation.event.filter.RegexEventFilter;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.License;
@@ -61,7 +65,9 @@ import static org.xwiki.user.internal.UserPropertyConstants.ACTIVE;
 @Named(LicenseUserLimitWarningEvent.EVENT_TYPE)
 public class LicenseUserLimitListener extends AbstractEventListener
 {
-    private static final LocalDocumentReference USER_CLASS = new LocalDocumentReference("XWiki", "XWikiUsers");
+    private static final String XWIKI_SPACE = "XWiki";
+
+    private static final LocalDocumentReference USER_CLASS = new LocalDocumentReference(XWIKI_SPACE, "XWikiUsers");
 
     private static final EventFilter XWIKI_SPACE_FILTER = new RegexEventFilter("(.*:)?XWiki\\..*");
 
@@ -83,6 +89,12 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     @Inject
     private LicensingConfiguration licensingConfiguration;
+
+    @Inject
+    private EntityReferenceSerializer<String> serializer;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     /**
      * Default constructor.
@@ -158,10 +170,20 @@ public class LicenseUserLimitListener extends AbstractEventListener
             // TODO: The Licenses.WebHome page is not visible for guests, so email notifications list the page as $title
             //  Would need to pick a public marker page? Or replace the $title with something else by means of
             //  velocity workarounds.
-            observationManager.notify(new LicenseUserLimitWarningEvent(filteredLicenses, userCount),
+            String mainWikiId = contextProvider.get().getMainXWiki();
+            observationManager.notify(
+                new LicenseUserLimitWarningEvent(filteredLicenses, userCount, getTargetGroups(mainWikiId)),
                 "com.xwiki.licensing:application-licensing-licensor-api",
-                new XWikiDocument(new DocumentReference("xwiki", "Licenses", "WebHome")));
+                new XWikiDocument(new DocumentReference(mainWikiId, "Licenses", "WebHome")));
         }
+    }
+
+    private Set<String> getTargetGroups(String mainWikiId)
+    {
+        // Licenses are managed from the main wiki, so target its admins even when a subwiki user triggered the event.
+        Set<String> notifiedGroups = licensingConfiguration.getNotifiedGroupsSet();
+        notifiedGroups.add(serializer.serialize(new DocumentReference(mainWikiId, XWIKI_SPACE, "XWikiAdminGroup")));
+        return notifiedGroups;
     }
 
     private long getUserNotificationThresholdForLicense(License license)
