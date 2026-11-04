@@ -84,7 +84,7 @@
       <name>userLimitWarningThreshold</name>
       <number>2</number>
       <picker>0</picker>
-      <prettyName>User Limit Warning Threshold</prettyName>
+      <prettyName/>
       <size>30</size>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
