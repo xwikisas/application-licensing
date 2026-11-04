@@ -83,7 +83,8 @@ public class LicenseUserLimitWarningEventConverter implements RecordableEventCon
     /**
      * Utility method to convert an object to JSON.
      *
-     * @param params the localization parameters to serialize.
+     * @param params the event parameters to serialize
+     * @return the JSON string, or {@code null} if the serialization failed
      */
     private String serializeParams(Map<String, Object> params)
     {

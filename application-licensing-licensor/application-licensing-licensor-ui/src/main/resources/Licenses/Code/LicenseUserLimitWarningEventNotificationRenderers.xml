@@ -27,7 +27,7 @@
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>TaskManager.WebHome</parent>
+  <parent>Licenses.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -104,18 +104,14 @@
     #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
   #end
   ## Get the extensions which are at risk of going over the user limit.
-  #set ($extensionsWitNotifications = $collectiontool.set)
-  #set ($licensesInfos = $collectiontool.map)
-  ## Take events in the reverse order, so the licensesInfo map contains the latest information.
+  #set ($extensionsWithNotifications = $collectiontool.set)
   #set ($eventsSize = $event.events.size() - 1)
   #foreach ($i in [$eventsSize..0])
     #set ($thisEvent = $event.events[$i])
     #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
       #set ($eventInfo = $jsontool.fromString($thisEvent.getBody()))
-      #set ($userCount = $eventInfo.userCount)
-      #set ($discard = $licensesInfos.putAll($eventInfo['licenses']))
       #foreach ($licenseInfo in $eventInfo['licenses'])
-        #set ($discard = $extensionsWitNotifications.addAll($licenseInfo.affectedExtensions))
+        #set ($discard = $extensionsWithNotifications.addAll($licenseInfo.affectedExtensions))
       #end
     #end
   #end
@@ -130,7 +126,7 @@
   #set ($extensionsWithWarning = $collectiontool.set)
   #foreach ($paidExtension in $paidExtensions)
     #if ($mandatoryExtensions.contains($paidExtension.getId().getId())
-        &amp;&amp; $extensionsWitNotifications.contains($paidExtension.getId().getId()))
+        &amp;&amp; $extensionsWithNotifications.contains($paidExtension.getId().getId()))
       #set ($discard = $extensionsWithWarning.add($paidExtension))
     #end
   #end
@@ -143,7 +139,7 @@
   &lt;div class="notification-description"&gt;
     #getExtensionsWithWarning
     #foreach ($extension in $extensionsWithWarning)
-      $extension.name
+      $escapetool.xml($extension.name)
       #if ($foreach.index &lt; $maxExtensionsCount - 1 &amp;&amp; $foreach.index &lt; $extensionsWithWarning.size() - 1)
         , ##
       #else
@@ -258,18 +254,16 @@
     #set ($discard = $paidExtensions.addAll($paidExtensionsOnNamespace))
   #end
   ## Get the extensions which are at risk of going over the user limit.
-  #set ($extensionsWitNotifications = $collectiontool.set)
-  #set ($licensesInfos = $collectiontool.map)
-  ## Take events in the reverse order, so the licensesInfo map contains the latest information.
+  #set ($extensionsWithNotifications = $collectiontool.set)
+  ## Take events in the reverse order, so $userCount ends up holding the value of the latest event.
   #set ($eventsSize = $event.events.size() - 1)
   #foreach ($i in [$eventsSize..0])
     #set ($thisEvent = $event.events[$i])
     #if ($thisEvent.type == 'com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent')
       #set ($eventInfo = $jsontool.fromString($thisEvent.getBody()))
       #set ($userCount = $eventInfo.userCount)
-      #set ($discard = $licensesInfos.putAll($eventInfo['licenses']))
       #foreach ($licenseInfo in $eventInfo['licenses'])
-        #set ($discard = $extensionsWitNotifications.addAll($licenseInfo.affectedExtensions))
+        #set ($discard = $extensionsWithNotifications.addAll($licenseInfo.affectedExtensions))
       #end
     #end
   #end
@@ -284,7 +278,7 @@
   #set ($extensionsWithWarning = $collectiontool.set)
   #foreach ($paidExtension in $paidExtensions)
     #if ($mandatoryExtensions.contains($paidExtension.getId().getId())
-        &amp;&amp; $extensionsWitNotifications.contains($paidExtension.getId().getId()))
+        &amp;&amp; $extensionsWithNotifications.contains($paidExtension.getId().getId()))
       #set ($discard = $extensionsWithWarning.add($paidExtension))
     #end
   #end
@@ -324,7 +318,7 @@
   #set ($extensionStatusColor =
     "#if ($userLimitStatus == 'danger' || $expDateStatus == 'danger')#ffcccc#{else}#ffffcc#end")
   &lt;tr style="vertical-align: top; border: 1px solid; border-collapse: collapse; background-color:$extensionStatusColor;"&gt;
-    &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$extension.name&lt;/td&gt;
+    &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$escapetool.xml($extension.name)&lt;/td&gt;
     &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$!escapetool.xml($userLimit)&lt;/td&gt;
     &lt;td style="border: 1px solid; border-collapse: collapse;"&gt;$!escapetool.xml($expDate)&lt;/td&gt;
   &lt;/tr&gt;

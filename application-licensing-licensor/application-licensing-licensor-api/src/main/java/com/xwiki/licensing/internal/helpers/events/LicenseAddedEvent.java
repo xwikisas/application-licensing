@@ -19,8 +19,9 @@
  */
 package com.xwiki.licensing.internal.helpers.events;
 
+import org.xwiki.observation.event.Event;
+
 import com.xwiki.licensing.License;
-import com.xwiki.licensing.LicensedFeatureId;
 
 /**
  * An event triggered after a license is added.
@@ -28,24 +29,15 @@ import com.xwiki.licensing.LicensedFeatureId;
  * @version $Id$
  * @since 1.34
  */
-public class LicenseAddedEvent extends LicenseOperationEvent
+public class LicenseAddedEvent implements Event
 {
+    private License license;
+
     /**
      * For use in listeners to match any license added event.
      */
     public LicenseAddedEvent()
     {
-        super();
-    }
-
-    /**
-     * For use in listeners to match any license managing the given feature.
-     *
-     * @param featureId the feature id to match
-     */
-    public LicenseAddedEvent(LicensedFeatureId featureId)
-    {
-        super(featureId);
     }
 
     /**
@@ -55,15 +47,21 @@ public class LicenseAddedEvent extends LicenseOperationEvent
      */
     public LicenseAddedEvent(License license)
     {
-        super(license);
+        this.license = license;
+    }
+
+    /**
+     * @return the license which was added
+     */
+    public License getLicense()
+    {
+        return this.license;
     }
 
     @Override
     public boolean matches(Object otherEvent)
     {
-        if (!(otherEvent instanceof LicenseAddedEvent)) {
-            return false;
-        }
-        return super.matches(otherEvent);
+        return otherEvent instanceof LicenseAddedEvent
+            && (this.license == null || this.license.equals(((LicenseAddedEvent) otherEvent).license));
     }
 }

@@ -53,8 +53,6 @@ import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.UserCounter;
 import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
 
-import static org.xwiki.user.internal.UserPropertyConstants.ACTIVE;
-
 /**
  * Listener which sends notifications when a license user limit is almost exceeded.
  *
@@ -63,12 +61,19 @@ import static org.xwiki.user.internal.UserPropertyConstants.ACTIVE;
  */
 @Component
 @Singleton
-@Named(LicenseUserLimitWarningEvent.EVENT_TYPE)
+@Named(LicenseUserLimitListener.HINT)
 public class LicenseUserLimitListener extends AbstractEventListener
 {
+    /**
+     * The event listener component hint.
+     */
+    public static final String HINT = "com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitListener";
+
     private static final String XWIKI_SPACE = "XWiki";
 
     private static final LocalDocumentReference USER_CLASS = new LocalDocumentReference(XWIKI_SPACE, "XWikiUsers");
+
+    private static final String ACTIVE = "active";
 
     private static final EventFilter XWIKI_SPACE_FILTER = new RegexEventFilter("(.*:)?XWiki\\..*");
 
@@ -102,7 +107,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
      */
     public LicenseUserLimitListener()
     {
-        super(LicenseUserLimitListener.class.getName(),
+        super(HINT,
             List.of(new DocumentUpdatedEvent(XWIKI_SPACE_FILTER), new DocumentCreatedEvent(XWIKI_SPACE_FILTER),
                 new LicenseAddedEvent()));
     }

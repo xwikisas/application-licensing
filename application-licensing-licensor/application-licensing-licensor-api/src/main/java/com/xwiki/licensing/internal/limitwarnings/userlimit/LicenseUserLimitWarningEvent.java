@@ -61,7 +61,7 @@ public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEven
     /**
      * Default constructor.
      *
-     * @param licenses the licenses for which the user limit which was almost exceeded
+     * @param licenses the licenses whose user limit is almost exceeded
      * @param userCount the number of users on the instance
      * @param notifiedGroups the groups that should be notified. An empty {@link Set} means all users will be
      *     notified, no matter the group
@@ -74,9 +74,7 @@ public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEven
     }
 
     /**
-     * Get the license which generated the event.
-     *
-     * @return license
+     * @return the licenses whose user limit is almost exceeded
      */
     public Collection<License> getLicenses()
     {
@@ -84,9 +82,7 @@ public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEven
     }
 
     /**
-     * Get the number of users left for the license.
-     *
-     * @return the number of users left until the license user limit is exceeded
+     * @return the number of active users on the instance when the event was sent
      */
     public long getUserCount()
     {
