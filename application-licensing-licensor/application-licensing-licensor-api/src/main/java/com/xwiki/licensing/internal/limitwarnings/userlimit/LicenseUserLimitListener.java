@@ -59,6 +59,7 @@ import static org.xwiki.user.internal.UserPropertyConstants.ACTIVE;
  * Listener which sends notifications when a license user limit is almost exceeded.
  *
  * @version $Id$
+ * @since 1.34
  */
 @Component
 @Singleton

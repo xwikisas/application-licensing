@@ -28,7 +28,7 @@ import com.xwiki.licensing.LicensedFeatureId;
  * Event regarding operations on licenses, such as adding or removing a license on the instance.
  *
  * @version $Id$
- * @since 1.31
+ * @since 1.34
  */
 public class LicenseOperationEvent implements Event
 {

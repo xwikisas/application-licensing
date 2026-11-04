@@ -87,7 +87,7 @@ public interface LicensingConfiguration
 
     /**
      * @return the threshold of active users on the instance after which warning notifications are sent.
-     * @since 1.33
+     * @since 1.34
      */
     @Unstable
     default String getUserLimitWarningThreshold()

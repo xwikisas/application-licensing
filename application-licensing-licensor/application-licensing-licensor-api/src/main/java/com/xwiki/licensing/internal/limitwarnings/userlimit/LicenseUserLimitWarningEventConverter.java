@@ -40,9 +40,10 @@ import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicensedFeatureId;
 
 /**
- * Descriptor for the event {@link LicenseUserLimitWarningEvent}.
+ * Converter for the event {@link LicenseUserLimitWarningEvent}.
  *
  * @version $Id$
+ * @since 1.34
  */
 @Component
 @Singleton

@@ -26,7 +26,7 @@ import com.xwiki.licensing.LicensedFeatureId;
  * An event triggered after a license is added.
  *
  * @version $Id$
- * @since 1.31
+ * @since 1.34
  */
 public class LicenseAddedEvent extends LicenseOperationEvent
 {

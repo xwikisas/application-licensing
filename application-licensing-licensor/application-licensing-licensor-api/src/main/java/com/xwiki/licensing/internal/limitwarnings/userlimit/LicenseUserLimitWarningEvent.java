@@ -29,6 +29,7 @@ import com.xwiki.licensing.internal.upgrades.AbstractLicensorTargetableEvent;
  * Notification event for licenses which have almost reached their user limit.
  *
  * @version $Id$
+ * @since 1.34
  */
 public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEvent
 {

@@ -52,6 +52,7 @@ import com.xpn.xwiki.XWikiContext;
  * Descriptor for the event {@link LicenseUserLimitWarningEvent}.
  *
  * @version $Id$
+ * @since 1.34
  */
 @Component
 @Singleton
