@@ -22,18 +22,15 @@ package com.xwiki.licensing.internal.limitwarnings.userlimit;
 import java.util.Collection;
 import java.util.Set;
 
-import org.xwiki.eventstream.TargetableEvent;
-
 import com.xwiki.licensing.License;
+import com.xwiki.licensing.internal.upgrades.AbstractLicensorTargetableEvent;
 
 /**
  * Notification event for licenses which have almost reached their user limit.
- * TODO: After the parent is >15.5, implement a Notification Grouping Strategy so licensor emails are not bundled
- *  together with other notifications, similar to the mentions macro emails.
  *
  * @version $Id$
  */
-public class LicenseUserLimitWarningEvent implements TargetableEvent
+public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEvent
 {
     /**
      * The name of components related to this event.
@@ -96,12 +93,5 @@ public class LicenseUserLimitWarningEvent implements TargetableEvent
     public boolean matches(Object otherEvent)
     {
         return otherEvent instanceof LicenseUserLimitWarningEvent;
-    }
-
-    @Override
-    public Set<String> getTarget()
-    {
-        // TODO: Make this customizable from the licensor Admin Section.
-        return Set.of("xwiki:XWiki.XWikiAdminGroup", "XWiki.XWikiAdminGroup", "XWikiAdminGroup");
     }
 }
