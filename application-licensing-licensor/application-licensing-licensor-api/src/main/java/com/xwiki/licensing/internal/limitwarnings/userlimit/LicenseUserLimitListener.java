@@ -80,7 +80,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
     private Logger logger;
 
     @Inject
-    private LicenseManager licenseManager;
+    private Provider<LicenseManager> licenseManagerProvider;
 
     @Inject
     private UserCounter userCounter;
@@ -124,12 +124,19 @@ public class LicenseUserLimitListener extends AbstractEventListener
             return;
         }
 
+        // Licenses are managed from the main wiki, so read the licensing configuration from there even when a subwiki
+        // user triggered the event.
+        XWikiContext xcontext = contextProvider.get();
+        String currentWikiId = xcontext.getWikiId();
         try {
+            xcontext.setWikiId(xcontext.getMainXWiki());
             long userCount = userCounter.getUserCount();
             notifyForLicenses(potentiallyInvalidatedLicenses, userCount);
         } catch (Exception e) {
             logger.error("Failed to get count of users for license user limit warning. Cause: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
+        } finally {
+            xcontext.setWikiId(currentWikiId);
         }
     }
 
@@ -180,7 +187,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private Set<String> getTargetGroups(String mainWikiId)
     {
-        // Licenses are managed from the main wiki, so target its admins even when a subwiki user triggered the event.
         Set<String> notifiedGroups = licensingConfiguration.getNotifiedGroupsSet();
         notifiedGroups.add(serializer.serialize(new DocumentReference(mainWikiId, XWIKI_SPACE, "XWikiAdminGroup")));
         return notifiedGroups;
@@ -216,7 +222,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private Collection<License> getUsedLicensesWithUserLimits()
     {
-        return licenseManager.getUsedLicenses().stream()
+        return licenseManagerProvider.get().getUsedLicenses().stream()
             .filter(license -> 0 <= license.getMaxUserCount() && license.getMaxUserCount() < Long.MAX_VALUE)
             .collect(Collectors.toSet());
     }

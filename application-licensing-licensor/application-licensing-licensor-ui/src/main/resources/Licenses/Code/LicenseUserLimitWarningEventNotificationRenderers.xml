@@ -147,10 +147,10 @@
       #if ($foreach.index &lt; $maxExtensionsCount - 1 &amp;&amp; $foreach.index &lt; $extensionsWithWarning.size() - 1)
         , ##
       #else
-        #if ($foreach.index == $maxExtensionsCount - 1)
-          #set ($remainingExtensions = $extensionsWithWarning.size() - 1 - $foreach.index)
+        #set ($remainingExtensions = $extensionsWithWarning.size() - 1 - $foreach.index)
+        #if ($foreach.index == $maxExtensionsCount - 1 &amp;&amp; $remainingExtensions &gt; 0)
           ...
-        ($!escapetool.xml($services.localization.render('licensor.events.LicenseUserLimitWarningEvent.description.truncatedExtensionCount', [$remainingExtensions])))
+          ($!escapetool.xml($services.localization.render('licensor.events.LicenseUserLimitWarningEvent.description.truncatedExtensionCount', [$remainingExtensions])))
         #end
         #break
       #end
