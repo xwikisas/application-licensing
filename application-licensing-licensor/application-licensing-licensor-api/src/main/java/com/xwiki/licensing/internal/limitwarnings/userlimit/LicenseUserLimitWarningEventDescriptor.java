@@ -19,9 +19,12 @@
  */
 package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -73,14 +76,25 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
         WikiReference wikiReference = this.contextProvider.get().getWikiReference();
         Map<NotificationPreferenceProperty, Object> properties =
             Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE);
-        // Create the preference for alerts and emails.
-        List<NotificationPreference> notificationPreferences =
-            List.of(createPreference(NotificationFormat.ALERT, properties, wikiReference),
-                createPreference(NotificationFormat.EMAIL, properties, wikiReference));
-
-        // Save it.
         try {
-            this.notificationPreferenceManager.savePreferences(notificationPreferences);
+            // Only add the default alert and email preferences that are missing, so that an admin who disabled them
+            // keeps them disabled after a restart.
+            Set<NotificationFormat> existingFormats =
+                this.notificationPreferenceManager.getAllPreferences(wikiReference).stream()
+                    .filter(preference -> LicenseUserLimitWarningEvent.EVENT_TYPE
+                        .equals(preference.getProperties().get(NotificationPreferenceProperty.EVENT_TYPE)))
+                    .map(NotificationPreference::getFormat).collect(Collectors.toSet());
+
+            List<NotificationPreference> notificationPreferences = new ArrayList<>();
+            for (NotificationFormat format : List.of(NotificationFormat.ALERT, NotificationFormat.EMAIL)) {
+                if (!existingFormats.contains(format)) {
+                    notificationPreferences.add(createPreference(format, properties, wikiReference));
+                }
+            }
+
+            if (!notificationPreferences.isEmpty()) {
+                this.notificationPreferenceManager.savePreferences(notificationPreferences);
+            }
         } catch (NotificationException e) {
             // We don't throw an InitializationException since it doesn't prevent the component to be used.
             this.logger.warn("Error while enabling LicenseUserLimitWarningEvent for the wiki {}: {}", wikiReference,
