@@ -29,6 +29,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
@@ -39,7 +40,6 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseManager;
 import com.xwiki.licensing.LicensingConfiguration;
@@ -146,7 +146,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
             observationManager.notify(
                 new LicenseUserLimitWarningEvent(filteredLicenses, userCount, getTargetGroups(mainWikiId)),
                 "com.xwiki.licensing:application-licensing-licensor-api",
-                new XWikiDocument(new DocumentReference(mainWikiId, "Licenses", "WebHome")));
+                null);
         }
     }
 
@@ -160,23 +160,29 @@ public class LicenseUserLimitListener extends AbstractEventListener
     private long getUserNotificationThresholdForLicense(License license)
     {
         String threshold = licensingConfiguration.getUserLimitWarningThreshold();
-        if (null == threshold) {
-            // The configuration object is missing or can't be retrieved.
+        if (StringUtils.isBlank(threshold)) {
+            // The configuration object is missing or can't be retrieved, or the field is left empty.
             return USER_LIMIT_THRESHOLD_DEFAULT;
         }
 
         threshold = threshold.trim();
         try {
             if (threshold.endsWith(PERCENT)) {
-                // The threshold is specified as a % of the license user limit.
-                long thresh = Long.parseLong(threshold.replace(PERCENT, ""));
+                // The threshold is specified as a % of the license user limit. Only the last character is removed, so
+                // that values like "10%%" are rejected.
+                long thresh = Long.parseLong(threshold.substring(0, threshold.length() - 1));
                 if (!(thresh >= 0 && thresh <= 100)) {
                     throw new NumberFormatException("Invalid Percentage: " + thresh + PERCENT);
                 } else {
                     return license.getMaxUserCount() * thresh / 100;
                 }
             } else {
-                return Long.parseLong(threshold);
+                long thresh = Long.parseLong(threshold);
+                if (thresh < 0) {
+                    // A negative threshold would silently disable the warnings, so reject it like a negative %.
+                    throw new NumberFormatException("Negative threshold: " + thresh);
+                }
+                return thresh;
             }
         } catch (NumberFormatException e) {
             logger.warn("Could not parse user limit threshold [{}] for license [{}]. Cause: [{}]", threshold,
