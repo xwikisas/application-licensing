@@ -136,6 +136,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private void notifyForLicenses(Collection<License> licenses, long userCount)
     {
+        // Parse the configured threshold once, so that an invalid value is logged once instead of once per license.
         LongUnaryOperator threshold = getUserNotificationThreshold();
         Collection<License> filteredLicenses = licenses.stream().filter(license -> {
             long userDiff = license.getMaxUserCount() - userCount;
@@ -163,8 +164,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
     }
 
     /**
-     * Parse the configured threshold once, so that an invalid value is logged once instead of once per license.
-     *
      * @return the function computing the warning threshold of a license from its user limit
      */
     private LongUnaryOperator getUserNotificationThreshold()
