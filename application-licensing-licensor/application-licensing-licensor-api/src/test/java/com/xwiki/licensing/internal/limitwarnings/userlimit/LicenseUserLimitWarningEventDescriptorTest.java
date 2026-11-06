@@ -21,6 +21,7 @@ package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Provider;
 
@@ -41,7 +42,10 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWikiContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,11 +77,9 @@ class LicenseUserLimitWarningEventDescriptorTest
         when(context.getWikiReference()).thenReturn(WIKI);
 
         // The wiki already has the email preference, e.g. disabled by an admin.
-        NotificationPreference existingEmail = mock(NotificationPreference.class);
-        when(existingEmail.getFormat()).thenReturn(NotificationFormat.EMAIL);
-        when(existingEmail.getProperties())
-            .thenReturn(Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE));
-        when(this.notificationPreferenceManager.getAllPreferences(WIKI)).thenReturn(List.of(existingEmail));
+        List<NotificationPreference> existing =
+            List.of(mockPreference(LicenseUserLimitWarningEvent.EVENT_TYPE, NotificationFormat.EMAIL));
+        when(this.notificationPreferenceManager.getAllPreferences(WIKI)).thenReturn(existing);
     }
 
     @Test
@@ -88,5 +90,43 @@ class LicenseUserLimitWarningEventDescriptorTest
 
         assertEquals(1, saved.getValue().size());
         assertEquals(NotificationFormat.ALERT, saved.getValue().get(0).getFormat());
+    }
+
+    @Test
+    void initializeSavesBothFormatsWhenMissing() throws Exception
+    {
+        clearInvocations(this.notificationPreferenceManager);
+        // A preference of another event type doesn't count.
+        List<NotificationPreference> existing = List.of(mockPreference("otherEventType", NotificationFormat.ALERT));
+        when(this.notificationPreferenceManager.getAllPreferences(WIKI)).thenReturn(existing);
+
+        this.descriptor.initialize();
+
+        ArgumentCaptor<List<NotificationPreference>> saved = ArgumentCaptor.forClass(List.class);
+        verify(this.notificationPreferenceManager).savePreferences(saved.capture());
+        assertEquals(List.of(NotificationFormat.ALERT, NotificationFormat.EMAIL),
+            saved.getValue().stream().map(NotificationPreference::getFormat).collect(Collectors.toList()));
+    }
+
+    @Test
+    void initializeSavesNothingWhenBothFormatsExist() throws Exception
+    {
+        clearInvocations(this.notificationPreferenceManager);
+        List<NotificationPreference> existing =
+            List.of(mockPreference(LicenseUserLimitWarningEvent.EVENT_TYPE, NotificationFormat.ALERT),
+                mockPreference(LicenseUserLimitWarningEvent.EVENT_TYPE, NotificationFormat.EMAIL));
+        when(this.notificationPreferenceManager.getAllPreferences(WIKI)).thenReturn(existing);
+
+        this.descriptor.initialize();
+
+        verify(this.notificationPreferenceManager, never()).savePreferences(any());
+    }
+
+    private NotificationPreference mockPreference(String eventType, NotificationFormat format)
+    {
+        NotificationPreference preference = mock(NotificationPreference.class);
+        when(preference.getFormat()).thenReturn(format);
+        when(preference.getProperties()).thenReturn(Map.of(NotificationPreferenceProperty.EVENT_TYPE, eventType));
+        return preference;
     }
 }
