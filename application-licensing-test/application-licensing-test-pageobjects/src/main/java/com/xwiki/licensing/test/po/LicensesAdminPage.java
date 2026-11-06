@@ -69,6 +69,9 @@ public class LicensesAdminPage extends AdministrationSectionPage
     @FindBy(css = "#licenses-settings input[name='formactionsac']")
     private WebElement saveSettingsButton;
 
+    @FindBy(id = "Licenses.Code.LicensingNotificationClass_0_userLimitWarningThreshold")
+    private WebElement userLimitWarningThresholdInput;
+
     public static LicensesAdminPage gotoPage()
     {
         AdministrationSectionPage.gotoPage(ADMINISTRATION_SECTION_ID);
@@ -160,6 +163,18 @@ public class LicensesAdminPage extends AdministrationSectionPage
     {
         return getDriver().findElementWithoutWaiting(By.cssSelector(STORE_CONNECTION_FIELDSET + " .infomessage"))
             .getText();
+    }
+
+    /**
+     * @param threshold the value to type in the "User Limit Warning Threshold" field, without saving it
+     * @return this page
+     * @since 1.34
+     */
+    public LicensesAdminPage setUserLimitWarningThreshold(String threshold)
+    {
+        this.userLimitWarningThresholdInput.clear();
+        this.userLimitWarningThresholdInput.sendKeys(threshold);
+        return this;
     }
 
     /**
