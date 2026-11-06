@@ -21,13 +21,13 @@ package com.xwiki.licensing.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.ObservationManager;
+import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -167,6 +167,7 @@ public class UserCounterTest
     public void notifyActiveUserAdded() throws Exception
     {
         ObservationManager observationManager = this.mocker.registerMockComponent(ObservationManager.class);
+        this.mocker.registerMockComponent(RemoteObservationManagerContext.class);
         EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.HINT);
 
         XWikiDocument createdActiveUser = mockUserDocument(null, 1);
@@ -184,6 +185,25 @@ public class UserCounterTest
         verify(observationManager).notify(any(ActiveUserAddedEvent.class), same(createdActiveUser), isNull());
         verify(observationManager).notify(any(ActiveUserAddedEvent.class), same(enabledUser), isNull());
         verifyNoMoreInteractions(observationManager);
+    }
+
+    @Test
+    public void notifyActiveUserAddedOnlyOnLocalEvents() throws Exception
+    {
+        ObservationManager observationManager = this.mocker.registerMockComponent(ObservationManager.class);
+        RemoteObservationManagerContext remoteContext =
+            this.mocker.registerMockComponent(RemoteObservationManagerContext.class);
+        when(remoteContext.isRemoteState()).thenReturn(true);
+        when(this.wikiDescriptorManager.getAllIds()).thenReturn(Collections.emptyList());
+        EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.HINT);
+
+        // Fill the cache, so that we can check it is still invalidated on remote events.
+        this.mocker.getComponentUnderTest().getUserCount();
+        userListener.onEvent(null, mockUserDocument(null, 1), null);
+        this.mocker.getComponentUnderTest().getUserCount();
+
+        verify(this.wikiDescriptorManager, times(2)).getAllIds();
+        verifyNoInteractions(observationManager);
     }
 
     /**

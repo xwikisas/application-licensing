@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Provider;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.xwiki.model.reference.WikiReference;
@@ -38,8 +36,7 @@ import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
-
-import com.xpn.xwiki.XWikiContext;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,14 +64,12 @@ class LicenseUserLimitWarningEventDescriptorTest
     private NotificationPreferenceManager notificationPreferenceManager;
 
     @MockComponent
-    private Provider<XWikiContext> contextProvider;
+    private WikiDescriptorManager wikiDescriptorManager;
 
     @BeforeComponent
     void beforeComponent() throws Exception
     {
-        XWikiContext context = mock(XWikiContext.class);
-        when(this.contextProvider.get()).thenReturn(context);
-        when(context.getWikiReference()).thenReturn(WIKI);
+        when(this.wikiDescriptorManager.getMainWikiId()).thenReturn(WIKI.getName());
 
         // The wiki already has the email preference, e.g. disabled by an admin.
         List<NotificationPreference> existing =

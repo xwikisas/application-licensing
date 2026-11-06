@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -45,8 +44,7 @@ import org.xwiki.notifications.preferences.NotificationPreferenceManager;
 import org.xwiki.notifications.preferences.NotificationPreferenceProperty;
 import org.xwiki.notifications.preferences.TargetableNotificationPreferenceBuilder;
 import org.xwiki.notifications.preferences.internal.WikiNotificationPreferenceProvider;
-
-import com.xpn.xwiki.XWikiContext;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 /**
  * Descriptor for the event {@link LicenseUserLimitWarningEvent}.
@@ -66,7 +64,7 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     private NotificationPreferenceManager notificationPreferenceManager;
 
     @Inject
-    private Provider<XWikiContext> contextProvider;
+    private WikiDescriptorManager wikiDescriptorManager;
 
     @Inject
     private Logger logger;
@@ -74,7 +72,9 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     @Override
     public void initialize()
     {
-        WikiReference wikiReference = this.contextProvider.get().getWikiReference();
+        // Use the main wiki rather than the current one: licenses are managed from the main wiki, and this singleton is
+        // initialized only once, possibly while a subwiki is the current wiki.
+        WikiReference wikiReference = new WikiReference(this.wikiDescriptorManager.getMainWikiId());
         Map<NotificationPreferenceProperty, Object> properties =
             Map.of(NotificationPreferenceProperty.EVENT_TYPE, LicenseUserLimitWarningEvent.EVENT_TYPE);
         try {

@@ -36,6 +36,7 @@ import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
+import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -103,6 +104,9 @@ public class UserCounter
         @Inject
         private Provider<ObservationManager> observationManagerProvider;
 
+        @Inject
+        private RemoteObservationManagerContext remoteObservationManagerContext;
+
         /**
          * Default constructor.
          */
@@ -133,7 +137,10 @@ public class UserCounter
                 this.userCounter.cachedUserCount = null;
             }
 
-            if (newActive == 1 && oldActive != 1) {
+            // In a cluster, every node also receives the document events of the other nodes. The cache must be
+            // invalidated on all of them (above), but only the node where the user was actually added should notify,
+            // otherwise each node would send its own copy of the user limit warning.
+            if (newActive == 1 && oldActive != 1 && !this.remoteObservationManagerContext.isRemoteState()) {
                 // The user was created active, or was enabled. Notify after the invalidation so that listeners get
                 // the new user count.
                 this.observationManagerProvider.get().notify(new ActiveUserAddedEvent(), newDocument, null);

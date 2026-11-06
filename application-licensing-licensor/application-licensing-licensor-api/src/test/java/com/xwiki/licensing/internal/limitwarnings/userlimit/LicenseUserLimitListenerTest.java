@@ -19,7 +19,6 @@
  */
 package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +40,6 @@ import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseManager;
@@ -54,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -112,7 +111,8 @@ class LicenseUserLimitListenerTest
         when(this.xcontext.getWikiId()).thenReturn("subwiki");
         when(this.serializer.serialize(new DocumentReference(MAIN_WIKI, "XWiki", "XWikiAdminGroup")))
             .thenReturn(ADMIN_GROUP);
-        when(this.licensingConfiguration.getNotifiedGroupsSet()).thenReturn(new HashSet<>(Set.of(NOTIFIED_GROUP)));
+        // An unmodifiable set, to check that the listener doesn't add the admin group to it.
+        when(this.licensingConfiguration.getNotifiedGroupsSet()).thenReturn(Set.of(NOTIFIED_GROUP));
         when(this.licensingConfiguration.getUserLimitWarningThreshold()).thenReturn("5");
     }
 
@@ -125,8 +125,7 @@ class LicenseUserLimitListenerTest
 
         this.listener.onEvent(new ActiveUserAddedEvent(), null, null);
 
-        ArgumentCaptor<XWikiDocument> document = ArgumentCaptor.forClass(XWikiDocument.class);
-        LicenseUserLimitWarningEvent event = verifyNotificationSent(document);
+        LicenseUserLimitWarningEvent event = verifyNotificationSent();
         assertEquals(List.of(license), List.copyOf(event.getLicenses()));
         assertEquals(7L, event.getUserCount());
         assertEquals(Set.of(NOTIFIED_GROUP, ADMIN_GROUP), event.getTarget());
@@ -141,16 +140,26 @@ class LicenseUserLimitListenerTest
         // userCount, threshold, notificationSent, logged threshold
         // At the limit.
         "10, 5, true, false",
+        // Exactly the threshold of remaining users.
+        "5, 5, true, false",
         // Far from the limit.
         "4, 5, false, false",
         // Over the limit.
         "11, 5, false, false",
+        // A threshold of 0 still warns when the limit is reached.
+        "10, 0, true, false",
+        "9, 0, false, false",
+        "10, 0%, true, false",
+        "9, 0%, false, false",
+        // 5% of 10 users is 0.5 users (which should be treated as 0).
+        "10, 5%, true, false",
+        "9, 5%, false, false",
         // 20% of 10 users is 2 users.
-        "9, 20%, true, false",
-        "8, 20%, false, false",
+        "8, 20%, true, false",
+        "7, 20%, false, false",
         // 33% of 10 users is 3.3 users (which should be treated as 3).
-        "8, 33%, true, false",
-        "7, 33%, false, false",
+        "7, 33%, true, false",
+        "6, 33%, false, false",
         // Invalid thresholds fall back to 5.
         "7, abc, true, true",
         "7, 150%, true, true",
@@ -166,8 +175,8 @@ class LicenseUserLimitListenerTest
     void thresholdValues(long userCount, String threshold, boolean notificationSent, boolean invalidThreshold)
         throws Exception
     {
-        License license = createLicense(10);
-        when(this.licenseManager.getUsedLicenses()).thenReturn(List.of(license));
+        // Two licenses, to check that an invalid threshold is logged only once.
+        when(this.licenseManager.getUsedLicenses()).thenReturn(List.of(createLicense(10), createLicense(10)));
         when(this.userCounter.getUserCount()).thenReturn(userCount);
         when(this.licensingConfiguration.getUserLimitWarningThreshold()).thenReturn(threshold);
 
@@ -179,9 +188,8 @@ class LicenseUserLimitListenerTest
             .notify(any(LicenseUserLimitWarningEvent.class), any(), any());
         if (invalidThreshold) {
             assertEquals(1, this.logCapture.size(), parameters);
-            assertTrue(
-                this.logCapture.getMessage(0).startsWith(String.format(
-                    "Could not parse user limit threshold [%s] for license [%s].", threshold, license.getId().getId())),
+            assertTrue(this.logCapture.getMessage(0).startsWith(String
+                .format("Could not parse user limit threshold [%s], using the default of [5] users.", threshold)),
                 parameters);
         }
     }
@@ -197,7 +205,7 @@ class LicenseUserLimitListenerTest
         this.listener.onEvent(new ActiveUserAddedEvent(), null, null);
 
         assertEquals(List.of(limitedLicense),
-            List.copyOf(verifyNotificationSent(ArgumentCaptor.forClass(XWikiDocument.class)).getLicenses()));
+            List.copyOf(verifyNotificationSent().getLicenses()));
     }
 
     @Test
@@ -209,7 +217,7 @@ class LicenseUserLimitListenerTest
         this.listener.onEvent(new LicenseAddedEvent(addedLicense), null, null);
 
         assertEquals(List.of(addedLicense),
-            List.copyOf(verifyNotificationSent(ArgumentCaptor.forClass(XWikiDocument.class)).getLicenses()));
+            List.copyOf(verifyNotificationSent().getLicenses()));
         verify(this.licenseManager, never()).getUsedLicenses();
     }
 
@@ -228,12 +236,12 @@ class LicenseUserLimitListenerTest
         verify(this.xcontext).setWikiId("subwiki");
     }
 
-    private LicenseUserLimitWarningEvent verifyNotificationSent(ArgumentCaptor<XWikiDocument> document)
+    private LicenseUserLimitWarningEvent verifyNotificationSent()
     {
         ArgumentCaptor<LicenseUserLimitWarningEvent> event =
             ArgumentCaptor.forClass(LicenseUserLimitWarningEvent.class);
         verify(this.observationManager).notify(event.capture(),
-            eq("com.xwiki.licensing:application-licensing-licensor-api"), document.capture());
+            eq("com.xwiki.licensing:application-licensing-licensor-api"), isNull());
         return event.getValue();
     }
 

@@ -20,8 +20,10 @@
 package com.xwiki.licensing.internal.limitwarnings.userlimit;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.LongUnaryOperator;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -119,6 +121,9 @@ public class LicenseUserLimitListener extends AbstractEventListener
         String currentWikiId = xcontext.getWikiId();
         try {
             xcontext.setWikiId(xcontext.getMainXWiki());
+            // The cached user count was just invalidated, so this recounts the active users on all wikis. When many
+            // users are created in a row (e.g. an LDAP or SSO import) this means one full count per user, but only
+            // while a license with a user limit is in use, since we return early otherwise.
             long userCount = userCounter.getUserCount();
             notifyForLicenses(potentiallyInvalidatedLicenses, userCount);
         } catch (Exception e) {
@@ -131,17 +136,17 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private void notifyForLicenses(Collection<License> licenses, long userCount)
     {
+        LongUnaryOperator threshold = getUserNotificationThreshold();
         Collection<License> filteredLicenses = licenses.stream().filter(license -> {
             long userDiff = license.getMaxUserCount() - userCount;
-            return 0 <= userDiff && userDiff < getUserNotificationThresholdForLicense(license);
+            // Inclusive, so that reaching the limit always warns, even with a threshold of 0 (or a % that rounds to 0).
+            return 0 <= userDiff && userDiff <= threshold.applyAsLong(license.getMaxUserCount());
         }).collect(Collectors.toSet());
 
         if (!filteredLicenses.isEmpty()) {
-            // The event is attached to Licenses.WebHome because the table of contents of notification emails labels
-            // each event with the title of its document; without a document the label would be empty. Since the event
-            // is targeted, recipients don't need to watch this page (only an explicit exclusive filter blocks it), but
-            // they need view right on it, and the Licenses space is restricted to the XWikiAdminGroup. On XWiki
-            // versions older than 15.10.12 the email label is displayed as "$title" (see XWIKI-20187).
+            // The event has no target page set as data, so all users in the target groups will receive the
+            // notifications, but the email renderer will show a raw velocity $title.
+            // If a target page is ever added, then users who can't view that page won't receive the notifications.
             String mainWikiId = contextProvider.get().getMainXWiki();
             observationManager.notify(
                 new LicenseUserLimitWarningEvent(filteredLicenses, userCount, getTargetGroups(mainWikiId)),
@@ -152,17 +157,23 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private Set<String> getTargetGroups(String mainWikiId)
     {
-        Set<String> notifiedGroups = licensingConfiguration.getNotifiedGroupsSet();
+        // Copy, since the returned set is not guaranteed to be modifiable.
+        Set<String> notifiedGroups = new HashSet<>(licensingConfiguration.getNotifiedGroupsSet());
         notifiedGroups.add(serializer.serialize(new DocumentReference(mainWikiId, "XWiki", "XWikiAdminGroup")));
         return notifiedGroups;
     }
 
-    private long getUserNotificationThresholdForLicense(License license)
+    /**
+     * Parse the configured threshold once, so that an invalid value is logged once instead of once per license.
+     *
+     * @return the function computing the warning threshold of a license from its user limit
+     */
+    private LongUnaryOperator getUserNotificationThreshold()
     {
         String threshold = licensingConfiguration.getUserLimitWarningThreshold();
         if (StringUtils.isBlank(threshold)) {
             // The configuration object is missing or can't be retrieved, or the field is left empty.
-            return USER_LIMIT_THRESHOLD_DEFAULT;
+            return maxUserCount -> USER_LIMIT_THRESHOLD_DEFAULT;
         }
 
         threshold = threshold.trim();
@@ -173,21 +184,20 @@ public class LicenseUserLimitListener extends AbstractEventListener
                 long thresh = Long.parseLong(threshold.substring(0, threshold.length() - 1));
                 if (!(thresh >= 0 && thresh <= 100)) {
                     throw new NumberFormatException("Invalid Percentage: " + thresh + PERCENT);
-                } else {
-                    return license.getMaxUserCount() * thresh / 100;
                 }
+                return maxUserCount -> maxUserCount * thresh / 100;
             } else {
                 long thresh = Long.parseLong(threshold);
                 if (thresh < 0) {
                     // A negative threshold would silently disable the warnings, so reject it like a negative %.
                     throw new NumberFormatException("Negative threshold: " + thresh);
                 }
-                return thresh;
+                return maxUserCount -> thresh;
             }
         } catch (NumberFormatException e) {
-            logger.warn("Could not parse user limit threshold [{}] for license [{}]. Cause: [{}]", threshold,
-                license.getId().getId(), ExceptionUtils.getRootCauseMessage(e));
-            return USER_LIMIT_THRESHOLD_DEFAULT;
+            logger.warn("Could not parse user limit threshold [{}], using the default of [{}] users. Cause: [{}]",
+                threshold, USER_LIMIT_THRESHOLD_DEFAULT, ExceptionUtils.getRootCauseMessage(e));
+            return maxUserCount -> USER_LIMIT_THRESHOLD_DEFAULT;
         }
     }
 

@@ -166,7 +166,7 @@ public class LicensesAdminPage extends AdministrationSectionPage
     }
 
     /**
-     * @param threshold the value to type in the "User Limit Warning Threshold" field, without saving it
+     * @param threshold the value to type in the "User limit warning threshold" field, without saving it
      * @return this page
      * @since 1.34
      */
