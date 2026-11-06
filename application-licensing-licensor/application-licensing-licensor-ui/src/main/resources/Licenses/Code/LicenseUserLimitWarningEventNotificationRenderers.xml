@@ -360,7 +360,19 @@
 #displayNotificationSkeleton($leftCell, $rightCell)</htmlTemplate>
     </property>
     <property>
-      <plainTextTemplate/>
+      <plainTextTemplate>## We target the main wiki explicitly because licenses are managed globally.
+#if ($xwiki.exists($services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'ConfigurableClass')))
+  #set ($licensesAdminSectionURL = $xwiki.getURL(
+    $services.model.createDocumentReference($xcontext.mainWikiName, 'XWiki', 'XWikiPreferences'),
+    'admin', 'editor=globaladmin&amp;section=Licenses'))
+#else
+  ## Fall-back in case the Administration Application is not installed.
+  #set ($licensesAdminSectionURL = $xwiki.getURL(
+    $services.model.createDocumentReference($xcontext.mainWikiName, 'Licenses', 'WebHome')))
+#end
+$services.localization.render('licensor.events.LicenseUserLimitWarningEvent.title')
+$services.localization.render('licensor.events.LicenseUserLimitWarningEvent.email.adminSectionHint.plainText',
+  [$licensesAdminSectionURL])</plainTextTemplate>
     </property>
   </object>
 </xwikidoc>

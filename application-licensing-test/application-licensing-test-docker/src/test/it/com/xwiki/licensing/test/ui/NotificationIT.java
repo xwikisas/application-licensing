@@ -219,7 +219,11 @@ class NotificationIT
         SchedulerHomePage.gotoPage().clickJobActionTrigger("Notifications daily email");
         // Wait 30s at most, so that the email has enough time to arrive even if the CI is slow.
         mail.waitForIncomingEmail(30000L, receivedCount + 1);
-        assertEquals(expectedCount, getUserLimitWarningEmails().size());
+        List<MimeMessage> emails = getUserLimitWarningEmails();
+        assertEquals(expectedCount, emails.size());
+        // The plain text part uses the user limit warning template, not the default one.
+        assertTrue(getText(emails.get(expectedCount - 1))
+            .contains("Please check the licenses administration section for an up to date report: http"));
     }
 
     /**
