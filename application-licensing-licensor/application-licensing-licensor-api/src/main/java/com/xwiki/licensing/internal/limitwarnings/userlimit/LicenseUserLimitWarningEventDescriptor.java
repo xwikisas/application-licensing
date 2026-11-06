@@ -106,7 +106,6 @@ public class LicenseUserLimitWarningEventDescriptor implements RecordableEventDe
     private NotificationPreference createPreference(NotificationFormat format,
         Map<NotificationPreferenceProperty, Object> properties, WikiReference wikiReference)
     {
-        // The builder returns the same instance until prepare() is called again, so each preference needs its own.
         return this.targetableNotificationPreferenceBuilder.prepare()
             .setCategory(NotificationPreferenceCategory.DEFAULT).setEnabled(true).setFormat(format)
             .setProperties(properties).setProviderHint(WikiNotificationPreferenceProvider.NAME).setStartDate(new Date())

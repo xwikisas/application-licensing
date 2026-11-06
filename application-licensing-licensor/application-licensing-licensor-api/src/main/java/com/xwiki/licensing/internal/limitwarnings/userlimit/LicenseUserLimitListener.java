@@ -157,7 +157,6 @@ public class LicenseUserLimitListener extends AbstractEventListener
 
     private Set<String> getTargetGroups(String mainWikiId)
     {
-        // Copy, since the returned set is not guaranteed to be modifiable.
         Set<String> notifiedGroups = new HashSet<>(licensingConfiguration.getNotifiedGroupsSet());
         notifiedGroups.add(serializer.serialize(new DocumentReference(mainWikiId, "XWiki", "XWikiAdminGroup")));
         return notifiedGroups;
@@ -179,8 +178,7 @@ public class LicenseUserLimitListener extends AbstractEventListener
         threshold = threshold.trim();
         try {
             if (threshold.endsWith(PERCENT)) {
-                // The threshold is specified as a % of the license user limit. Only the last character is removed, so
-                // that values like "10%%" are rejected.
+                // The threshold is specified as a % of the license user limit.
                 long thresh = Long.parseLong(threshold.substring(0, threshold.length() - 1));
                 if (!(thresh >= 0 && thresh <= 100)) {
                     throw new NumberFormatException("Invalid Percentage: " + thresh + PERCENT);
