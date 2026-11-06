@@ -81,7 +81,7 @@ class LicensingIT
 
     private static final String NO_LICENSE_AVAILABLE = "No license available";
 
-    private String instanceId;
+    protected String instanceId;
 
     @BeforeEach
     void configure(TestUtils setup) throws Exception
@@ -356,7 +356,7 @@ class LicensingIT
         return true;
     }
 
-    private String addLicense(LicenseType type, String expirationDate, String support, String userLimit,
+    protected String addLicense(LicenseType type, String expirationDate, String support, String userLimit,
         TestUtils setup)
     {
         LicenseDetailsEditPage licenseDetails = LicensesHomePage.gotoPage().clickAddLicenseDetails();
