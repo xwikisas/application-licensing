@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -33,7 +34,9 @@ import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
+import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -43,6 +46,7 @@ import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+import com.xwiki.licensing.internal.helpers.events.ActiveUserAddedEvent;
 
 /**
  * Component used to count the existing active users.
@@ -97,6 +101,12 @@ public class UserCounter
         @Inject
         private UserCounter userCounter;
 
+        @Inject
+        private Provider<ObservationManager> observationManagerProvider;
+
+        @Inject
+        private RemoteObservationManagerContext remoteObservationManagerContext;
+
         /**
          * Default constructor.
          */
@@ -125,6 +135,15 @@ public class UserCounter
             if (newDocumentIsUser != oldDocumentIsUser || newActive != oldActive) {
                 // The user object is either added/removed or set to active/inactive. Invalidate the cached user count.
                 this.userCounter.cachedUserCount = null;
+            }
+
+            // In a cluster, every node also receives the document events of the other nodes. The cache must be
+            // invalidated on all of them (above), but only the node where the user was actually added should notify,
+            // otherwise each node would send its own copy of the user limit warning.
+            if (newActive == 1 && oldActive != 1 && !this.remoteObservationManagerContext.isRemoteState()) {
+                // The user was created active, or was enabled. Notify after the invalidation so that listeners get
+                // the new user count.
+                this.observationManagerProvider.get().notify(new ActiveUserAddedEvent(), newDocument, null);
             }
         }
     }

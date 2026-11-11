@@ -31,6 +31,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ import org.xwiki.extension.InstalledExtension;
 import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.extension.xar.internal.handler.XarExtensionHandler;
 import org.xwiki.extension.xar.internal.repository.XarInstalledExtension;
+import org.xwiki.observation.ObservationManager;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
 import com.xwiki.licensing.License;
@@ -56,6 +58,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.enforcer.LicensingSecurityCacheRuleInvalidator;
 import com.xwiki.licensing.internal.enforcer.LicensingUtils;
+import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
 
 /**
  * Default implementation of the {@link LicenseManager} role.
@@ -114,6 +117,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
 
     @Inject
     private LicensedExtensionManager licensedExtensionManager;
+
+    @Inject
+    private Provider<ObservationManager> observationManagerProvider;
 
     private final Map<LicenseId, License> licenses = new HashMap<>();
 
@@ -339,6 +345,9 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
             }
 
             linkLicenseToInstalledExtensions(licIds, license);
+            // Notify from here rather than when the license is registered, so that the licenses loaded from the
+            // store at startup don't trigger the event on every restart.
+            this.observationManagerProvider.get().notify(new LicenseAddedEvent(license), null, null);
             return true;
         }
         return false;

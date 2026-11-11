@@ -1,0 +1,97 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package com.xwiki.licensing.internal.limitwarnings.userlimit;
+
+import java.util.Collection;
+import java.util.Set;
+
+import com.xwiki.licensing.License;
+import com.xwiki.licensing.internal.upgrades.AbstractLicensorTargetableEvent;
+
+/**
+ * Notification event for licenses which have almost reached their user limit.
+ *
+ * @version $Id$
+ * @since 1.34
+ */
+public class LicenseUserLimitWarningEvent extends AbstractLicensorTargetableEvent
+{
+    /**
+     * The name of components related to this event.
+     */
+    public static final String EVENT_TYPE =
+        "com.xwiki.licensing.internal.limitwarnings.userlimit.LicenseUserLimitWarningEvent";
+
+    /**
+     * Licenses which risk to be invalid because of the user limit.
+     */
+    private final Collection<License> licenses;
+
+    /**
+     * The number of users on the instance.
+     */
+    private final long userCount;
+
+    /**
+     * Constructor for listeners and matchers.
+     */
+    public LicenseUserLimitWarningEvent()
+    {
+        this.licenses = Set.of();
+        this.userCount = 0;
+    }
+
+    /**
+     * Default constructor.
+     *
+     * @param licenses the licenses whose user limit is almost exceeded
+     * @param userCount the number of users on the instance
+     * @param notifiedGroups the groups that should be notified. An empty {@link Set} means all users will be notified,
+     *            no matter the group
+     */
+    public LicenseUserLimitWarningEvent(Collection<License> licenses, long userCount, Set<String> notifiedGroups)
+    {
+        this.licenses = licenses;
+        this.userCount = userCount;
+        this.setNotifiedGroups(notifiedGroups);
+    }
+
+    /**
+     * @return the licenses whose user limit is almost exceeded
+     */
+    public Collection<License> getLicenses()
+    {
+        return licenses;
+    }
+
+    /**
+     * @return the number of active users on the instance when the event was sent
+     */
+    public long getUserCount()
+    {
+        return userCount;
+    }
+
+    @Override
+    public boolean matches(Object otherEvent)
+    {
+        return otherEvent instanceof LicenseUserLimitWarningEvent;
+    }
+}
