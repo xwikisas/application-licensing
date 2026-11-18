@@ -95,7 +95,9 @@
       #end
       ; License
       #if ($retrieveGeneratedLicenseError)
-        : {{error}}$retrieveGeneratedLicenseError.getCause(){{/error}}
+        #set ($errorMessage = $services.rendering.escape("$!retrieveGeneratedLicenseError.getCause()",
+          $xwiki.currentContentSyntaxId))
+        : {{error}}$errorMessage{{/error}}
       #elseif ("$!license" != '')
         : {{html clean="false"}}
           &lt;p&gt;
@@ -105,7 +107,8 @@
           &lt;pre class="code"&gt;$escapetool.xml($services.licensing.license.encode($license))&lt;/pre&gt;
           {{/html}}
       #else
-        : {{error}}The license ID [$licenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
+        #set ($escapedLicenseId = $services.rendering.escape("$!licenseId", $xwiki.currentContentSyntaxId))
+        : {{error}}The license ID [$escapedLicenseId] doesn't correspond to any saved license in the license store! You should consider regenerating a license{{/error}}
 
         #displayGenerateButton()
       #end
