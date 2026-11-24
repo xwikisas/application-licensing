@@ -60,6 +60,22 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
+    <!-- Provides the job that sends the daily notification emails (see NotificationIT). -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-scheduler-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Provides the mail configuration used to send the notification emails (see NotificationIT). -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-mail-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Required by the Groovy scripts used in tests (e.g. to use the generated Certificates) -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -84,6 +100,17 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-notifications-test-pageobjects</artifactId>
       <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-scheduler-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.icegreen</groupId>
+      <artifactId>greenmail-junit5</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
