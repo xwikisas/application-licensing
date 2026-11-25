@@ -19,9 +19,6 @@
  */
 package com.xwiki.licensing.test.script;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -33,7 +30,6 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.Licensor;
