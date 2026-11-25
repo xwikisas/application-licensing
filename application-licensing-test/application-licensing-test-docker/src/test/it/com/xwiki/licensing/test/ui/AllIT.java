@@ -72,8 +72,8 @@ class AllIT
     }
 
     @Nested
-    @DisplayName("UserCounter test")
-    class NestedUserCounterIT extends UserCounterIT
+    @DisplayName("User limit test")
+    class NestedUserLimitIT extends UserLimitIT
     {
     }
 

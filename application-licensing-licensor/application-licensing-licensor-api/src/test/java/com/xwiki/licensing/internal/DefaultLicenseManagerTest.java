@@ -30,6 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.InstalledExtension;
+import org.xwiki.extension.repository.InstalledExtensionRepository;
 import org.xwiki.instance.InstanceId;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
@@ -45,6 +47,7 @@ import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
 import com.xwiki.licensing.internal.test.LicenseValidatorWrapper;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -101,6 +104,12 @@ public class DefaultLicenseManagerTest
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singleton(testAppId));
         when(licensedExtensionManager.getLicensedExtensions(licensedFeatureId))
             .thenReturn(Collections.singleton(testAppId));
+
+        InstalledExtensionRepository installedExtensionRepository =
+            this.mocker.getInstance(InstalledExtensionRepository.class);
+        InstalledExtension installedTestApp = mock(InstalledExtension.class);
+        when(installedTestApp.getId()).thenReturn(testAppId);
+        when(installedExtensionRepository.getInstalledExtension(testAppId.getId(), null)).thenReturn(installedTestApp);
     }
 
     @Test
@@ -117,6 +126,9 @@ public class DefaultLicenseManagerTest
         Thread.sleep(1000);
 
         assertSame(this.validLicense, licenseManager.get(this.testAppId));
+        // The version of the extension is resolved from the installed one.
+        assertSame(this.validLicense, licenseManager.get(this.testAppId.getId()));
+        assertNull(licenseManager.get("com.xwiki.test:application-not-installed"));
         assertTrue(CollectionUtils.isEqualCollection(Collections.singletonList(this.validLicense),
             licenseManager.getUsedLicenses()));
     }

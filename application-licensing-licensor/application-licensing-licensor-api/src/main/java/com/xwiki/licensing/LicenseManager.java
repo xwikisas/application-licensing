@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.stability.Unstable;
 
 /**
  * Licensing manager allowing to retrieve active licenses, to add new ones, and drop existing ones.
@@ -41,13 +42,20 @@ public interface LicenseManager
     License get(ExtensionId extensionId);
 
     /**
-     * Retrieve the currently applicable license for the given installed extension.
+     * Retrieve the currently applicable license for the given installed extension, identified only by its id. The
+     * version is the one of the extension installed on the root namespace, i.e. installed for the whole farm.
      *
-     * @param extensionId identifier of an installed extension
-     * @return a license.
-     * @since 1.33.0
+     * @param extensionId the id of an extension installed on the root namespace, without version, e.g.
+     *     {@code com.xwiki.activedirectory:application-activedirectory-api}
+     * @return the license of the installed extension, or {@code null} if no extension with this id is installed on the
+     *     root namespace or if no license applies to it
+     * @since 1.34.0
      */
-    License get(String extensionId);
+    @Unstable
+    default License get(String extensionId)
+    {
+        return null;
+    }
 
     /**
      * Add a new license to the current set of active license. The added license is checked to be applicable to the

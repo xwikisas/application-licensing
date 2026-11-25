@@ -21,7 +21,6 @@ package com.xwiki.licensing.test.ui;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.xwiki.model.reference.DocumentReference;
@@ -39,35 +39,41 @@ import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.docker.junit5.WikisSource;
 import org.xwiki.test.ui.TestUtils;
 
-import com.xwiki.licensing.test.po.UserCounterPage;
+import com.xwiki.licensing.test.po.UserLimitPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Verify that users over the user limit are marked and counted correctly.
+ * Verify that {@code Licensor#isUserUnderLimit(DocumentReference, long)} and {@code Licensor#getUserCount()} mark and
+ * count the users correctly. The variations of the limit check are covered by the unit tests of {@code UserCounter};
+ * this test covers what needs a real instance: the user query, the cache invalidation when users are created or
+ * deleted, and the ordering of the users of several wikis.
  *
  * @version $Id$
- * @since 1.33.0
+ * @since 1.34.0
  */
 @UITest
-class UserCounterIT
+class UserLimitIT
 {
-    public static final LocalDocumentReference testPage = new LocalDocumentReference("Test", "UserCounterTestPage");
+    public static final LocalDocumentReference testPage = new LocalDocumentReference("Test", "UserLimitTestPage");
 
     private static final String PASSWORD = "password";
 
     @BeforeAll
-    void setup(TestUtils setup)
+    void setup(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
+        try (InputStream content = UserLimitPage.class.getResourceAsStream("/UserLimitTestPage.wiki")) {
+            setup.rest().savePage(testPage, IOUtils.toString(content, StandardCharsets.UTF_8), "");
+        }
     }
 
     @AfterAll
     void afterAll(TestUtils setup)
     {
-        deleteUserCounterTestPage(setup);
+        deleteUserLimitTestPage(setup);
     }
 
     @BeforeEach
@@ -83,83 +89,10 @@ class UserCounterIT
     }
 
     /**
-     * This test documents the behavior of isUserUnderLimit() for special users.
-     */
-    @Test
-    void otherUserTest(TestUtils setup) throws Exception
-    {
-        // 0 users on the instance for these tests.
-        assertEquals(0, this.getUserCountOnInstance(setup));
-
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", 1));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", 1));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", 1));
-        // A -1 limit means the license has no limit.
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.XWikiGuest", -1));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.superadmin", -1));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.NonExistentUser", -1));
-    }
-
-    /**
-     * Test for checking infinite user limits.
-     */
-    @ParameterizedTest
-    @WikisSource(mainWiki = false)
-    void infiniteLimitTest(WikiReference wikiReference, TestUtils setup) throws Exception
-    {
-        String subwikiName = wikiReference.getName();
-        createUsers(setup, "xwiki", 1, 2, true);
-        createUsers(setup, "xwiki", 2, 3, false);
-        createUsers(setup, subwikiName, 3, 4, true);
-
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", -1));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", -1));
-        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", -1));
-
-        assertEquals(2, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 3);
-        deleteUsers(setup, subwikiName, 3, 4);
-    }
-
-    /**
-     * Check that no unexpected behavior happens if the number of users is lower than the requested limit.
-     */
-    @Test
-    void lowerThanRequestedMainWiki(TestUtils setup) throws Exception
-    {
-        createUsers(setup, "xwiki", 1, 3, true);
-
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
-
-        assertEquals(2, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 3);
-    }
-
-    /**
-     * Check that no unexpected behavior happens if the number of users is higher than the requested limit.
-     */
-    @Test
-    void moreThanRequestedMainWiki(TestUtils setup) throws Exception
-    {
-        createUsers(setup, "xwiki", 1, 5, true);
-
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 2));
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 2));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_3", 2));
-        assertFalse(isUserUnderLimit(setup, "xwiki:XWiki.User_4", 2));
-
-        assertEquals(4, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 5);
-    }
-
-    /**
      * Test that inactive users are disregarded when computing the user limit.
      */
     @Test
+    @Order(1)
     void inactiveUsersMainWiki(TestUtils setup) throws Exception
     {
         createUsers(setup, "xwiki", 1, 2, false);
@@ -177,36 +110,11 @@ class UserCounterIT
     }
 
     /**
-     * Check that no unexpected behavior happens if the number of users on all wikis is lower than the requested limit.
-     */
-    @ParameterizedTest
-    @WikisSource(mainWiki = false)
-    void lowerThanRequestedSubwiki(WikiReference wikiReference, TestUtils setup) throws Exception
-    {
-        String subwikiName = wikiReference.getName();
-        createUsers(setup, "xwiki", 1, 3, true);
-        createUsers(setup, subwikiName, 3, 5, true);
-
-        // Test user on main wiki
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_1", 5));
-        // Test user on main wiki who would be under limit if not for the subwiki users.
-        assertTrue(isUserUnderLimit(setup, "xwiki:XWiki.User_2", 5));
-        // Test user on subwiki
-        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_3", 5));
-        // Test user on main wiki who would be under limit if not for the main wiki users.
-        assertTrue(isUserUnderLimit(setup, subwikiName + ":XWiki.User_4", 5));
-
-        assertEquals(4, this.getUserCountOnInstance(setup));
-
-        deleteUsers(setup, "xwiki", 1, 3);
-        deleteUsers(setup, subwikiName, 3, 5);
-    }
-
-    /**
      * Test that users from all subwikis are counted towards the user limit.
      */
     @ParameterizedTest
     @WikisSource(mainWiki = false)
+    @Order(2)
     void subwikiLimitUsesAllWikis(WikiReference wikiReference, TestUtils setup) throws Exception
     {
         String subwikiName = wikiReference.getName();
@@ -230,19 +138,20 @@ class UserCounterIT
 
     private int getUserCountOnInstance(TestUtils setup) throws Exception
     {
-        return gotoUserCounterTestPage(setup, null, null).getUserCount();
+        return gotoUserLimitTestPage(setup, null, null).getUserCount();
     }
 
     /**
-     * Get the result of a isUserUnderLimit() call, by evaluating it in a velocity script.
+     * Get the result of a Licensor#isUserUnderLimit() call, by evaluating it in a velocity script.
      */
     private boolean isUserUnderLimit(TestUtils setup, String user, int limit) throws Exception
     {
-        return gotoUserCounterTestPage(setup, user, limit).isUserUnderLimit();
+        return gotoUserLimitTestPage(setup, user, limit).isUserUnderLimit();
     }
 
     /**
-     * Create user pages like XWiki.User_{startInclusive}, ... XWiki.User_{endExclusive-1}.
+     * Create user pages like XWiki.User_{startInclusive}, ... XWiki.User_{endExclusive-1}. The users created by one
+     * call are newer than the users created by the previous calls.
      */
     private void createUsers(TestUtils setup, String subwiki, int startInclusive, int endExclusive, boolean active)
         throws Exception
@@ -254,18 +163,14 @@ class UserCounterIT
 
         setup.loginAsSuperAdmin();
 
+        // Creation dates are stored with a precision of one second. Users created in the same second are ordered by
+        // their reference, which matches the creation order only for the users of the same wiki (User_1, User_2...).
+        Thread.sleep(1000);
+
         for (int i = startInclusive; i < endExclusive; i++) {
             DocumentReference documentReference = new DocumentReference(subwiki, "XWiki", "User_" + i);
             assertFalse(setup.rest().exists(documentReference));
             setup.addObject(documentReference, "XWiki.XWikiUsers", "password", PASSWORD, "active", active);
-
-            try {
-                setup.getDriver().waitUntilCondition(driver -> false, 1);
-            } catch (Exception e) {
-                // Ignored. We want this to fail after 1 second, to ensure that the users are created in the expected
-                // order (i.e. no equal creation dates for 2 users in the tests, since users are ordered by date).
-            }
-            System.out.println("Creating " + documentReference + " at " + new Date());
         }
 
         setup.setCurrentWiki(currentWiki);
@@ -287,19 +192,13 @@ class UserCounterIT
             DocumentReference documentReference = new DocumentReference(subwiki, "XWiki", "User_" + i);
             assertTrue(setup.rest().exists(documentReference));
             setup.deletePage(documentReference);
-            System.out.println("Deleting " + documentReference + " at " + new Date());
         }
 
         setup.setCurrentWiki(currentWiki);
     }
 
-    private UserCounterPage gotoUserCounterTestPage(TestUtils setup, String user, Integer limit) throws Exception
+    private UserLimitPage gotoUserLimitTestPage(TestUtils setup, String user, Integer limit)
     {
-        // Create the page if it doesn't exist.
-        try (InputStream content = UserCounterPage.class.getResourceAsStream("/UserCounterTestPage.wiki")) {
-            setup.rest().savePage(testPage, IOUtils.toString(content, StandardCharsets.UTF_8), "");
-        }
-
         Map<String, Object> queryParams = new HashMap<>();
         if (user != null) {
             queryParams.put("user", user);
@@ -308,10 +207,10 @@ class UserCounterIT
             queryParams.put("limit", limit);
         }
         setup.gotoPage(testPage, "view", queryParams);
-        return new UserCounterPage();
+        return new UserLimitPage();
     }
 
-    private void deleteUserCounterTestPage(TestUtils setup)
+    private void deleteUserLimitTestPage(TestUtils setup)
     {
         setup.deletePage(testPage);
     }

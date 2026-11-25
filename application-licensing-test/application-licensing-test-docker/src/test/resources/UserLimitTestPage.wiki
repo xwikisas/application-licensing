@@ -1,0 +1,14 @@
+{{velocity}}
+#set ($licensor = $services.licensing.licensor.licensor)
+#if ("$!request.user" != '')
+  #set ($isUserUnderLimit = $licensor.isUserUnderLimit($services.model.resolveDocument($request.user),
+    $numbertool.toNumber($request.limit).longValue()))
+#end
+{{html}}
+Is user under limit:
+<span id="isUserUnderLimit">$!isUserUnderLimit</span>
+<br/>
+User count on instance:
+<span id="userCount">$licensor.userCount</span>
+{{/html}}
+{{/velocity}}

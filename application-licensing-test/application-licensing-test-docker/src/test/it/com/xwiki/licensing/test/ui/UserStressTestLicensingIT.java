@@ -22,6 +22,7 @@ package com.xwiki.licensing.test.ui;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.docker.junit5.TestReference;
@@ -37,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * changes that you think might crash instances with 10k users.
  *
  * @version $Id$
- * @since 1.33.0
+ * @since 1.34.0
  */
 @UITest
 class UserStressTestLicensingIT
@@ -64,6 +65,7 @@ class UserStressTestLicensingIT
     }
 
     @Test
+    @Order(1)
     void stressTest(TestReference testReference, TestUtils setup)
     {
         setup.loginAsSuperAdmin();

@@ -21,7 +21,9 @@ package com.xwiki.licensing;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.stability.Unstable;
 
 /**
  * The licensor component used while running functional tests for licensed applications.
@@ -53,8 +55,33 @@ public interface Licensor
      *
      * @param extensionId the name of the extension for which licensure should be checked.
      * @return true if the given extension has a valid license or is not subject to licensing.
+     * @since 1.34.0
      */
+    @Unstable
     boolean hasLicensure(String extensionId);
+
+    /**
+     * Count the active users of the instance, all wikis included.
+     *
+     * @return the number of active users
+     * @throws Exception if the users of the instance cannot be counted
+     * @since 1.34.0
+     */
+    @Unstable
+    long getUserCount() throws Exception;
+
+    /**
+     * Check whether the given user is among the first {@code limit} active users of the instance, all wikis included,
+     * ordered by creation date.
+     *
+     * @param user the user to check, e.g. {@code xwiki:XWiki.JohnDoe}
+     * @param limit the maximum number of users allowed by the license; a negative value means unlimited
+     * @return true if the user is under the limit
+     * @throws Exception if the users of the instance cannot be retrieved
+     * @since 1.34.0
+     */
+    @Unstable
+    boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception;
 
     /**
      * @return true if the current document has a valid license or is not subject to licensing.
@@ -85,12 +112,16 @@ public interface Licensor
     License getLicense(EntityReference reference);
 
     /**
-     * Retrieve the currently applicable license for the given installed extension.
+     * Retrieve the currently applicable license for the given installed extension, identified only by its id. The
+     * version is the one of the extension installed on the root namespace, i.e. installed for the whole farm.
      *
-     * @param extensionId name of an installed extension. This method automatically resolves the version of the
-     *     extension which is installed
-     * @return a license, or null if the given installed extension is not subject to licensing.
+     * @param extensionId the id of an extension installed on the root namespace, without version, e.g.
+     *     {@code com.xwiki.activedirectory:application-activedirectory-api}
+     * @return the license of the installed extension, or {@code null} if no extension with this id is installed on the
+     *     root namespace, if no license applies to it, or if the license cannot be retrieved
+     * @since 1.34.0
      */
+    @Unstable
     License getLicense(String extensionId);
 
     /**
