@@ -41,13 +41,16 @@ public interface Licensor
     License getLicense();
 
     /**
-     * Retrieve the currently applicable license for the given installed extension.
+     * Retrieve the currently applicable license for the given installed extension, identified only by its id. The
+     * version is the one of the extension installed on the root namespace, i.e. installed for the whole farm.
      *
-     * @param extensionId name of an installed extension. This method automatically resolves the version of the
-     *     extension which is installed
-     * @return a license, or null if the given installed extension is not subject to licensing.
+     * @param extensionId the id of an extension installed on the root namespace, without version, e.g.
+     *     {@code com.xwiki.activedirectory:application-activedirectory-api}
+     * @return the license of the installed extension, or {@code null} if no extension with this id is installed on the
+     *     root namespace, if no license applies to it, or if the license cannot be retrieved
      * @since 1.34.0
      */
+    @Unstable
     default License getLicense(String extensionId)
     {
         return null;
@@ -96,6 +99,7 @@ public interface Licensor
      * @return true if the given extension has a valid license or is not subject to licensing.
      * @since 1.34.0
      */
+    @Unstable
     default boolean hasLicensure(String extensionId)
     {
         return true;

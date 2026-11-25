@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.stability.Unstable;
 
 /**
  * Licensing manager allowing to retrieve active licenses, to add new ones, and drop existing ones.
@@ -50,6 +51,7 @@ public interface LicenseManager
      *     root namespace or if no license applies to it
      * @since 1.34.0
      */
+    @Unstable
     default License get(String extensionId)
     {
         return null;

@@ -31,7 +31,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -117,7 +116,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     private LicensedExtensionManager licensedExtensionManager;
 
     @Inject
-    private Provider<InstalledExtensionRepository> installedExtensionRepositoryProvider;
+    private InstalledExtensionRepository installedExtensionRepository;
 
     private final Map<LicenseId, License> licenses = new HashMap<>();
 
@@ -335,7 +334,7 @@ public class DefaultLicenseManager implements LicenseManager, Initializable
     public License get(String extensionId)
     {
         InstalledExtension installedExtension =
-            this.installedExtensionRepositoryProvider.get().getInstalledExtension(extensionId, null);
+            this.installedExtensionRepository.getInstalledExtension(extensionId, null);
         return installedExtension != null ? get(installedExtension.getId()) : null;
     }
 

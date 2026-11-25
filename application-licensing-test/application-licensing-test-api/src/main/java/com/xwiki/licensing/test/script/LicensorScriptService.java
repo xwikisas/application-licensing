@@ -33,7 +33,6 @@ import org.xwiki.stability.Unstable;
 import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseType;
 import com.xwiki.licensing.Licensor;
-import com.xwiki.licensing.internal.UserCounter;
 
 /**
  * Script service for the licensor, to be used when running functional tests of the licensed applications.
@@ -49,9 +48,6 @@ public class LicensorScriptService implements ScriptService
 {
     @Inject
     private Licensor licensor;
-
-    @Inject
-    private UserCounter userCounter;
 
     /**
      * Retrieve the currently applicable license for the current context document if any. Equivalent to
@@ -93,7 +89,7 @@ public class LicensorScriptService implements ScriptService
     @Unstable
     public boolean isUserUnderLimit(DocumentReference user, long limit) throws Exception
     {
-        return this.userCounter.isUserUnderLimit(user, limit);
+        return this.licensor.isUserUnderLimit(user, limit);
     }
 
     /**
