@@ -1,2 +1,10 @@
 com.xwiki.licensing.internal.DefaultSignedLicenseGenerator
 com.xwiki.licensing.script.ManagerScriptService
+com.xwiki.licensing.internal.issuing.ApiConfiguration
+com.xwiki.licensing.internal.issuing.LicensedDependencyResolver
+com.xwiki.licensing.internal.issuing.LicenseRecordStore
+com.xwiki.licensing.internal.issuing.LicenseSigner
+com.xwiki.licensing.internal.issuing.model.InstanceClassInitializer
+com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer
+com.xwiki.licensing.internal.issuing.model.ProductClassInitializer
+com.xwiki.licensing.internal.issuing.GeneratedLicenseStore
