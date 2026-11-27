@@ -34,12 +34,15 @@ import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
+import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.SignedLicense;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -82,6 +85,24 @@ class GeneratedLicenseStoreTest
         File storeFile = new File(this.permanentDirectory, "generated-licenses");
         verify(this.licenseStore).store(argThat(reference -> isMultiStore(reference, storeFile)), eq(license));
         verify(this.licenseStore).delete(argThat(reference -> isMultiStore(reference, storeFile)), eq(licenseId));
+    }
+
+    @Test
+    void get() throws Exception
+    {
+        when(this.environment.getPermanentDirectory()).thenReturn(this.permanentDirectory);
+        File storeFile = new File(this.permanentDirectory, "generated-licenses");
+        LicenseId signedId = new LicenseId();
+        SignedLicense signed = mock(SignedLicense.class);
+        when(this.licenseStore.retrieve(argThat(reference -> isMultiStore(reference, storeFile)), eq(signedId)))
+            .thenReturn(signed);
+        LicenseId unsignedId = new LicenseId();
+        when(this.licenseStore.retrieve(argThat(reference -> isMultiStore(reference, storeFile)), eq(unsignedId)))
+            .thenReturn(new License());
+
+        assertSame(signed, this.store.get(signedId));
+        assertNull(this.store.get(unsignedId));
+        assertNull(this.store.get(new LicenseId()));
     }
 
     @Test

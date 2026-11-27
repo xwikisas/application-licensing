@@ -30,6 +30,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.crypto.BinaryStringEncoder;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
+import com.xwiki.licensing.License;
 import com.xwiki.licensing.LicenseId;
 import com.xwiki.licensing.LicenseStore;
 import com.xwiki.licensing.LicenseStoreReference;
@@ -70,6 +71,17 @@ public class GeneratedLicenseStore
     public void store(SignedLicense license) throws IOException
     {
         this.licenseStore.store(getReference(), license);
+    }
+
+    /**
+     * @param licenseId a license id
+     * @return the signed license, or {@code null} if it isn't in the store
+     * @throws IOException if the license file can't be read
+     */
+    public SignedLicense get(LicenseId licenseId) throws IOException
+    {
+        License license = this.licenseStore.retrieve(getReference(), licenseId);
+        return license instanceof SignedLicense ? (SignedLicense) license : null;
     }
 
     /**

@@ -105,6 +105,9 @@ public class LicenseRecordStore
 
     private static final String FROM_RECORDS = "from doc.object(License.Code.LicenseDetailsClass) license ";
 
+    private static final String LATEST_FIRST =
+        "order by license.issueDate desc, license.expirationDate desc, doc.creationDate desc";
+
     /**
      * Same filter and order as the {@code #getLicenseQuery} macro, restricted to the records that have a signed
      * license (the macro also matches the requests that Sales hasn't generated yet).
@@ -112,10 +115,11 @@ public class LicenseRecordStore
     private static final String LATEST_QUERY = FROM_RECORDS
         + "where license.instanceId = :instanceId "
         + "and (license.featureId = :featureId or :featureId member of license.dependentFeatureIds) "
-        + "and license.hasLicense = 1 "
-        + "order by license.issueDate desc, license.expirationDate desc, doc.creationDate desc";
+        + "and license.hasLicense = 1 " + LATEST_FIRST;
 
     private static final String INSTANCE_QUERY = FROM_RECORDS + "where license.instanceId = :instanceId";
+
+    private static final String GENERATED_QUERY = INSTANCE_QUERY + " and license.hasLicense = 1 " + LATEST_FIRST;
 
     private static final String INSTANCE_ID_PARAMETER = INSTANCE_ID;
 
@@ -229,6 +233,21 @@ public class LicenseRecordStore
     {
         return !createQuery(INSTANCE_QUERY).bindValue(INSTANCE_ID_PARAMETER, instanceId).setLimit(1).execute()
             .isEmpty();
+    }
+
+    /**
+     * @param instanceId an instance id
+     * @return the records of the generated licenses of the instance, the latest issued first
+     * @throws XWikiException if the records can't be read
+     * @throws QueryException if the query fails
+     */
+    public List<LicenseRecord> getGenerated(String instanceId) throws XWikiException, QueryException
+    {
+        List<LicenseRecord> records = new ArrayList<>();
+        for (Object fullName : createQuery(GENERATED_QUERY).bindValue(INSTANCE_ID_PARAMETER, instanceId).execute()) {
+            read(resolve((String) fullName)).ifPresent(records::add);
+        }
+        return records;
     }
 
     private Query createQuery(String statement) throws QueryException

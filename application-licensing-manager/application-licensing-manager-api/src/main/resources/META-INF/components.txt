@@ -8,3 +8,13 @@ com.xwiki.licensing.internal.issuing.model.InstanceClassInitializer
 com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer
 com.xwiki.licensing.internal.issuing.model.ProductClassInitializer
 com.xwiki.licensing.internal.issuing.GeneratedLicenseStore
+com.xwiki.licensing.internal.issuing.DefaultLicenseIssuingService
+com.xwiki.licensing.internal.issuing.InstanceRecordStore
+com.xwiki.licensing.internal.issuing.IssuanceWriter
+com.xwiki.licensing.internal.issuing.IssuingAlerts
+com.xwiki.licensing.internal.issuing.LicenseFactory
+com.xwiki.licensing.internal.issuing.LicenseViews
+com.xwiki.licensing.internal.issuing.PolicyValidator
+com.xwiki.licensing.internal.issuing.UsageCounter
+com.xwiki.licensing.internal.rest.DefaultLicensesResource
+com.xwiki.licensing.internal.rest.DefaultPolicyResource
