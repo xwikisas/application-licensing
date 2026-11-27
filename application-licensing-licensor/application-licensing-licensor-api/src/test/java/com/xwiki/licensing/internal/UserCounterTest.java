@@ -26,6 +26,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.xwiki.observation.EventListener;
+import org.xwiki.observation.ObservationManager;
+import org.xwiki.observation.remote.RemoteObservationManagerContext;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -37,8 +39,12 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.licensing.internal.UserCounter.UserListener;
+import com.xwiki.licensing.internal.helpers.events.ActiveUserAddedEvent;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 
 /**
@@ -157,7 +163,72 @@ public class UserCounterTest
         verify(fooQuery, times(2)).execute();
     }
 
-    private Query createMockQuery(String queryName) {
+    @Test
+    public void notifyActiveUserAdded() throws Exception
+    {
+        ObservationManager observationManager = this.mocker.registerMockComponent(ObservationManager.class);
+        this.mocker.registerMockComponent(RemoteObservationManagerContext.class);
+        EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.HINT);
+
+        XWikiDocument createdActiveUser = mockUserDocument(null, 1);
+        XWikiDocument enabledUser = mockUserDocument(0, 1);
+        XWikiDocument updatedActiveUser = mockUserDocument(1, 1);
+        XWikiDocument createdInactiveUser = mockUserDocument(null, 0);
+        XWikiDocument blankPage = mock(XWikiDocument.class, "blankPage");
+        when(blankPage.getOriginalDocument()).thenReturn(blankPage);
+        userListener.onEvent(null, blankPage, null);
+        userListener.onEvent(null, createdActiveUser, null);
+        userListener.onEvent(null, enabledUser, null);
+        userListener.onEvent(null, updatedActiveUser, null);
+        userListener.onEvent(null, createdInactiveUser, null);
+
+        verify(observationManager).notify(any(ActiveUserAddedEvent.class), same(createdActiveUser), isNull());
+        verify(observationManager).notify(any(ActiveUserAddedEvent.class), same(enabledUser), isNull());
+        verifyNoMoreInteractions(observationManager);
+    }
+
+    @Test
+    public void notifyActiveUserAddedOnlyOnLocalEvents() throws Exception
+    {
+        ObservationManager observationManager = this.mocker.registerMockComponent(ObservationManager.class);
+        RemoteObservationManagerContext remoteContext =
+            this.mocker.registerMockComponent(RemoteObservationManagerContext.class);
+        when(remoteContext.isRemoteState()).thenReturn(true);
+        when(this.wikiDescriptorManager.getAllIds()).thenReturn(Collections.emptyList());
+        EventListener userListener = this.mocker.getInstance(EventListener.class, UserListener.HINT);
+
+        // Fill the cache, so that we can check it is still invalidated on remote events.
+        this.mocker.getComponentUnderTest().getUserCount();
+        userListener.onEvent(null, mockUserDocument(null, 1), null);
+        this.mocker.getComponentUnderTest().getUserCount();
+
+        verify(this.wikiDescriptorManager, times(2)).getAllIds();
+        verifyNoInteractions(observationManager);
+    }
+
+    /**
+     * @param oldActive the value of the active property before the save, or {@code null} if the document was not a user
+     * @param newActive the value of the active property after the save
+     */
+    private XWikiDocument mockUserDocument(Integer oldActive, int newActive)
+    {
+        XWikiDocument oldDocument = mock(XWikiDocument.class);
+        if (oldActive != null) {
+            BaseObject oldObject = mock(BaseObject.class);
+            when(oldObject.getIntValue(UserListener.ACTIVE)).thenReturn(oldActive);
+            when(oldDocument.getXObject(UserListener.USER_CLASS)).thenReturn(oldObject);
+        }
+
+        BaseObject newObject = mock(BaseObject.class);
+        when(newObject.getIntValue(UserListener.ACTIVE)).thenReturn(newActive);
+        XWikiDocument newDocument = mock(XWikiDocument.class);
+        when(newDocument.getOriginalDocument()).thenReturn(oldDocument);
+        when(newDocument.getXObject(UserListener.USER_CLASS)).thenReturn(newObject);
+        return newDocument;
+    }
+
+    private Query createMockQuery(String queryName)
+    {
         Query query = mock(Query.class, queryName);
         when(query.addFilter(any())).thenReturn(query);
         return query;

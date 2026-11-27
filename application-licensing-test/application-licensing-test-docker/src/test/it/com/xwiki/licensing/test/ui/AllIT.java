@@ -19,8 +19,11 @@
  */
 package com.xwiki.licensing.test.ui;
 
+import org.junit.jupiter.api.ClassOrderer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestClassOrder;
 import org.xwiki.test.docker.junit5.UITest;
 
 /**
@@ -63,11 +66,22 @@ import org.xwiki.test.docker.junit5.UITest;
         "org.xwiki.platform:xwiki-platform-jodatime:15.10"
     } , resolveExtraJARs = true
 )
+@TestClassOrder(ClassOrderer.OrderAnnotation.class)
 class AllIT
 {
     @Nested
+    @Order(1)
     @DisplayName("Overall Licensing UI")
     class NestedLicensingIT extends LicensingIT
+    {
+    }
+
+    // The notification tests add a license for the licensed example extension, so they have to run after the online license
+    // checks tests, which need the example extension to be unlicensed.
+    @Nested
+    @Order(2)
+    @DisplayName("Licensing notifications")
+    class NestedNotificationIT extends NotificationIT
     {
     }
 }

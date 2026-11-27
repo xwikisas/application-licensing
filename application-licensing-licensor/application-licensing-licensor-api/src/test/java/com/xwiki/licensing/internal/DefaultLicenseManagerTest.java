@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.instance.InstanceId;
+import org.xwiki.observation.ObservationManager;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
 import com.xwiki.licensing.FileLicenseStoreReference;
@@ -43,11 +44,17 @@ import com.xwiki.licensing.LicenseValidator;
 import com.xwiki.licensing.LicensedExtensionManager;
 import com.xwiki.licensing.LicensedFeatureId;
 import com.xwiki.licensing.LicensingConfiguration;
+import com.xwiki.licensing.internal.helpers.events.LicenseAddedEvent;
 import com.xwiki.licensing.internal.test.LicenseValidatorWrapper;
 
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -70,6 +77,10 @@ public class DefaultLicenseManagerTest
 
     private ExtensionId testAppId = new ExtensionId("com.xwiki.test:application-test", "1.0");
 
+    private LicenseValidator licenseValidator = mock(LicenseValidator.class);
+
+    private ObservationManager observationManager;
+
     @Before
     public void configure() throws Exception
     {
@@ -91,11 +102,12 @@ public class DefaultLicenseManagerTest
         FileLicenseStoreReference storeReference = new FileLicenseStoreReference(licenseStorePath, true);
         when(store.getIterable(storeReference)).thenReturn(this.licenses);
 
-        LicenseValidator licenseValidator = mock(LicenseValidator.class);
-        this.mocker.registerComponent(LicenseValidator.class, new LicenseValidatorWrapper(licenseValidator));
-        when(licenseValidator.isApplicable(this.validLicense)).thenReturn(true);
-        when(licenseValidator.isSigned(this.validLicense)).thenReturn(true);
-        when(licenseValidator.isValid(this.validLicense)).thenReturn(true);
+        this.mocker.registerComponent(LicenseValidator.class, new LicenseValidatorWrapper(this.licenseValidator));
+        when(this.licenseValidator.isApplicable(this.validLicense)).thenReturn(true);
+        when(this.licenseValidator.isSigned(this.validLicense)).thenReturn(true);
+        when(this.licenseValidator.isValid(this.validLicense)).thenReturn(true);
+
+        this.observationManager = this.mocker.registerMockComponent(ObservationManager.class);
 
         LicensedExtensionManager licensedExtensionManager = this.mocker.getInstance(LicensedExtensionManager.class);
         when(licensedExtensionManager.getLicensedExtensions()).thenReturn(Collections.singleton(testAppId));
@@ -119,5 +131,31 @@ public class DefaultLicenseManagerTest
         assertSame(this.validLicense, licenseManager.get(this.testAppId));
         assertTrue(CollectionUtils.isEqualCollection(Collections.singletonList(this.validLicense),
             licenseManager.getUsedLicenses()));
+    }
+
+    @Test
+    public void licenseAddedEventIsOnlySentForAddedLicenses() throws Exception
+    {
+        LicenseManager licenseManager = this.mocker.getComponentUnderTest();
+
+        // Wait for the License Manager initialization thread to execute.
+        Thread.sleep(1000);
+
+        // Loading the stored licenses at startup is not an addition.
+        verify(this.observationManager, never()).notify(any(), any(), any());
+
+        License newLicense = new License();
+        newLicense.setId(new LicenseId());
+        newLicense.setType(LicenseType.PAID);
+        newLicense.addFeatureId(new LicensedFeatureId("com.xwiki.test:other-application"));
+        when(this.licenseValidator.isApplicable(newLicense)).thenReturn(true);
+        when(this.licenseValidator.isSigned(newLicense)).thenReturn(true);
+
+        assertTrue(licenseManager.add(newLicense));
+
+        verify(this.observationManager).notify(
+            argThat(
+                event -> event instanceof LicenseAddedEvent && ((LicenseAddedEvent) event).getLicense() == newLicense),
+            isNull(), isNull());
     }
 }

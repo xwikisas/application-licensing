@@ -173,6 +173,12 @@ public class DefaultLicensingConfiguration implements LicensingConfiguration
     }
 
     @Override
+    public String getUserLimitWarningThreshold()
+    {
+        return this.notificationConfig.getProperty("userLimitWarningThreshold");
+    }
+
+    @Override
     public List<String> getNotifiedGroups()
     {
         return convertObjectToStringList(notificationConfig.getProperty("notifiedGroups", new ArrayList<>()));
