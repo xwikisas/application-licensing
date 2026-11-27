@@ -59,7 +59,7 @@ public final class Policy
     private static final String NONE = "none";
 
     /**
-     * Who is written into the license as licensee.
+     * Who is written into the license as licensee. A policy allows one or more modes and the request picks one.
      */
     public enum LicenseeMode
     {
@@ -117,7 +117,9 @@ public final class Policy
 
     private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
 
-    private LicenseeMode licenseeMode = LicenseeMode.PARTNER;
+    private Set<LicenseeMode> licenseeModes = EnumSet.of(LicenseeMode.PARTNER);
+
+    private LicenseeMode defaultLicenseeMode = LicenseeMode.PARTNER;
 
     private Licensee licensee = new Licensee(null, null, null);
 
@@ -240,11 +242,19 @@ public final class Policy
     }
 
     /**
-     * @return who is written into the license as licensee
+     * @return the licensee modes the account may request
      */
-    public LicenseeMode getLicenseeMode()
+    public Set<LicenseeMode> getLicenseeModes()
     {
-        return this.licenseeMode;
+        return this.licenseeModes;
+    }
+
+    /**
+     * @return the licensee mode used when the request has none, always one of {@link #getLicenseeModes()}
+     */
+    public LicenseeMode getDefaultLicenseeMode()
+    {
+        return this.defaultLicenseeMode;
     }
 
     /**
@@ -514,15 +524,20 @@ public final class Policy
         }
 
         /**
-         * @param mode who is written into the license as licensee
+         * @param modes the licensee modes the account may request, {@code null} or empty for the default
+         *            ({@link LicenseeMode#PARTNER} only)
+         * @param defaultMode the licensee mode used when the request has none; when it isn't one of the allowed modes,
+         *            the first allowed mode (in declaration order) is used
          * @param licensee the partner details
          * @return this builder
          */
-        public Builder licensee(LicenseeMode mode, Licensee licensee)
+        public Builder licensee(Set<LicenseeMode> modes, LicenseeMode defaultMode, Licensee licensee)
         {
-            if (mode != null) {
-                this.policy.licenseeMode = mode;
+            if (modes != null && !modes.isEmpty()) {
+                this.policy.licenseeModes = EnumSet.copyOf(modes);
             }
+            this.policy.defaultLicenseeMode = this.policy.licenseeModes.contains(defaultMode) ? defaultMode
+                : this.policy.licenseeModes.iterator().next();
             this.policy.licensee = licensee;
             return this;
         }

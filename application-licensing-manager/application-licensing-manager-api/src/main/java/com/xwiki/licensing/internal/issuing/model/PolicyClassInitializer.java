@@ -112,9 +112,14 @@ public class PolicyClassInitializer extends AbstractApiClassInitializer
     public static final String MAX_BATCH_SIZE = "maxBatchSize";
 
     /**
-     * Who is written into the license as licensee ({@code partner}, {@code customer} or {@code none}).
+     * Who the account may write into the license as licensee ({@code partner}, {@code customer} or {@code none}).
      */
-    public static final String LICENSEE_MODE = "licenseeMode";
+    public static final String LICENSEE_MODES = "licenseeModes";
+
+    /**
+     * The licensee mode used when the request has none.
+     */
+    public static final String DEFAULT_LICENSEE_MODE = "defaultLicenseeMode";
 
     /**
      * The licensee first name used in {@code partner} mode.
@@ -199,6 +204,8 @@ public class PolicyClassInitializer extends AbstractApiClassInitializer
 
     private static final String YES_NO = "yesno";
 
+    private static final String LICENSEE_MODE_VALUES = "partner=Partner|customer=Customer|none=None";
+
     /**
      * Default constructor.
      */
@@ -221,8 +228,8 @@ public class PolicyClassInitializer extends AbstractApiClassInitializer
         xclass.addNumberField(DEFAULT_USER_COUNT, "Default user count per instance", 10, LONG);
         xclass.addBooleanField(MAY_CHOOSE_INSTANCE_ID, "May choose instance ids", YES_NO, false);
         xclass.addNumberField(MAX_BATCH_SIZE, "Maximum batch size", 10, INTEGER);
-        xclass.addStaticListField(LICENSEE_MODE, "Licensee mode",
-            "partner=Partner|customer=Customer|none=None", "partner");
+        addCheckboxListField(xclass, LICENSEE_MODES, "Licensee modes", LICENSEE_MODE_VALUES);
+        xclass.addStaticListField(DEFAULT_LICENSEE_MODE, "Default licensee mode", LICENSEE_MODE_VALUES, "partner");
         xclass.addTextField(LICENSEE_FIRST_NAME, "Licensee first name", 60);
         xclass.addTextField(LICENSEE_LAST_NAME, "Licensee last name", 60);
         xclass.addEmailField(LICENSEE_EMAIL, "Licensee email", 60);

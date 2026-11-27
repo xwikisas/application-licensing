@@ -54,7 +54,7 @@ class ApiClassInitializersTest
 
         assertTrue(initializer.isMainWikiOnly());
         assertEquals(List.of("License", "Code", "API"), PolicyClassInitializer.CODE_SPACE);
-        assertEquals(27, xclass.getPropertyNames().length);
+        assertEquals(28, xclass.getPropertyNames().length);
         assertFalse(((UsersClass) xclass.get(PolicyClassInitializer.ACCOUNT)).isMultiSelect());
         assertEquals(1, ((BooleanClass) xclass.get(PolicyClassInitializer.ENABLED)).getDefaultValue());
         assertEquals(0, ((BooleanClass) xclass.get(PolicyClassInitializer.MAY_CHOOSE_INSTANCE_ID)).getDefaultValue());
@@ -67,10 +67,16 @@ class ApiClassInitializersTest
 
         StaticListClass environments = (StaticListClass) xclass.get(PolicyClassInitializer.ALLOWED_ENVIRONMENTS);
         assertEquals("prod=Production|test=Test", environments.getValues());
+        StaticListClass licenseeModes = (StaticListClass) xclass.get(PolicyClassInitializer.LICENSEE_MODES);
+        assertTrue(licenseeModes.isMultiSelect());
+        assertEquals("checkbox", licenseeModes.getDisplayType());
+        assertEquals("partner=Partner|customer=Customer|none=None", licenseeModes.getValues());
         assertEquals("partner",
-            ((StaticListClass) xclass.get(PolicyClassInitializer.LICENSEE_MODE)).getDefaultValue());
+            ((StaticListClass) xclass.get(PolicyClassInitializer.DEFAULT_LICENSEE_MODE)).getDefaultValue());
         assertEquals("long", ((NumberClass) xclass.get(PolicyClassInitializer.MAX_USER_COUNT)).getNumberType());
-        assertEquals(0, ((DateClass) xclass.get(PolicyClassInitializer.PROD_EXPIRATION_LIMIT)).getEmptyIsToday());
+        DateClass expirationLimit = (DateClass) xclass.get(PolicyClassInitializer.PROD_EXPIRATION_LIMIT);
+        assertEquals(0, expirationLimit.getEmptyIsToday());
+        assertEquals("dd/MM/yyyy", expirationLimit.getDateFormat());
         assertInstanceOf(GroupsClass.class, xclass.get(PolicyClassInitializer.ALERT_RECIPIENTS));
     }
 
@@ -102,5 +108,8 @@ class ApiClassInitializersTest
             List.of(xclass.getPropertyNames()));
         assertEquals("api=API|import=Import",
             ((StaticListClass) xclass.get(InstanceClassInitializer.ORIGIN)).getValues());
+        // The creation date keeps the platform default format, which includes the time.
+        assertEquals("dd/MM/yyyy HH:mm:ss",
+            ((DateClass) xclass.get(InstanceClassInitializer.CREATED_DATE)).getDateFormat());
     }
 }

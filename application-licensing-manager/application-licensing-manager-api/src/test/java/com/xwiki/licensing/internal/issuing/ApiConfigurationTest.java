@@ -103,7 +103,8 @@ class ApiConfigurationTest
             policy.setLongValue(PolicyClassInitializer.DEFAULT_USER_COUNT, 100L);
             policy.setIntValue(PolicyClassInitializer.MAY_CHOOSE_INSTANCE_ID, 1);
             policy.setIntValue(PolicyClassInitializer.MAX_BATCH_SIZE, 20);
-            policy.setStringValue(PolicyClassInitializer.LICENSEE_MODE, "customer");
+            policy.setStringListValue(PolicyClassInitializer.LICENSEE_MODES, List.of("customer", "unknown", "none"));
+            policy.setStringValue(PolicyClassInitializer.DEFAULT_LICENSEE_MODE, "none");
             policy.setStringValue(PolicyClassInitializer.LICENSEE_FIRST_NAME, "Jane");
             policy.setStringValue(PolicyClassInitializer.LICENSEE_LAST_NAME, "Doe");
             policy.setStringValue(PolicyClassInitializer.LICENSEE_EMAIL, "jane@example.com");
@@ -134,7 +135,8 @@ class ApiConfigurationTest
         assertEquals(100L, policy.getDefaultUserCount());
         assertTrue(policy.mayChooseInstanceId());
         assertEquals(20, policy.getMaxBatchSize());
-        assertEquals(Policy.LicenseeMode.CUSTOMER, policy.getLicenseeMode());
+        assertEquals(Set.of(Policy.LicenseeMode.CUSTOMER, Policy.LicenseeMode.NONE), policy.getLicenseeModes());
+        assertEquals(Policy.LicenseeMode.NONE, policy.getDefaultLicenseeMode());
         assertEquals("Jane", policy.getLicensee().getFirstName());
         assertEquals("Doe", policy.getLicensee().getLastName());
         assertEquals("jane@example.com", policy.getLicensee().getEmail());
@@ -157,7 +159,7 @@ class ApiConfigurationTest
     {
         savePolicy("partner", policy -> {
             policy.setLargeStringValue(PolicyClassInitializer.ACCOUNT, "XWiki.partner");
-            policy.setStringValue(PolicyClassInitializer.LICENSEE_MODE, "unknown");
+            policy.setStringValue(PolicyClassInitializer.DEFAULT_LICENSEE_MODE, "unknown");
         });
 
         Policy policy = this.configuration.getPolicy(ACCOUNT).get();
@@ -168,7 +170,8 @@ class ApiConfigurationTest
         assertNull(policy.getMaxUserCount());
         assertFalse(policy.mayChooseInstanceId());
         assertEquals(10, policy.getMaxBatchSize());
-        assertEquals(Policy.LicenseeMode.PARTNER, policy.getLicenseeMode());
+        assertEquals(Set.of(Policy.LicenseeMode.PARTNER), policy.getLicenseeModes());
+        assertEquals(Policy.LicenseeMode.PARTNER, policy.getDefaultLicenseeMode());
         assertNull(policy.getLicensee().getEmail());
         assertEquals(25, policy.getMaxIssuancesPerDay());
         assertNull(policy.getMaxActiveProdInstances());

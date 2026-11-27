@@ -46,7 +46,7 @@ class PolicyTest
     @Test
     void defaults()
     {
-        Policy policy = Policy.builder(ACCOUNT).enabled(null).maxBatchSize(null).licensee(null, null)
+        Policy policy = Policy.builder(ACCOUNT).enabled(null).maxBatchSize(null).licensee(null, null, null)
             .notifications(false, null).maxIssuancesPerDay(null).quota(null, null, null)
             .durations(Environment.PROD, List.of()).durations(Environment.TEST, List.of()).build();
 
@@ -61,7 +61,8 @@ class PolicyTest
         assertNull(policy.getDefaultUserCount());
         assertFalse(policy.mayChooseInstanceId());
         assertEquals(10, policy.getMaxBatchSize());
-        assertEquals(Policy.LicenseeMode.PARTNER, policy.getLicenseeMode());
+        assertEquals(Set.of(Policy.LicenseeMode.PARTNER), policy.getLicenseeModes());
+        assertEquals(Policy.LicenseeMode.PARTNER, policy.getDefaultLicenseeMode());
         assertNull(policy.getDefaultSupport());
         assertFalse(policy.isSendExpirationReminders());
         assertEquals("none", policy.getSalesNotification());
@@ -69,6 +70,22 @@ class PolicyTest
         assertEquals(Policy.QuotaMode.ALERT, policy.getQuotaMode());
         assertEquals("none", policy.getQuotaPeriod());
         assertTrue(policy.getAlertRecipients().isEmpty());
+    }
+
+    @Test
+    void defaultLicenseeMode()
+    {
+        Set<Policy.LicenseeMode> modes = Set.of(Policy.LicenseeMode.NONE, Policy.LicenseeMode.CUSTOMER);
+
+        Policy policy = Policy.builder(ACCOUNT).licensee(modes, Policy.LicenseeMode.NONE, null).build();
+        assertEquals(modes, policy.getLicenseeModes());
+        assertEquals(Policy.LicenseeMode.NONE, policy.getDefaultLicenseeMode());
+
+        // A default that isn't allowed falls back on the first allowed mode.
+        assertEquals(Policy.LicenseeMode.CUSTOMER, Policy.builder(ACCOUNT)
+            .licensee(modes, Policy.LicenseeMode.PARTNER, null).build().getDefaultLicenseeMode());
+        assertEquals(Policy.LicenseeMode.CUSTOMER,
+            Policy.builder(ACCOUNT).licensee(modes, null, null).build().getDefaultLicenseeMode());
     }
 
     @Test

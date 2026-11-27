@@ -56,13 +56,14 @@ import com.xwiki.licensing.internal.issuing.model.ProductClassInitializer;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.ALERT_RECIPIENTS;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.ALLOWED_ENVIRONMENTS;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.CONTRACT_RENEWAL_DATE;
+import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.DEFAULT_LICENSEE_MODE;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.DEFAULT_SUPPORT;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.DEFAULT_USER_COUNT;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.ENABLED;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.LICENSEE_EMAIL;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.LICENSEE_FIRST_NAME;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.LICENSEE_LAST_NAME;
-import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.LICENSEE_MODE;
+import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.LICENSEE_MODES;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.MAX_ACTIVE_PROD_INSTANCES;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.MAX_ACTIVE_TEST_INSTANCES;
 import static com.xwiki.licensing.internal.issuing.model.PolicyClassInitializer.MAX_BATCH_SIZE;
@@ -157,7 +158,8 @@ public class ApiConfiguration
             .userCounts(getLong(policy, MAX_USER_COUNT), getLong(policy, DEFAULT_USER_COUNT))
             .mayChooseInstanceId(Boolean.TRUE.equals(getBoolean(policy, MAY_CHOOSE_INSTANCE_ID)))
             .maxBatchSize(getInteger(policy, MAX_BATCH_SIZE))
-            .licensee(getEnum(policy, LICENSEE_MODE, Policy.LicenseeMode.class),
+            .licensee(getEnums(policy, LICENSEE_MODES, Policy.LicenseeMode.class),
+                getEnum(policy, DEFAULT_LICENSEE_MODE, Policy.LicenseeMode.class),
                 new Policy.Licensee(getString(policy, LICENSEE_FIRST_NAME), getString(policy, LICENSEE_LAST_NAME),
                     getString(policy, LICENSEE_EMAIL)))
             .support(getList(policy, SUPPORT_LEVELS), getString(policy, DEFAULT_SUPPORT))
@@ -333,9 +335,25 @@ public class ApiConfiguration
         return environments;
     }
 
+    private static <E extends Enum<E>> Set<E> getEnums(BaseObject object, String name, Class<E> type)
+    {
+        Set<E> constants = EnumSet.noneOf(type);
+        for (String value : getList(object, name)) {
+            E constant = toEnum(value, type);
+            if (constant != null) {
+                constants.add(constant);
+            }
+        }
+        return constants;
+    }
+
     private static <E extends Enum<E>> E getEnum(BaseObject object, String name, Class<E> type)
     {
-        String value = getString(object, name);
+        return toEnum(getString(object, name), type);
+    }
+
+    private static <E extends Enum<E>> E toEnum(String value, Class<E> type)
+    {
         if (value != null) {
             for (E constant : type.getEnumConstants()) {
                 if (constant.name().equalsIgnoreCase(value)) {

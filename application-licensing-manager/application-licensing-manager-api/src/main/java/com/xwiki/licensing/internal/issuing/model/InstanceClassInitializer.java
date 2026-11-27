@@ -110,6 +110,6 @@ public class InstanceClassInitializer extends AbstractApiClassInitializer
         xclass.addTextField(DOMAIN, "Domain", 60);
         xclass.addTextField(PRODUCT, "Product", 30);
         xclass.addStaticListField(ORIGIN, "Origin", "api=API|import=Import");
-        xclass.addDateField(CREATED_DATE, "Created", DATE_FORMAT + " HH:mm:ss", 0);
+        xclass.addDateField(CREATED_DATE, "Created", null, 0);
     }
 }

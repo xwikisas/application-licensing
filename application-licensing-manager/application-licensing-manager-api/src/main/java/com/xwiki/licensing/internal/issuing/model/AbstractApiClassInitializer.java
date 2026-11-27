@@ -46,13 +46,6 @@ public abstract class AbstractApiClassInitializer extends AbstractMandatoryClass
     protected static final String ENVIRONMENT_VALUES = "prod=Production|test=Test";
 
     /**
-     * The date format used by the date properties.
-     */
-    protected static final String DATE_FORMAT = "dd/MM/yyyy";
-
-    private static final String SEPARATORS = "|, ";
-
-    /**
      * @param classReference the reference of the class page, in {@link #CODE_SPACE}
      */
     protected AbstractApiClassInitializer(LocalDocumentReference classReference)
@@ -75,7 +68,7 @@ public abstract class AbstractApiClassInitializer extends AbstractMandatoryClass
      */
     protected void addTextListField(BaseClass xclass, String name, String prettyName)
     {
-        xclass.addStaticListField(name, prettyName, 60, true, false, "", "input", SEPARATORS);
+        xclass.addStaticListField(name, prettyName, 60, true, false, "", "input", null);
     }
 
     /**
@@ -88,11 +81,13 @@ public abstract class AbstractApiClassInitializer extends AbstractMandatoryClass
      */
     protected void addCheckboxListField(BaseClass xclass, String name, String prettyName, String values)
     {
-        xclass.addStaticListField(name, prettyName, 1, true, false, values, "checkbox", SEPARATORS);
+        xclass.addStaticListField(name, prettyName, 1, true, false, values, "checkbox", null);
     }
 
     /**
-     * Adds a date property that stays empty when no value is entered.
+     * Adds a day-precision date property that stays empty when no value is entered. The format is set because the
+     * platform default includes the time, which is meaningless for these dates (xproperties don't follow the wiki
+     * date format preference).
      *
      * @param xclass the class to update
      * @param name the property name
@@ -100,6 +95,6 @@ public abstract class AbstractApiClassInitializer extends AbstractMandatoryClass
      */
     protected void addOptionalDateField(BaseClass xclass, String name, String prettyName)
     {
-        xclass.addDateField(name, prettyName, DATE_FORMAT, 0);
+        xclass.addDateField(name, prettyName, "dd/MM/yyyy", 0);
     }
 }
