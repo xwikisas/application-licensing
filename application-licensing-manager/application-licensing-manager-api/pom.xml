@@ -36,7 +36,7 @@
     <xwiki.extension.name>License Manager API</xwiki.extension.name>
     <xwiki.extension.category>API</xwiki.extension.category>
     <xwiki.extension.namespaces>{root}</xwiki.extension.namespaces>
-    <xwiki.jacoco.instructionRatio>0.47</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>1.00</xwiki.jacoco.instructionRatio>
   </properties>
   <dependencies>
     <dependency>
