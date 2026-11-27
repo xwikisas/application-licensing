@@ -88,6 +88,23 @@
       <artifactId>xwiki-commons-crypto-store-api</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <!-- Needed to access the certificates stored in wiki pages (License.Certificates). -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-crypto-store-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <!-- Needed to read and write the license, policy, product and instance records. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-query-manager</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.commons</groupId>
@@ -100,6 +117,13 @@
       <artifactId>application-licensing-common-api</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-test-oldcore</artifactId>
+      <version>${platform.version}</version>
+      <type>pom</type>
       <scope>test</scope>
     </dependency>
   </dependencies>
