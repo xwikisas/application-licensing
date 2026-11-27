@@ -240,6 +240,22 @@ class LicenseRecordStoreTest
         assertFalse(this.store.hasRecords("other"));
     }
 
+    @Test
+    void getGenerated() throws Exception
+    {
+        this.store.create(createRecord());
+        Query query = mockQuery("from doc.object(License.Code.LicenseDetailsClass) license "
+            + "where license.instanceId = :instanceId and license.hasLicense = 1 "
+            + "order by license.issueDate desc, license.expirationDate desc, doc.creationDate desc");
+        // A record deleted since the query ran is skipped.
+        when(query.<String>execute()).thenReturn(List.of("License.Data." + LICENSE_ID, "License.Data.deleted"));
+
+        List<LicenseRecord> records = this.store.getGenerated(INSTANCE_ID);
+
+        assertEquals(1, records.size());
+        assertEquals(LICENSE_ID, records.get(0).getLicenseId());
+    }
+
     private Query mockQuery(String statement) throws Exception
     {
         Query query = mock(Query.class);
